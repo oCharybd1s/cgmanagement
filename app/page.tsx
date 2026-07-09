@@ -37,8 +37,8 @@ export default function Home() {
 
     const nextResults: CheckResult[] = [
       { label: "Vercel deployment", status: "running", message: "Memeriksa endpoint kesehatan..." },
-      { label: "Firebase Auth", status: "running", message: "Mencoba login anonim..." },
-      { label: "Firestore", status: "running", message: "Menguji koneksi write/delete..." },
+      { label: "Firebase Auth", status: "running", message: "Mencoba akun email/password via Admin SDK..." },
+      { label: "Firestore", status: "running", message: "Menguji write/delete dengan aturan auth-required..." },
     ];
     setResults(nextResults);
 
@@ -117,7 +117,7 @@ export default function Home() {
               <p className="text-sm font-semibold uppercase tracking-[0.3em] text-sky-300">CG Management</p>
               <h1 className="mt-2 text-3xl font-semibold sm:text-4xl">Halaman uji Auth, Firestore, dan status Vercel</h1>
               <p className="mt-3 text-base leading-7 text-slate-300">
-                Halaman ini memeriksa apakah koneksi Firebase Auth, Firestore, dan deployment Vercel Anda sedang sehat.
+                Halaman ini memeriksa apakah koneksi Firebase Auth, Firestore, dan deployment Vercel Anda sedang sehat dengan skenario email/password dan rules auth-required.
               </p>
             </div>
             <button
@@ -149,8 +149,8 @@ export default function Home() {
           <h3 className="text-lg font-semibold text-white">Yang akan diperiksa</h3>
           <ul className="mt-3 list-disc space-y-2 pl-5">
             <li>Endpoint kesehatan aplikasi di deployment saat ini untuk memastikan Vercel merespons.</li>
-            <li>Firebase Auth melalui login anonim sebagai uji koneksi awal.</li>
-            <li>Firestore melalui operasi tulis dan hapus sederhana di koleksi temporary.</li>
+            <li>Firebase Auth melalui pembuatan dan penghapusan akun test dengan email/password.</li>
+            <li>Firestore melalui operasi tulis dan hapus sederhana yang sesuai dengan aturan request.auth != null.</li>
           </ul>
           <p className="mt-4 text-slate-400">
             Pastikan variabel lingkungan Firebase sudah tersedia seperti NEXT_PUBLIC_FIREBASE_API_KEY, NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN, NEXT_PUBLIC_FIREBASE_PROJECT_ID, NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET, NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID, dan NEXT_PUBLIC_FIREBASE_APP_ID.

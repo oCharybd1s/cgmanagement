@@ -7,9 +7,12 @@ export async function GET() {
 
     const authResult = await (async () => {
       try {
+        const testEmail = `health-${Date.now()}@example.com`;
+        const testPassword = `Health-${Date.now()}`;
+
         const testUser = await adminAuth.createUser({
-          email: `health-${Date.now()}@example.com`,
-          password: `health-${Date.now()}`,
+          email: testEmail,
+          password: testPassword,
         });
 
         await adminAuth.deleteUser(testUser.uid);
@@ -17,7 +20,7 @@ export async function GET() {
         return {
           ok: true,
           message: "Firebase Auth siap dipakai",
-          detail: `User test berhasil dibuat dan dihapus untuk ${testUser.uid.slice(0, 8)}...`,
+          detail: "User test berhasil dibuat dan dihapus dengan akun email/password.",
         };
       } catch (error) {
         return {
@@ -37,7 +40,7 @@ export async function GET() {
         return {
           ok: true,
           message: "Firestore siap dipakai",
-          detail: "Operasi write/delete berhasil dijalankan di Firestore.",
+          detail: "Operasi write/delete berhasil dijalankan dengan aturan yang mengharuskan auth.",
         };
       } catch (error) {
         return {
