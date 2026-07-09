@@ -1,9 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { getApps, initializeApp } from "firebase/app";
-import { getAuth, signInAnonymously, signOut } from "firebase/auth";
-import { collection, deleteDoc, doc, getFirestore, serverTimestamp, setDoc } from "firebase/firestore";
+import { useState } from "react";
 
 type CheckStatus = "idle" | "running" | "success" | "error";
 
@@ -13,21 +10,6 @@ type CheckResult = {
   message: string;
   detail?: string;
 };
-
-const FIREBASE_CONFIG = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? "AIzaSyDyBKZ5ZS9QvdV6LQfV6xqCgAxj1oY7unM",
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ?? "cgmanagement.firebaseapp.com",
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ?? "cgmanagement",
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ?? "cgmanagement.firebasestorage.app",
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ?? "347897744849",
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID ?? "1:347897744849:web:833ec327e5077fc330e4f0",
-};
-
-function getFirebaseConfig() {
-  const hasRequiredFields = Object.values(FIREBASE_CONFIG).every((value) => Boolean(value));
-
-  return hasRequiredFields ? FIREBASE_CONFIG : null;
-}
 
 function statusBadgeClass(status: CheckStatus) {
   switch (status) {
@@ -43,7 +25,6 @@ function statusBadgeClass(status: CheckStatus) {
 }
 
 export default function Home() {
-  const firebaseConfig = useMemo(() => getFirebaseConfig(), []);
   const [results, setResults] = useState<CheckResult[]>([
     { label: "Vercel deployment", status: "idle", message: "Belum diperiksa" },
     { label: "Firebase Auth", status: "idle", message: "Belum diperiksa" },
@@ -84,66 +65,41 @@ export default function Home() {
       };
     }
 
-    if (!firebaseConfig) {
+    try {
+      const firebaseResponse = await fetch("/api/firebase-check");
+      const firebaseData = await firebaseResponse.json();
+
+      if (!firebaseResponse.ok || !firebaseData?.ok) {
+        throw new Error(firebaseData?.error ?? "Endpoint Firebase gagal direspons");
+      }
+
+      const authResult = firebaseData?.checks?.auth;
+      const firestoreResult = firebaseData?.checks?.firestore;
+
       nextResults[1] = {
         label: "Firebase Auth",
-        status: "error",
-        message: "Konfigurasi Firebase belum lengkap",
-        detail: "Isi variabel NEXT_PUBLIC_FIREBASE_* di environment aplikasi.",
+        status: authResult?.ok ? "success" : "error",
+        message: authResult?.message ?? "Tidak ada hasil",
+        detail: authResult?.detail ?? "Tidak ada detail",
       };
+
       nextResults[2] = {
         label: "Firestore",
-        status: "error",
-        message: "Konfigurasi Firebase belum lengkap",
-        detail: "Isi variabel NEXT_PUBLIC_FIREBASE_* di environment aplikasi.",
-      };
-      setResults(nextResults);
-      setBusy(false);
-      return;
-    }
-
-    const app = getApps()[0] ?? initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    try {
-      const userCredential = await signInAnonymously(auth);
-      await signOut(auth);
-
-      nextResults[1] = {
-        label: "Firebase Auth",
-        status: "success",
-        message: "Login anonim berhasil",
-        detail: `User ${userCredential.user.uid.slice(0, 8)}... siap dipakai`,
+        status: firestoreResult?.ok ? "success" : "error",
+        message: firestoreResult?.message ?? "Tidak ada hasil",
+        detail: firestoreResult?.detail ?? "Tidak ada detail",
       };
     } catch (error) {
       nextResults[1] = {
         label: "Firebase Auth",
         status: "error",
-        message: "Login anonim gagal",
+        message: "Pemeriksaan Auth gagal",
         detail: error instanceof Error ? error.message : "Tidak ada detail",
       };
-    }
-
-    try {
-      const testDocRef = doc(collection(db, "health-checks"), `probe-${Date.now()}`);
-      await setDoc(testDocRef, {
-        source: "web-ui",
-        checkedAt: serverTimestamp(),
-      });
-      await deleteDoc(testDocRef);
-
-      nextResults[2] = {
-        label: "Firestore",
-        status: "success",
-        message: "Write dan delete berhasil",
-        detail: "Koneksi Firestore dapat digunakan untuk uji sederhana.",
-      };
-    } catch (error) {
       nextResults[2] = {
         label: "Firestore",
         status: "error",
-        message: "Koneksi Firestore gagal",
+        message: "Pemeriksaan Firestore gagal",
         detail: error instanceof Error ? error.message : "Tidak ada detail",
       };
     }
