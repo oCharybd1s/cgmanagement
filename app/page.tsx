@@ -14,19 +14,19 @@ type CheckResult = {
   detail?: string;
 };
 
+const FIREBASE_CONFIG = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? "AIzaSyDyBKZ5ZS9QvdV6LQfV6xqCgAxj1oY7unM",
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ?? "cgmanagement.firebaseapp.com",
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ?? "cgmanagement",
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ?? "cgmanagement.firebasestorage.app",
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ?? "347897744849",
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID ?? "1:347897744849:web:833ec327e5077fc330e4f0",
+};
+
 function getFirebaseConfig() {
-  const config = {
-    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  };
+  const hasRequiredFields = Object.values(FIREBASE_CONFIG).every((value) => Boolean(value));
 
-  const hasRequiredFields = Object.values(config).every((value) => Boolean(value));
-
-  return hasRequiredFields ? config : null;
+  return hasRequiredFields ? FIREBASE_CONFIG : null;
 }
 
 function statusBadgeClass(status: CheckStatus) {
