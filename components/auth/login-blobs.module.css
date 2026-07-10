@@ -1,0 +1,108 @@
+.scene {
+  position: absolute;
+  inset: 0;
+}
+
+.blob {
+  position: absolute;
+  border: 2px solid transparent;
+  background: transparent;
+  pointer-events: none;
+  transition: border-width 0.4s var(--ease-signature), filter 0.4s var(--ease-signature);
+}
+
+.scene:hover .blob {
+  border-width: 4px;
+}
+
+.blobA {
+  inset: 5%;
+  border-color: var(--chart-1);
+  filter: drop-shadow(0 0 9px oklch(from var(--chart-1) l c h / 0.45));
+  animation: morphA 7s linear infinite, spin 16s linear infinite;
+}
+
+.blobB {
+  inset: 6%;
+  border-color: var(--chart-2);
+  filter: drop-shadow(0 0 9px oklch(from var(--chart-2) l c h / 0.45));
+  animation: morphB 9s linear infinite, spin 21s linear infinite reverse;
+}
+
+.blobC {
+  inset: 7%;
+  border-color: var(--chart-3);
+  filter: drop-shadow(0 0 9px oklch(from var(--chart-3) l c h / 0.45));
+  animation: morphC 11s linear infinite, spin 26s linear infinite;
+}
+
+.blobD {
+  inset: 5.5%;
+  border-color: var(--chart-4);
+  filter: drop-shadow(0 0 9px oklch(from var(--chart-4) l c h / 0.5));
+  animation: morphD 13s linear infinite, spin 19s linear infinite reverse;
+}
+
+.blobE {
+  inset: 6.5%;
+  border-color: var(--chart-5);
+  filter: drop-shadow(0 0 9px oklch(from var(--chart-5) l c h / 0.5));
+  animation: morphE 10s linear infinite, spin 24s linear infinite;
+}
+
+.scene:hover .blobA {
+  filter: drop-shadow(0 0 16px oklch(from var(--chart-1) l c h / 0.7));
+}
+.scene:hover .blobB {
+  filter: drop-shadow(0 0 16px oklch(from var(--chart-2) l c h / 0.7));
+}
+.scene:hover .blobC {
+  filter: drop-shadow(0 0 16px oklch(from var(--chart-3) l c h / 0.7));
+}
+.scene:hover .blobD {
+  filter: drop-shadow(0 0 16px oklch(from var(--chart-4) l c h / 0.7));
+}
+.scene:hover .blobE {
+  filter: drop-shadow(0 0 16px oklch(from var(--chart-5) l c h / 0.7));
+}
+
+@keyframes morphA {
+  0%, 100% { border-radius: 41% 59% 56% 44% / 38% 62% 63% 37%; }
+  33% { border-radius: 63% 37% 41% 59% / 51% 47% 53% 49%; }
+  66% { border-radius: 49% 51% 63% 37% / 58% 42% 58% 42%; }
+}
+
+@keyframes morphB {
+  0%, 100% { border-radius: 58% 42% 38% 62% / 45% 55% 48% 52%; }
+  33% { border-radius: 35% 65% 60% 40% / 60% 40% 55% 45%; }
+  66% { border-radius: 65% 35% 45% 55% / 40% 60% 42% 58%; }
+}
+
+@keyframes morphC {
+  0%, 100% { border-radius: 48% 52% 65% 35% / 42% 58% 42% 58%; }
+  33% { border-radius: 65% 35% 48% 52% / 58% 42% 58% 42%; }
+  66% { border-radius: 40% 60% 55% 45% / 50% 50% 45% 55%; }
+}
+
+@keyframes morphD {
+  0%, 100% { border-radius: 55% 45% 48% 52% / 40% 60% 55% 45%; }
+  33% { border-radius: 42% 58% 60% 40% / 55% 45% 40% 60%; }
+  66% { border-radius: 60% 40% 42% 58% / 45% 55% 60% 40%; }
+}
+
+@keyframes morphE {
+  0%, 100% { border-radius: 45% 55% 60% 40% / 50% 50% 38% 62%; }
+  33% { border-radius: 60% 40% 45% 55% / 38% 62% 55% 45%; }
+  66% { border-radius: 50% 50% 55% 45% / 62% 38% 45% 55%; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blob {
+    animation: none !important;
+  }
+}
