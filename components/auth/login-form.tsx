@@ -96,7 +96,6 @@ export function LoginForm() {
         <a href="#" className="text-muted-foreground underline-offset-2 transition-colors duration-200 hover:text-primary hover:underline">
           Lupa password?
         </a>
-        <span className="text-muted-foreground/70">Akun dibuat oleh Coach/CGL</span>
       </div>
     </motion.div>
   );
