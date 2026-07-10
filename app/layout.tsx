@@ -1,5 +1,8 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Geist, Geist_Mono, Bricolage_Grotesque } from "next/font/google";
+import { ThemeProvider } from "@/components/providers/theme-provider";
+import { InstallGate } from "@/components/pwa/install-gate";
+import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -12,9 +15,30 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const bricolageGrotesque = Bricolage_Grotesque({
+  variable: "--font-bricolage",
+  subsets: ["latin"],
+});
+
 export const metadata: Metadata = {
-  title: "CG Management Health Check",
-  description: "Uji koneksi Firebase Auth, Firestore, dan status deployment Vercel",
+  title: "South Youth Komsel",
+  description: "Platform manajemen komsel digital untuk South Youth",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "South Youth",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fbfbf9" },
+    { media: "(prefers-color-scheme: dark)", color: "#211d2c" },
+  ],
 };
 
 export default function RootLayout({
@@ -24,10 +48,16 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      lang="id"
+      suppressHydrationWarning
+      className={`${geistSans.variable} ${geistMono.variable} ${bricolageGrotesque.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <InstallGate>{children}</InstallGate>
+        </ThemeProvider>
+        <ServiceWorkerRegister />
+      </body>
     </html>
   );
 }
