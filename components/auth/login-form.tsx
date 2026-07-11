@@ -1,14 +1,48 @@
 "use client";
 
 import * as React from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
 
 export function LoginForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [showPassword, setShowPassword] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setErrorMessage(null);
+    setIsSubmitting(true);
+
+    const formData = new FormData(event.currentTarget);
+    const email = String(formData.get("email") ?? "");
+    const password = String(formData.get("password") ?? "");
+
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await response.json();
+
+      if (!response.ok || !data.ok) {
+        setErrorMessage(data.error ?? "Login gagal. Coba lagi");
+        setIsSubmitting(false);
+        return;
+      }
+
+      const rawNext = searchParams.get("next");
+      const nextPath = rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/";
+      router.replace(nextPath);
+      router.refresh();
+    } catch {
+      setErrorMessage("Tidak bisa menghubungi server. Coba lagi");
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -37,7 +71,8 @@ export function LoginForm() {
             placeholder="Email"
             autoComplete="username"
             required
-            className="w-full rounded-full border-[1.5px] border-input bg-input/40 py-3 pl-11 pr-5 text-sm text-foreground outline-none transition-colors duration-200 placeholder:text-muted-foreground hover:border-primary focus-visible:border-primary focus-visible:bg-card focus-visible:ring-[3px] focus-visible:ring-ring/25"
+            disabled={isSubmitting}
+            className="w-full rounded-full border-[1.5px] border-input bg-input/40 py-3 pl-11 pr-5 text-sm text-foreground outline-none transition-colors duration-200 placeholder:text-muted-foreground hover:border-primary focus-visible:border-primary focus-visible:bg-card focus-visible:ring-[3px] focus-visible:ring-ring/25 disabled:cursor-not-allowed disabled:opacity-60"
           />
         </div>
 
@@ -55,13 +90,15 @@ export function LoginForm() {
             placeholder="Password"
             autoComplete="current-password"
             required
-            className="w-full rounded-full border-[1.5px] border-input bg-input/40 py-3 pl-11 pr-11 text-sm text-foreground outline-none transition-colors duration-200 placeholder:text-muted-foreground hover:border-primary focus-visible:border-primary focus-visible:bg-card focus-visible:ring-[3px] focus-visible:ring-ring/25"
+            disabled={isSubmitting}
+            className="w-full rounded-full border-[1.5px] border-input bg-input/40 py-3 pl-11 pr-11 text-sm text-foreground outline-none transition-colors duration-200 placeholder:text-muted-foreground hover:border-primary focus-visible:border-primary focus-visible:bg-card focus-visible:ring-[3px] focus-visible:ring-ring/25 disabled:cursor-not-allowed disabled:opacity-60"
           />
           <button
             type="button"
             onClick={() => setShowPassword((value) => !value)}
+            disabled={isSubmitting}
             aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
-            className="absolute right-2.5 top-1/2 flex h-[30px] w-[30px] -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-colors duration-200 hover:bg-muted hover:text-foreground"
+            className="absolute right-2.5 top-1/2 flex h-[30px] w-[30px] -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-colors duration-200 hover:bg-muted hover:text-foreground disabled:cursor-not-allowed"
           >
             {showPassword ? (
               <EyeOff className="h-4 w-4" strokeWidth={2} />
@@ -71,13 +108,20 @@ export function LoginForm() {
           </button>
         </div>
 
+        {errorMessage ? (
+          <p role="alert" className="text-center text-sm text-destructive">
+            {errorMessage}
+          </p>
+        ) : null}
+
         <button
           type="submit"
+          disabled={isSubmitting}
           style={{
             backgroundImage: "linear-gradient(135deg, var(--primary), var(--primary-deep))",
             boxShadow: "0 10px 26px -8px var(--primary)",
           }}
-          className="group relative mt-2 flex w-full items-center justify-center gap-2 overflow-hidden rounded-full py-3.5 text-[15px] font-semibold tracking-[0.2px] text-primary-foreground transition-transform duration-200 hover:-translate-y-0.5 active:translate-y-0"
+          className="group relative mt-2 flex w-full items-center justify-center gap-2 overflow-hidden rounded-full py-3.5 text-[15px] font-semibold tracking-[0.2px] text-primary-foreground transition-transform duration-200 hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0"
         >
           <span
             aria-hidden="true"
@@ -87,8 +131,17 @@ export function LoginForm() {
             }}
             className="absolute inset-y-0 left-[-60%] w-2/5 -skew-x-[20deg] transition-[left] duration-500 ease-out group-hover:left-[130%]"
           />
-          <span className="relative">Masuk</span>
-          <ArrowRight className="relative h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" strokeWidth={2.5} />
+          {isSubmitting ? (
+            <>
+              <Loader2 className="relative h-4 w-4 animate-spin" strokeWidth={2.5} />
+              <span className="relative">Memproses...</span>
+            </>
+          ) : (
+            <>
+              <span className="relative">Masuk</span>
+              <ArrowRight className="relative h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" strokeWidth={2.5} />
+            </>
+          )}
         </button>
       </form>
 
@@ -96,6 +149,7 @@ export function LoginForm() {
         <a href="#" className="text-muted-foreground underline-offset-2 transition-colors duration-200 hover:text-primary hover:underline">
           Lupa password?
         </a>
+        <span className="text-muted-foreground/70">Akun dibuat oleh Coach/CGL</span>
       </div>
     </motion.div>
   );
