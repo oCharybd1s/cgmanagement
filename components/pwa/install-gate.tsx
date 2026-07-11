@@ -4,32 +4,13 @@ import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Share, SquarePlus, Download, Sparkles } from "lucide-react";
 import { useStandaloneDisplay } from "@/hooks/use-standalone-display";
+import { GrowthContours } from "@/components/ui/growth-contours";
 import { cn } from "@/lib/utils";
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 };
-
-function NodeMotif({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 200 120" className={className} fill="none" aria-hidden="true">
-      <g stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.4">
-        <path d="M100 60 L40 30" />
-        <path d="M100 60 L160 30" />
-        <path d="M100 60 L40 90" />
-        <path d="M100 60 L160 90" />
-        <path d="M40 30 L40 90" />
-        <path d="M160 30 L160 90" />
-      </g>
-      <circle cx="100" cy="60" r="7" fill="var(--brand-spark)" />
-      <circle cx="40" cy="30" r="5" fill="currentColor" opacity="0.6" />
-      <circle cx="160" cy="30" r="5" fill="currentColor" opacity="0.6" />
-      <circle cx="40" cy="90" r="5" fill="currentColor" opacity="0.6" />
-      <circle cx="160" cy="90" r="5" fill="currentColor" opacity="0.6" />
-    </svg>
-  );
-}
 
 function AndroidInstallStep() {
   const [installEvent, setInstallEvent] = React.useState<BeforeInstallPromptEvent | null>(null);
@@ -105,12 +86,12 @@ function InstallScreen({ isIOS }: { isIOS: boolean }) {
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-8 overflow-hidden bg-background px-6 text-center">
       <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="absolute inset-x-0 top-10 flex justify-center text-primary/70"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        className="absolute inset-0"
       >
-        <NodeMotif className="h-28 w-48" />
+        <GrowthContours className="h-full w-full scale-125" />
       </motion.div>
 
       <motion.div

@@ -127,7 +127,7 @@ function marchContours(field) {
           (bottomRight > threshold ? 4 : 0) |
           (bottomLeft > threshold ? 8 : 0);
 
-        if (state === 0 ; state === 15) {
+        if (state === 0 || state === 15) {
           continue;
         }
 
@@ -208,7 +208,7 @@ function connectContours(segments) {
         }
 
         const nextSegment = thresholdSegments[nextIndex];
-        const nextPoint = nextSegment.start.x === currentPoint.x ; nextSegment.start.y === currentPoint.y ? nextSegment.end : nextSegment.start;
+        const nextPoint = nextSegment.start.x === currentPoint.x && nextSegment.start.y === currentPoint.y ? nextSegment.end : nextSegment.start;
         path.push(nextPoint);
         used.add(nextIndex);
         previousIndex = currentIndex;
@@ -234,7 +234,7 @@ function findNextSegment(currentPoint, currentIndex, thresholdSegments, pointMap
   const candidates = pointMap.get(key) ?? [];
 
   for (const candidateIndex of candidates) {
-    if (candidateIndex === currentIndex ; candidateIndex === previousIndex ; used.has(candidateIndex)) {
+    if (candidateIndex === currentIndex || candidateIndex === previousIndex || used.has(candidateIndex)) {
       continue;
     }
     return candidateIndex;
@@ -262,8 +262,7 @@ function buildSvg() {
       const opacity = 0.42 + (index % 7) * 0.05;
       return `<path d="${toPathData(points)}" stroke="currentColor" fill="none" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" stroke-width="${width.toFixed(2)}" stroke-opacity="${opacity.toFixed(2)}"/>`;
     })
-    .join('
-');
+    .join('\n');
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid slice">
