@@ -18,7 +18,11 @@
 
 ## 1. Filosofi Visual
 
-South Youth Komsel Digital adalah alat operasional harian untuk pemimpin komsel (Coach, CGL, Sponsor) — bukan situs marketing. Identitas visualnya dibangun dari satu ide sentral: **pertumbuhan berlapis, seperti garis kontur/elevasi**. Motif ini muncul secara halus (bukan dekorasi berlebihan) di titik-titik kunci: layar install PWA dan app icon — direpresentasikan sebagai garis-garis kontur organik hasil noise field + marching squares (bukan garis acak/dekorasi generik), dengan satu level kontur di-highlight warna Ember Spark.
+South Youth Komsel Digital adalah alat operasional harian untuk pemimpin komsel (Coach, CGL, Sponsor) — bukan situs marketing. Identitas visualnya punya dua elemen dekoratif terpisah dengan peran berbeda:
+- **Growth Contours** — garis kontur/elevasi (noise field + marching squares), warna abu netral tetap (`--contour-line`, tidak ikut tema/highlight), dipakai sebagai tekstur latar penuh 1 layar di momen orientasi (layar install PWA, halaman login) dan dasar app icon.
+- **Login Blobs** — 5 cincin morphing warna-warni (`--chart-1..5`), elemen dekoratif terpisah khusus di halaman login, mengelilingi kartu form.
+
+Keduanya boleh tampil bersamaan (kontur sebagai lapisan belakang, blob sebagai lapisan tengah di sekitar kartu) tapi masing-masing punya aturan warnanya sendiri — jangan campur highlight Ember Spark ke garis kontur.
 
 Nada keseluruhan: hangat dan personal (karena ini komunitas, bukan korporasi), tapi tetap rapi dan dapat dipercaya (karena menyimpan data pribadi & keuangan jemaat). Kami secara sadar menghindar dari dua klise: (1) palet krem-hangat + serif kontras + aksen terracotta yang sudah terlalu sering dipakai produk-produk AI generik, dan (2) tema gelap generik dengan aksen neon. Sebagai gantinya, palet ini bertumpu pada **indigo senja** (waktu komsel biasa berkumpul) dan **kilau emas hangat** sebagai aksen sinyal/perhatian yang dipakai secukupnya.
 
@@ -82,7 +86,7 @@ Dimuat lewat `next/font/google` di `app/layout.tsx` (self-host otomatis, tetap t
 
 ## 4. Mark / Ikon
 
-Motif kontur pertumbuhan (`components/ui/growth-contours.tsx`, data di `lib/contour-paths.ts`, digenerate lewat `scripts/generate-contours.mjs`) adalah elemen tanda tangan visual: garis-garis organik hasil noise field yang diproses marching squares (`d3-contour`), bukan bentuk acak. Satu level kontur di-highlight Ember Spark. Dipakai sebagai background layar install PWA dan dasar app icon (`scripts/generate-icons.mjs` → `public/icons/`) — **tidak untuk dekorasi berulang di setiap halaman**. Live component adaptif ke tema (`var(--foreground)` / `var(--brand-spark)`); app icon statis, tidak ikut tema (wajar, ikon OS tidak reaktif).
+Motif kontur pertumbuhan (`components/ui/growth-contours.tsx`, data di `lib/contour-paths.ts`, digenerate lewat `scripts/generate-contours.mjs`) adalah elemen tanda tangan visual: garis-garis organik hasil noise field yang diproses marching squares (`d3-contour`), bukan bentuk acak. Semua garis satu warna abu netral tetap (`--contour-line`, ≈ `#858585`, sama di light/dark — **tidak ada highlight warna**). `preserveAspectRatio="xMidYMid slice"` supaya selalu memenuhi 1 layar penuh (boleh crop, tidak boleh nyisa area kosong). Dipakai sebagai background layar install PWA, background halaman login (bareng Login Blobs di lapisan atasnya), dan dasar app icon (`scripts/generate-icons.mjs` → `public/icons/`) — **tidak untuk dekorasi berulang di setiap halaman dashboard**. App icon statis, tidak ikut tema (wajar, ikon OS tidak reaktif).
 
 ---
 

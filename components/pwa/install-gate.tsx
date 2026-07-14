@@ -91,7 +91,7 @@ function InstallScreen({ isIOS }: { isIOS: boolean }) {
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         className="absolute inset-0"
       >
-        <GrowthContours className="h-full w-full scale-125" />
+        <GrowthContours className="h-full w-full" />
       </motion.div>
 
       <motion.div

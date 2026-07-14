@@ -2,9 +2,7 @@ import sharp from "sharp";
 import { mkdir, readFile } from "node:fs/promises";
 
 const PRIMARY = "#3E3568";
-const SPARK = "#E7B24A";
 const LINE = "#EDEAF7";
-const HIGHLIGHT_LEVEL = 4;
 const CROP = { x: 90, y: 70, size: 230 };
 
 async function loadContours() {
@@ -17,10 +15,7 @@ function markSvg({ size, padding, rounded, contours }) {
   const scale = inner / CROP.size;
 
   const linePaths = contours.paths
-    .map((path) => {
-      const isHighlight = path.level === HIGHLIGHT_LEVEL;
-      return `<path d="${path.d}" fill="none" stroke="${isHighlight ? SPARK : LINE}" stroke-width="${isHighlight ? 2.6 : 1.7}" stroke-linejoin="round" opacity="${isHighlight ? 0.95 : 0.55}" />`;
-    })
+    .map((path) => `<path d="${path.d}" fill="none" stroke="${LINE}" stroke-width="1.9" stroke-linejoin="round" opacity="0.65" />`)
     .join("");
 
   return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
