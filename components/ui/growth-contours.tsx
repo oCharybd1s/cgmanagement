@@ -14,7 +14,7 @@ export function GrowthContours({ className }: { className?: string }) {
           d={path.d}
           fill="none"
           stroke="var(--contour-line)"
-          strokeOpacity={0.2}
+          strokeOpacity={0.01}
           strokeWidth={1.3}
           strokeLinejoin="round"
         />

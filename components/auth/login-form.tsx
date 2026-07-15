@@ -50,7 +50,7 @@ export function LoginForm() {
       initial={{ opacity: 0, y: 16, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-      className="relative z-10 flex w-[min(320px,80%)] flex-col items-center rounded-[2rem] border border-border bg-card/70 p-8 text-center shadow-2xl backdrop-blur-2xl sm:p-9"
+      className="relative z-10 flex w-[min(320px,80%)] flex-col items-center rounded-4xl border border-border bg-card/70 p-8 text-center shadow-2xl backdrop-blur-2xl sm:p-9"
     >
       <h1 className="mb-6 font-display text-[clamp(1.4rem,4vw,1.75rem)] font-bold tracking-tight text-foreground">
         Masuk
@@ -58,7 +58,7 @@ export function LoginForm() {
 
       <form onSubmit={handleSubmit} className="flex w-full flex-col gap-3.5">
         <div className="relative w-full">
-          <span className="pointer-events-none absolute left-[18px] top-1/2 flex h-[18px] w-[18px] -translate-y-1/2 items-center justify-center text-muted-foreground">
+          <span className="pointer-events-none absolute left-4.5 top-1/2 flex h-4.5 w-4.5 -translate-y-1/2 items-center justify-center text-muted-foreground">
             <Mail className="h-full w-full" strokeWidth={2} />
           </span>
           <label htmlFor="email" className="sr-only">
@@ -77,7 +77,7 @@ export function LoginForm() {
         </div>
 
         <div className="relative w-full">
-          <span className="pointer-events-none absolute left-[18px] top-1/2 flex h-[18px] w-[18px] -translate-y-1/2 items-center justify-center text-muted-foreground">
+          <span className="pointer-events-none absolute left-4.5 top-1/2 flex h-4.5 w-4.5 -translate-y-1/2 items-center justify-center text-muted-foreground">
             <Lock className="h-full w-full" strokeWidth={2} />
           </span>
           <label htmlFor="password" className="sr-only">
@@ -98,7 +98,7 @@ export function LoginForm() {
             onClick={() => setShowPassword((value) => !value)}
             disabled={isSubmitting}
             aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
-            className="absolute right-2.5 top-1/2 flex h-[30px] w-[30px] -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-colors duration-200 hover:bg-muted hover:text-foreground disabled:cursor-not-allowed"
+            className="absolute right-2.5 top-1/2 flex h-7.5 w-7.5 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-colors duration-200 hover:bg-muted hover:text-foreground disabled:cursor-not-allowed"
           >
             {showPassword ? (
               <EyeOff className="h-4 w-4" strokeWidth={2} />
@@ -129,7 +129,7 @@ export function LoginForm() {
               backgroundImage:
                 "linear-gradient(120deg, transparent, color-mix(in oklch, white 35%, transparent), transparent)",
             }}
-            className="absolute inset-y-0 left-[-60%] w-2/5 -skew-x-[20deg] transition-[left] duration-500 ease-out group-hover:left-[130%]"
+            className="absolute inset-y-0 left-[-60%] w-2/5 skew-x-[-20deg] transition-[left] duration-500 ease-out group-hover:left-[130%]"
           />
           {isSubmitting ? (
             <>
@@ -149,7 +149,6 @@ export function LoginForm() {
         <a href="#" className="text-muted-foreground underline-offset-2 transition-colors duration-200 hover:text-primary hover:underline">
           Lupa password?
         </a>
-        <span className="text-muted-foreground/70">Akun dibuat oleh Coach/CGL</span>
       </div>
     </motion.div>
   );
