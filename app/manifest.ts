@@ -7,7 +7,7 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Platform manajemen komsel digital untuk South Youth",
     start_url: "/",
     display: "standalone",
-    background_color: "#171423",
+    background_color: "#040408",
     theme_color: "#3E3568",
     orientation: "portrait-primary",
     icons: [
