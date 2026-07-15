@@ -86,7 +86,7 @@ Dimuat lewat `next/font/google` di `app/layout.tsx` (self-host otomatis, tetap t
 
 ## 4. Mark / Ikon
 
-Motif kontur pertumbuhan (`components/ui/growth-contours.tsx`, data di `lib/contour-paths.ts`, digenerate lewat `scripts/generate-contours.mjs`) adalah elemen tanda tangan visual: garis-garis organik hasil noise field yang diproses marching squares (`d3-contour`), bukan bentuk acak. Semua garis satu warna abu netral tetap (`--contour-line`, ≈ `#858585`, sama di light/dark — **tidak ada highlight warna**). `preserveAspectRatio="xMidYMid slice"` supaya selalu memenuhi 1 layar penuh (boleh crop, tidak boleh nyisa area kosong). Dipakai sebagai background layar install PWA, background halaman login (bareng Login Blobs di lapisan atasnya), dan dasar app icon (`scripts/generate-icons.mjs` → `public/icons/`) — **tidak untuk dekorasi berulang di setiap halaman dashboard**. App icon statis, tidak ikut tema (wajar, ikon OS tidak reaktif).
+Motif kontur pertumbuhan (`components/ui/growth-contours.tsx`, data di `lib/contour-paths.ts`, digenerate lewat `scripts/generate-contours.mjs`) adalah elemen tanda tangan visual: garis-garis organik hasil noise field yang diproses marching squares (`d3-contour`), bukan bentuk acak. Semua garis satu warna abu netral tetap (`--contour-line`, ≈ `#858585`, sama di light/dark — **tidak ada highlight warna**). `preserveAspectRatio="xMidYMid slice"` supaya selalu memenuhi 1 layar penuh (boleh crop, tidak boleh nyisa area kosong). Dipakai sebagai background layar install PWA, background halaman login (bareng Login Blobs di lapisan atasnya), dasar app icon (`scripts/generate-icons.mjs` → `public/icons/`), dan sebagai background bersama di seluruh halaman terautentikasi lewat `AppShell` (`components/layout/app-shell.tsx`) — supaya identitas visual konsisten dari layar login sampai ke dalam aplikasi. App icon statis, tidak ikut tema (wajar, ikon OS tidak reaktif).
 
 ---
 
@@ -128,3 +128,4 @@ Contoh nada error: *"Saldo kas CG belum bisa disimpan. Coba periksa koneksi lalu
 | Versi | Tanggal | Perubahan |
 |---|---|---|
 | 1.0 | 10 Juli 2026 | Palet, tipografi, motion, dan mark awal — bagian dari Global UI Foundation |
+| 1.1 | 15 Juli 2026 | Growth Contours dipakai sebagai background bersama di semua halaman terautentikasi (`AppShell`), tidak lagi eksklusif untuk layar orientasi |

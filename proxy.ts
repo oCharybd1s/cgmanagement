@@ -11,7 +11,7 @@ export default async function proxy(request: NextRequest) {
 
   if (PUBLIC_PAGE_PATHS.has(pathname)) {
     if (session) {
-      return NextResponse.redirect(new URL("/", request.url));
+      return NextResponse.redirect(new URL("/home", request.url));
     }
     return NextResponse.next();
   }

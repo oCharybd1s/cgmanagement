@@ -36,7 +36,7 @@ export function LoginForm() {
       }
 
       const rawNext = searchParams.get("next");
-      const nextPath = rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/";
+      const nextPath = rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/home";
       router.replace(nextPath);
       router.refresh();
     } catch {

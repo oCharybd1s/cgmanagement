@@ -12,14 +12,14 @@ export function Sidebar() {
 
   return (
     <aside className="hidden w-64 shrink-0 border-r border-sidebar-border bg-sidebar lg:flex lg:flex-col">
-      <div className="flex h-16 items-center gap-2.5 px-6">
+      <Link href="/home" className="flex h-16 items-center gap-2.5 px-6">
         <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground font-display font-bold">
           S
         </span>
         <span className="font-display text-lg font-bold tracking-tight text-sidebar-foreground">
           South Youth
         </span>
-      </div>
+      </Link>
 
       <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-4">
         {navItems.map((item) => {
