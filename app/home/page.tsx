@@ -13,7 +13,7 @@ export default async function HomePage() {
   }
 
   return (
-    <AppShell title="Home" user={{ email: session.email, role: session.role }}>
+    <AppShell showBrand user={{ email: session.email, role: session.role }}>
       <Container size="md">
         <Section spacing="lg" className="flex flex-col gap-6">
           <div className="flex items-center gap-3 rounded-2xl border border-border bg-card/70 px-6 py-5 shadow-sm backdrop-blur-xl">
@@ -25,7 +25,7 @@ export default async function HomePage() {
                 Selamat datang, {session.email ?? "Anggota Coach Steve"}
               </h1>
               <p className="text-sm text-muted-foreground">
-                Ini beranda kamu di Coach Steve Komsel Digital.
+                Ini dashboard kamu di Coach Steve Komsel Digital.
               </p>
             </div>
           </div>

@@ -14,18 +14,15 @@ export type NavItem = {
   label: string;
   href: string;
   icon: LucideIcon;
-  primary?: boolean;
 };
 
 export const navItems: NavItem[] = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, primary: true },
-  { label: "Data Anggota", href: "/anggota", icon: Users, primary: true },
+  { label: "Dashboard", href: "/home", icon: LayoutDashboard },
+  { label: "Data Anggota", href: "/anggota", icon: Users },
   { label: "Struktur", href: "/struktur", icon: Network },
-  { label: "Keuangan", href: "/keuangan", icon: Wallet, primary: true },
-  { label: "Kalender", href: "/kalender", icon: CalendarDays, primary: true },
+  { label: "Keuangan", href: "/keuangan", icon: Wallet },
+  { label: "Kalender", href: "/kalender", icon: CalendarDays },
   { label: "List VIP", href: "/vip", icon: UserPlus },
   { label: "Laporan CG", href: "/laporan", icon: NotebookPen },
   { label: "Profil", href: "/profil", icon: UserCircle },
 ];
-
-export const primaryNavItems = navItems.filter((item) => item.primary);
