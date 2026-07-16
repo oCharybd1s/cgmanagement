@@ -4,7 +4,7 @@ import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Share, SquarePlus, Download, Sparkles } from "lucide-react";
 import { useStandaloneDisplay } from "@/hooks/use-standalone-display";
-import { cn } from "@/lib/utils";
+import { LoadingScreen } from "./loading-screen";
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -120,7 +120,9 @@ export function InstallGate({ children }: { children: React.ReactNode }) {
   return (
     <AnimatePresence mode="wait" initial={false}>
       {!isReady ? (
-        <motion.div key="checking" className={cn("min-h-dvh bg-background")} />
+        <motion.div key="checking">
+          <LoadingScreen />
+        </motion.div>
       ) : isMobileDevice && !isStandalone ? (
         <InstallScreen key="gate" isIOS={isIOS} />
       ) : (
