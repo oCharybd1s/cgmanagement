@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "South Youth Komsel",
-    short_name: "South Youth",
-    description: "Platform manajemen komsel digital untuk South Youth",
+    name: "Coach Steve Komsel",
+    short_name: "Coach Steve",
+    description: "Platform manajemen komsel digital untuk Coach Steve",
     start_url: "/",
     display: "standalone",
     background_color: "#040408",

@@ -18,11 +18,10 @@
 
 ## 1. Filosofi Visual
 
-South Youth Komsel Digital adalah alat operasional harian untuk pemimpin komsel (Coach, CGL, Sponsor) — bukan situs marketing. Identitas visualnya punya dua elemen dekoratif terpisah dengan peran berbeda:
-- **Growth Contours** — garis kontur/elevasi (noise field + marching squares), warna abu netral tetap (`--contour-line`, tidak ikut tema/highlight), dipakai sebagai tekstur latar penuh 1 layar di momen orientasi (layar install PWA, halaman login) dan dasar app icon.
-- **Login Blobs** — 5 cincin morphing warna-warni (`--chart-1..5`), elemen dekoratif terpisah khusus di halaman login, mengelilingi kartu form.
+South Youth Komsel Digital adalah alat operasional harian untuk pemimpin komsel (Coach, CGL, Sponsor) — bukan situs marketing. Identitas visualnya bertumpu pada satu elemen dekoratif utama:
+- **Login Blobs** — 5 cincin morphing warna-warni (`--chart-1..5`), elemen dekoratif khusus di halaman login, mengelilingi kartu form.
 
-Keduanya boleh tampil bersamaan (kontur sebagai lapisan belakang, blob sebagai lapisan tengah di sekitar kartu) tapi masing-masing punya aturan warnanya sendiri — jangan campur highlight Ember Spark ke garis kontur.
+Latar belakang di seluruh halaman lain sengaja polos (`--background`) — motif garis kontur (Growth Contours) yang sebelumnya dipakai sempat dicoba sebagai tekstur latar, tapi hasil visualnya dinilai kurang maksimal dan sudah dihapus dari kode (lihat changelog).
 
 Nada keseluruhan: hangat dan personal (karena ini komunitas, bukan korporasi), tapi tetap rapi dan dapat dipercaya (karena menyimpan data pribadi & keuangan jemaat). Kami secara sadar menghindar dari dua klise: (1) palet krem-hangat + serif kontras + aksen terracotta yang sudah terlalu sering dipakai produk-produk AI generik, dan (2) tema gelap generik dengan aksen neon. Sebagai gantinya, palet ini bertumpu pada **indigo senja** (waktu komsel biasa berkumpul) dan **kilau emas hangat** sebagai aksen sinyal/perhatian yang dipakai secukupnya.
 
@@ -86,7 +85,9 @@ Dimuat lewat `next/font/google` di `app/layout.tsx` (self-host otomatis, tetap t
 
 ## 4. Mark / Ikon
 
-Motif kontur pertumbuhan (`components/ui/growth-contours.tsx`, data di `lib/contour-paths.ts`, digenerate lewat `scripts/generate-contours.mjs`) adalah elemen tanda tangan visual: garis-garis organik hasil noise field yang diproses marching squares (`d3-contour`), bukan bentuk acak. Semua garis satu warna abu netral tetap (`--contour-line`, ≈ `#858585`, sama di light/dark — **tidak ada highlight warna**). `preserveAspectRatio="xMidYMid slice"` supaya selalu memenuhi 1 layar penuh (boleh crop, tidak boleh nyisa area kosong). Dipakai sebagai background layar install PWA, background halaman login (bareng Login Blobs di lapisan atasnya), dasar app icon (`scripts/generate-icons.mjs` → `public/icons/`), dan sebagai background bersama di seluruh halaman terautentikasi lewat `AppShell` (`components/layout/app-shell.tsx`) — supaya identitas visual konsisten dari layar login sampai ke dalam aplikasi. App icon statis, tidak ikut tema (wajar, ikon OS tidak reaktif).
+Motif kontur pertumbuhan sempat dipakai sebagai tekstur latar layar penuh (`components/ui/growth-contours.tsx`) di halaman login, layar install PWA, dan seluruh halaman terautentikasi lewat `AppShell`. Setelah dicoba, hasil visualnya dinilai kurang maksimal sebagai latar berulang, jadi komponennya, data konturnya (`lib/contour-paths.ts`), dan generator-nya (`scripts/generate-contours.mjs`) sudah **dihapus dari kode**. Semua halaman sekarang memakai latar polos (`--background`).
+
+App icon (`public/icons/`) tetap memakai artwork berbasis kontur secara terpisah — digenerate dari `scripts/contour-data.json` lewat `scripts/generate-icons.mjs`, tidak terpengaruh oleh penghapusan di atas karena jalurnya independen dari komponen SVG live tadi. App icon statis, tidak ikut tema (wajar, ikon OS tidak reaktif).
 
 ---
 
@@ -129,3 +130,4 @@ Contoh nada error: *"Saldo kas CG belum bisa disimpan. Coba periksa koneksi lalu
 |---|---|---|
 | 1.0 | 10 Juli 2026 | Palet, tipografi, motion, dan mark awal — bagian dari Global UI Foundation |
 | 1.1 | 15 Juli 2026 | Growth Contours dipakai sebagai background bersama di semua halaman terautentikasi (`AppShell`), tidak lagi eksklusif untuk layar orientasi |
+| 1.2 | 16 Juli 2026 | Growth Contours dihapus total dari kode (komponen, data kontur, generator) — hasil visualnya sebagai latar berulang dinilai kurang maksimal. Semua halaman kembali ke latar polos `--background` |

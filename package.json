@@ -7,7 +7,6 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "generate:contours": "node scripts/generate-contours.mjs",
     "generate:icons": "node scripts/generate-icons.mjs"
   },
   "dependencies": {
@@ -30,12 +29,9 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "d3-contour": "^4.0.2",
-    "d3-shape": "^3.2.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
     "sharp": "^0.35.3",
-    "simplex-noise": "^4.0.3",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

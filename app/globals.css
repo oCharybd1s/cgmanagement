@@ -45,8 +45,6 @@
   --brand-spark: oklch(0.79 0.145 82);
   --brand-spark-foreground: oklch(0.28 0.05 70);
 
-  --contour-line: oklch(0.617 0 0);
-
   --chart-1: oklch(0.385 0.105 292);
   --chart-2: oklch(0.79 0.145 82);
   --chart-3: oklch(0.545 0.125 155);
@@ -162,7 +160,6 @@
   --color-ring: var(--ring);
   --color-brand-spark: var(--brand-spark);
   --color-brand-spark-foreground: var(--brand-spark-foreground);
-  --color-contour-line: var(--contour-line);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);

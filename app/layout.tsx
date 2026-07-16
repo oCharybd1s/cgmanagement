@@ -21,12 +21,12 @@ const bricolageGrotesque = Bricolage_Grotesque({
 });
 
 export const metadata: Metadata = {
-  title: "South Youth Komsel",
-  description: "Platform manajemen komsel digital untuk South Youth",
+  title: "Coach Steve",
+  description: "Platform manajemen komsel digital untuk Coach Steve",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "South Youth",
+    title: "Coach Steve",
   },
 };
 

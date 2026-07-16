@@ -4,7 +4,6 @@ import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Share, SquarePlus, Download, Sparkles } from "lucide-react";
 import { useStandaloneDisplay } from "@/hooks/use-standalone-display";
-import { GrowthContours } from "@/components/ui/growth-contours";
 import { cn } from "@/lib/utils";
 
 type BeforeInstallPromptEvent = Event & {
@@ -86,15 +85,6 @@ function InstallScreen({ isIOS }: { isIOS: boolean }) {
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-8 overflow-hidden bg-background px-6 text-center">
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="absolute inset-0"
-      >
-        <GrowthContours className="h-full w-full" />
-      </motion.div>
-
-      <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
@@ -107,7 +97,7 @@ function InstallScreen({ isIOS }: { isIOS: boolean }) {
           Install dulu, yuk
         </h1>
         <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
-          South Youth Komsel berjalan sebagai aplikasi supaya lebih cepat dan bisa kirim notifikasi
+          Coach Steve Komsel berjalan sebagai aplikasi supaya lebih cepat dan bisa kirim notifikasi
           ulang tahun & event langsung ke HP kamu.
         </p>
       </motion.div>

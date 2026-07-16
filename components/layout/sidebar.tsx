@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -19,11 +20,16 @@ export function Sidebar() {
     >
       <div className="flex h-full w-64 flex-col">
         <Link href="/home" className="flex h-16 items-center gap-2.5 px-6">
-          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground font-display font-bold">
-            S
-          </span>
+          <Image
+            src="/logo-mark.png"
+            alt="Coach Steve"
+            width={36}
+            height={36}
+            priority
+            className="h-9 w-9 shrink-0 rounded-full"
+          />
           <span className="font-display text-lg font-bold tracking-tight text-sidebar-foreground">
-            South Youth
+            Coach Steve
           </span>
         </Link>
 

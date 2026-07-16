@@ -22,10 +22,10 @@ export default async function HomePage() {
             </span>
             <div className="min-w-0">
               <h1 className="truncate font-display text-xl font-bold tracking-tight text-foreground">
-                Selamat datang, {session.email ?? "Anggota South Youth"}
+                Selamat datang, {session.email ?? "Anggota Coach Steve"}
               </h1>
               <p className="text-sm text-muted-foreground">
-                Ini beranda kamu di South Youth Komsel Digital.
+                Ini beranda kamu di Coach Steve Komsel Digital.
               </p>
             </div>
           </div>
