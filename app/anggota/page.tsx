@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { verifySession } from "@/lib/auth/dal";
+import { toShellUser } from "@/lib/auth/shell-user";
 import {
   canViewMemberDirectory,
   hasFullMemberDirectoryAccess,
@@ -19,11 +20,9 @@ export default async function AnggotaPage() {
     redirect("/auth");
   }
 
-  const shellUser = { email: session.email, role: session.role };
-
   if (!canViewMemberDirectory(session.role)) {
     return (
-      <AppShell title="Data Anggota" user={shellUser}>
+      <AppShell title="Data Anggota" user={toShellUser(session)}>
         <Container size="md">
           <Section spacing="lg">
             <MemberAccessDenied />
@@ -41,7 +40,7 @@ export default async function AnggotaPage() {
   ]);
 
   return (
-    <AppShell title="Data Anggota" user={shellUser}>
+    <AppShell title="Data Anggota" user={toShellUser(session)}>
       <Container size="xl">
         <Section spacing="lg">
           <MemberDirectory

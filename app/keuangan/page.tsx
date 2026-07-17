@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { Wallet } from "lucide-react";
 import { verifySession } from "@/lib/auth/dal";
+import { toShellUser } from "@/lib/auth/shell-user";
 import { AppShell } from "@/components/layout/app-shell";
 import { Container, Section } from "@/components/layout/container";
 import { ComingSoon } from "@/components/common/coming-soon";
@@ -13,7 +14,7 @@ export default async function KeuanganPage() {
   }
 
   return (
-    <AppShell title="Keuangan" user={{ email: session.email, role: session.role }}>
+    <AppShell title="Keuangan" user={toShellUser(session)}>
       <Container size="md">
         <Section spacing="lg">
           <ComingSoon
