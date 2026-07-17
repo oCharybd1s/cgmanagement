@@ -5,11 +5,7 @@ import { Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useSidebar } from "./sidebar-context";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { ProfileMenu } from "@/components/auth/profile-menu";
-
-type TopbarUser = {
-  email: string | null;
-  role: string | null;
-};
+import type { ShellUser } from "@/lib/auth/shell-user";
 
 export function Topbar({
   title,
@@ -17,7 +13,7 @@ export function Topbar({
   showBrand = false,
 }: {
   title?: string;
-  user?: TopbarUser | null;
+  user?: ShellUser | null;
   showBrand?: boolean;
 }) {
   const { isOpen, toggle, openMobileNav } = useSidebar();

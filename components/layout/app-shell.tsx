@@ -2,9 +2,7 @@ import { Sidebar } from "./sidebar";
 import { SidebarProvider } from "./sidebar-context";
 import { Topbar } from "./topbar";
 import { MobileNav } from "./mobile-nav";
-import type { SessionUser } from "@/lib/auth/types";
-
-type AppShellUser = Pick<SessionUser, "email" | "role">;
+import type { ShellUser } from "@/lib/auth/shell-user";
 
 export function AppShell({
   children,
@@ -15,7 +13,7 @@ export function AppShell({
   children: React.ReactNode;
   title?: string;
   showBrand?: boolean;
-  user?: AppShellUser | null;
+  user?: ShellUser | null;
 }) {
   return (
     <SidebarProvider>

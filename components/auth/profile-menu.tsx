@@ -7,13 +7,10 @@ import { ChevronDown, LogOut, Settings, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getRoleLabel } from "@/lib/auth/roles";
 import { useLogout } from "@/hooks/use-logout";
+import { DemoRoleSwitcher } from "@/components/dev/demo-role-switcher";
+import type { ShellUser } from "@/lib/auth/shell-user";
 
-type ProfileMenuUser = {
-  email: string | null;
-  role: string | null;
-};
-
-export function ProfileMenu({ user }: { user?: ProfileMenuUser | null }) {
+export function ProfileMenu({ user }: { user?: ShellUser | null }) {
   const [isOpen, setIsOpen] = React.useState(false);
   const containerRef = React.useRef<HTMLDivElement>(null);
   const { logout, isLoggingOut } = useLogout();
@@ -106,6 +103,10 @@ export function ProfileMenu({ user }: { user?: ProfileMenuUser | null }) {
                 {isLoggingOut ? "Keluar..." : "Keluar"}
               </button>
             </div>
+
+            {user?.canSwitchRole ? (
+              <DemoRoleSwitcher currentRole={user.role} currentCgGroupId={user.cgGroupId} />
+            ) : null}
           </motion.div>
         ) : null}
       </AnimatePresence>

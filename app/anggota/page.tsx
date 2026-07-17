@@ -5,6 +5,7 @@ import {
   hasFullMemberDirectoryAccess,
   memberDirectoryFieldScope,
 } from "@/lib/auth/roles";
+import { toShellUser } from "@/lib/auth/shell-user";
 import { getMembersForSession } from "@/lib/members/data";
 import { getCgGroupsForOrg } from "@/lib/cg-groups/data";
 import { AppShell } from "@/components/layout/app-shell";
@@ -19,7 +20,7 @@ export default async function AnggotaPage() {
     redirect("/auth");
   }
 
-  const shellUser = { email: session.email, role: session.role };
+  const shellUser = toShellUser(session);
 
   if (!canViewMemberDirectory(session.role)) {
     return (

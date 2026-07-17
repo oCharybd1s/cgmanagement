@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { Sunrise, Shield, Users2 } from "lucide-react";
 import { verifySession } from "@/lib/auth/dal";
 import { getRoleLabel } from "@/lib/auth/roles";
+import { toShellUser } from "@/lib/auth/shell-user";
 import { AppShell } from "@/components/layout/app-shell";
 import { Container, Section } from "@/components/layout/container";
 
@@ -13,7 +14,7 @@ export default async function HomePage() {
   }
 
   return (
-    <AppShell showBrand user={{ email: session.email, role: session.role }}>
+    <AppShell showBrand user={toShellUser(session)}>
       <Container size="md">
         <Section spacing="lg" className="flex flex-col gap-6">
           <div className="flex items-center gap-3 rounded-2xl border border-border bg-card/70 px-6 py-5 shadow-sm backdrop-blur-xl">
