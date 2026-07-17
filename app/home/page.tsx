@@ -22,11 +22,8 @@ export default async function HomePage() {
             </span>
             <div className="min-w-0">
               <h1 className="truncate font-display text-xl font-bold tracking-tight text-foreground">
-                Selamat datang, {session.email ?? "Anggota Coach Steve"}
+                Selamat datang, {session.email}
               </h1>
-              <p className="text-sm text-muted-foreground">
-                Ini dashboard kamu di Coach Steve Komsel Digital.
-              </p>
             </div>
           </div>
 

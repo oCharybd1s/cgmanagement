@@ -59,16 +59,16 @@ export function MobileNav() {
             <div className="flex h-16 items-center justify-between gap-2.5 px-5">
               <div className="flex min-w-0 items-center gap-2.5">
                 <Image
-                  src="/logo-mark.png"
-                  alt="Coach Steve"
-                  width={32}
-                  height={32}
-                  className="h-8 w-8 shrink-0 rounded-full"
+                    src="/logo-mark.png"
+                    alt="CoachApp"
+                    width={32}
+                    height={32}
+                    className="h-8 w-8 shrink-0 rounded-full"
                 />
                 <span className="truncate font-display text-base font-bold tracking-tight text-sidebar-foreground">
-                  Coach Steve
+                    CoachApp
                 </span>
-              </div>
+                </div>
               <button
                 type="button"
                 onClick={closeMobileNav}

@@ -53,7 +53,7 @@ export function Topbar({
         {showBrand ? (
           <Image
             src="/logo-mark.png"
-            alt="Coach Steve"
+            alt="CoachApp"
             width={32}
             height={32}
             className="h-8 w-8 shrink-0 rounded-full"

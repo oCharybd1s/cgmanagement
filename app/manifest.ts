@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Coach Steve Komsel",
-    short_name: "Coach Steve",
-    description: "Platform manajemen komsel digital untuk Coach Steve",
+    name: "CoachApp",
+    short_name: "CoachApp",
+    description: "CoachApp — platform manajemen CG digital",
     start_url: "/",
     display: "standalone",
     background_color: "#040408",

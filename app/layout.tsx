@@ -21,12 +21,12 @@ const bricolageGrotesque = Bricolage_Grotesque({
 });
 
 export const metadata: Metadata = {
-  title: "Coach Steve",
-  description: "Platform manajemen komsel digital untuk Coach Steve",
+  title: "CoachApp",
+  description: "CoachApp — platform manajemen CG digital",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Coach Steve",
+    title: "CoachApp",
   },
 };
 

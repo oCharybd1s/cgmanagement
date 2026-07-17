@@ -97,7 +97,7 @@ function InstallScreen({ isIOS }: { isIOS: boolean }) {
           Install dulu, yuk
         </h1>
         <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
-          Coach Steve Komsel berjalan sebagai aplikasi supaya lebih cepat dan bisa kirim notifikasi
+          CoachApp berjalan sebagai aplikasi supaya lebih cepat dan bisa kirim notifikasi
           ulang tahun & event langsung ke HP kamu.
         </p>
       </motion.div>

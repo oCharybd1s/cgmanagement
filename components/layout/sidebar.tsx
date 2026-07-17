@@ -22,14 +22,14 @@ export function Sidebar() {
         <Link href="/home" className="flex h-16 items-center gap-2.5 px-6">
           <Image
             src="/logo-mark.png"
-            alt="Coach Steve"
+            alt="CoachApp"
             width={36}
             height={36}
             priority
             className="h-9 w-9 shrink-0 rounded-full"
           />
           <span className="font-display text-lg font-bold tracking-tight text-sidebar-foreground">
-            Coach Steve
+            CoachApp
           </span>
         </Link>
 
