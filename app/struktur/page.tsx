@@ -1,0 +1,28 @@
+import { redirect } from "next/navigation";
+import { Network } from "lucide-react";
+import { verifySession } from "@/lib/auth/dal";
+import { AppShell } from "@/components/layout/app-shell";
+import { Container, Section } from "@/components/layout/container";
+import { ComingSoon } from "@/components/common/coming-soon";
+
+export default async function StrukturPage() {
+  const session = await verifySession();
+
+  if (!session) {
+    redirect("/auth");
+  }
+
+  return (
+    <AppShell title="Struktur Organisasi" user={{ email: session.email, role: session.role }}>
+      <Container size="md">
+        <Section spacing="lg">
+          <ComingSoon
+            icon={Network}
+            title="Struktur Organisasi"
+            description="Visual tree Coach → CG → CGL → Sponsor → Member/Simpatisan, lengkap dengan promote, demote, dan replace beserta riwayatnya."
+          />
+        </Section>
+      </Container>
+    </AppShell>
+  );
+}
