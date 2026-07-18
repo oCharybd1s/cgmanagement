@@ -48,17 +48,3 @@ export function canViewMemberDirectory(role: string | null) {
 export function memberDirectoryFieldScope(role: string | null): "full" | "basic" {
   return isMember(role) || isSimpatisan(role) ? "basic" : "full";
 }
-
-export function canCreateMember(role: string | null) {
-  return isCoach(role) || isCgl(role);
-}
-
-export function assignableRolesForCreator(role: string | null): string[] {
-  if (isCoach(role)) {
-    return ["coach", "cgl", "sponsor", "member", "simpatisan"];
-  }
-  if (isCgl(role)) {
-    return ["cgl", "sponsor", "member", "simpatisan"];
-  }
-  return [];
-}

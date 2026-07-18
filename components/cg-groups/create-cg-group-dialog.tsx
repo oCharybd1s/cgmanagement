@@ -14,8 +14,7 @@ export function CreateCgGroupDialog({
   onClose: () => void;
   onCreated: (cgGroup: CgGroup) => void;
 }) {
-  const [groupCode, setGroupCode] = React.useState("");
-  const [groupName, setGroupName] = React.useState("");
+  const [code, setCode] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const codeInputRef = React.useRef<HTMLInputElement>(null);
@@ -36,8 +35,8 @@ export function CreateCgGroupDialog({
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
 
-    if (!groupCode.trim() || !groupName.trim()) {
-      setError("Kode dan nama CG wajib diisi");
+    if (!code.trim()) {
+      setError("Kode CG wajib diisi");
       return;
     }
 
@@ -48,7 +47,7 @@ export function CreateCgGroupDialog({
       const response = await fetch("/api/cg-groups", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ groupCode, groupName }),
+        body: JSON.stringify({ code }),
       });
       const result = await response.json();
 
@@ -110,31 +109,21 @@ export function CreateCgGroupDialog({
                 <label htmlFor="cg-code" className="text-xs font-medium text-muted-foreground">
                   Kode CG
                 </label>
-                <input
-                  ref={codeInputRef}
-                  id="cg-code"
-                  type="text"
-                  value={groupCode}
-                  onChange={(event) => setGroupCode(event.target.value)}
-                  placeholder="SY38"
-                  disabled={isSubmitting}
-                  className="w-full rounded-xl border-[1.5px] border-input bg-input/40 px-4 py-2.5 text-sm text-foreground outline-none transition-colors duration-200 placeholder:text-muted-foreground hover:border-primary focus-visible:border-primary focus-visible:bg-card focus-visible:ring-[3px] focus-visible:ring-ring/25 disabled:opacity-50"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="cg-name" className="text-xs font-medium text-muted-foreground">
-                  Nama CG
-                </label>
-                <input
-                  id="cg-name"
-                  type="text"
-                  value={groupName}
-                  onChange={(event) => setGroupName(event.target.value)}
-                  placeholder="CG Semangat Baru"
-                  disabled={isSubmitting}
-                  className="w-full rounded-xl border-[1.5px] border-input bg-input/40 px-4 py-2.5 text-sm text-foreground outline-none transition-colors duration-200 placeholder:text-muted-foreground hover:border-primary focus-visible:border-primary focus-visible:bg-card focus-visible:ring-[3px] focus-visible:ring-ring/25 disabled:opacity-50"
-                />
+                <div className="flex items-center overflow-hidden rounded-xl border-[1.5px] border-input bg-input/40 transition-colors duration-200 focus-within:border-primary focus-within:bg-card focus-within:ring-[3px] focus-within:ring-ring/25 hover:border-primary">
+                  <span className="pl-4 text-sm font-medium text-muted-foreground">YS</span>
+                  <input
+                    ref={codeInputRef}
+                    id="cg-code"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={code}
+                    onChange={(event) => setCode(event.target.value.replace(/\D/g, ""))}
+                    placeholder="41"
+                    disabled={isSubmitting}
+                    className="w-full bg-transparent px-2 py-2.5 text-sm text-foreground outline-none placeholder:text-muted-foreground disabled:opacity-50"
+                  />
+                </div>
               </div>
 
               {error ? <p className="text-sm text-destructive">{error}</p> : null}

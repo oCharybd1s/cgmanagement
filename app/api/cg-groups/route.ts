@@ -16,14 +16,13 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json().catch(() => null);
-  const groupCode = typeof body?.groupCode === "string" ? body.groupCode : "";
-  const groupName = typeof body?.groupName === "string" ? body.groupName : "";
+  const code = typeof body?.code === "string" ? body.code : "";
 
-  if (!groupCode.trim() || !groupName.trim()) {
-    return NextResponse.json({ ok: false, error: "Kode dan nama CG wajib diisi" }, { status: 400 });
+  if (!code.trim()) {
+    return NextResponse.json({ ok: false, error: "Kode CG wajib diisi" }, { status: 400 });
   }
 
-  const result = await createCgGroup(session.orgId, session.uid, { groupCode, groupName });
+  const result = await createCgGroup(session.orgId, session.uid, { code });
 
   if (!result.ok) {
     return NextResponse.json({ ok: false, error: result.error }, { status: 409 });

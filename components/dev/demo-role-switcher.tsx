@@ -52,7 +52,7 @@ export function DemoRoleSwitcher({
             <option value="">Pilih CG</option>
             {cgGroups.map((group) => (
               <option key={group.id} value={group.id}>
-                {group.groupCode} — {group.groupName}
+                {group.groupCode}
               </option>
             ))}
           </select>

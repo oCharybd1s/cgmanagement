@@ -87,7 +87,7 @@ Dimuat lewat `next/font/google` di `app/layout.tsx` (self-host otomatis, tetap t
 
 Motif kontur pertumbuhan sempat dipakai sebagai tekstur latar layar penuh (`components/ui/growth-contours.tsx`) di halaman login, layar install PWA, dan seluruh halaman terautentikasi lewat `AppShell`. Setelah dicoba, hasil visualnya dinilai kurang maksimal sebagai latar berulang, jadi komponennya, data konturnya (`lib/contour-paths.ts`), dan generator-nya (`scripts/generate-contours.mjs`) sudah **dihapus dari kode**. Semua halaman sekarang memakai latar polos (`--background`).
 
-App icon (`public/icons/`) tetap memakai artwork berbasis kontur secara terpisah — digenerate dari `scripts/contour-data.json` lewat `scripts/generate-icons.mjs`, tidak terpengaruh oleh penghapusan di atas karena jalurnya independen dari komponen SVG live tadi. App icon statis, tidak ikut tema (wajar, ikon OS tidak reaktif).
+App icon (`public/icons/`, `app/favicon.ico`) sebelumnya sempat memakai artwork berbasis kontur secara terpisah dari komponen live di atas. Ini sudah diganti total — semua app icon (`icon-192`, `icon-512`, `icon-maskable-512`, `apple-touch-icon`, `favicon.ico`) sekarang digenerate dari mark asli (`public/logo-mark-*.svg`) lewat `scripts/generate-icons.mjs`, ditempatkan di atas latar `--primary` (`#463676`). Tidak ada lagi artwork kontur di kode mana pun, termasuk app icon. App icon statis, tidak ikut tema (wajar, ikon OS tidak reaktif).
 
 ---
 
@@ -131,3 +131,4 @@ Contoh nada error: *"Saldo kas CG belum bisa disimpan. Coba periksa koneksi lalu
 | 1.0 | 10 Juli 2026 | Palet, tipografi, motion, dan mark awal — bagian dari Global UI Foundation |
 | 1.1 | 15 Juli 2026 | Growth Contours dipakai sebagai background bersama di semua halaman terautentikasi (`AppShell`), tidak lagi eksklusif untuk layar orientasi |
 | 1.2 | 16 Juli 2026 | Growth Contours dihapus total dari kode (komponen, data kontur, generator) — hasil visualnya sebagai latar berulang dinilai kurang maksimal. Semua halaman kembali ke latar polos `--background` |
+| 1.3 | 19 Juli 2026 | App icon (termasuk `favicon.ico`) diganti dari artwork kontur ke logo-mark asli di atas latar `--primary`. `theme_color` manifest diselaraskan ke `#463676` (sebelumnya masih warna primary lama peninggalan icon kontur). Native splash screen PWA sekarang konsisten dengan `LoadingScreen` in-app (sama-sama pakai logo-mark) |

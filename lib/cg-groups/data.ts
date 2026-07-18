@@ -2,6 +2,8 @@ import { FieldValue } from "firebase-admin/firestore";
 import { getAdminServices } from "@/lib/firebase/firebase-admin";
 import type { CgGroup } from "@/lib/cg-groups/types";
 
+const CG_CODE_PREFIX = "YS";
+
 export async function getCgGroupsForOrg(orgId: string): Promise<CgGroup[]> {
   const { adminDb } = getAdminServices();
   const snapshot = await adminDb.collection("organizations").doc(orgId).collection("cgGroups").get();
@@ -9,18 +11,15 @@ export async function getCgGroupsForOrg(orgId: string): Promise<CgGroup[]> {
   return snapshot.docs
     .map((doc) => {
       const data = doc.data();
-      const groupCode = typeof data.groupCode === "string" ? data.groupCode : doc.id;
-      const groupName = typeof data.groupName === "string" ? data.groupName : "";
       const cglId = typeof data.cglId === "string" ? data.cglId : null;
 
-      return { id: doc.id, groupCode, groupName, cglId };
+      return { id: doc.id, groupCode: doc.id, cglId };
     })
     .sort((a, b) => a.groupCode.localeCompare(b.groupCode, "id"));
 }
 
 export type CreateCgGroupInput = {
-  groupCode: string;
-  groupName: string;
+  code: string;
 };
 
 export type CreateCgGroupResult =
@@ -32,32 +31,31 @@ export async function createCgGroup(
   uid: string,
   input: CreateCgGroupInput,
 ): Promise<CreateCgGroupResult> {
-  const groupCode = input.groupCode.trim().toUpperCase();
-  const groupName = input.groupName.trim();
+  const digits = input.code.trim();
 
-  if (!groupCode) {
-    return { ok: false, error: "Kode CG wajib diisi" };
+  if (!/^\d+$/.test(digits)) {
+    return { ok: false, error: "Kode CG harus berupa angka, contoh: 41" };
   }
 
-  if (!groupName) {
-    return { ok: false, error: "Nama CG wajib diisi" };
-  }
-
+  const groupCode = `${CG_CODE_PREFIX}${digits}`;
   const { adminDb } = getAdminServices();
-  const cgGroupsRef = adminDb.collection("organizations").doc(orgId).collection("cgGroups");
+  const docRef = adminDb.collection("organizations").doc(orgId).collection("cgGroups").doc(groupCode);
 
-  const existing = await cgGroupsRef.where("groupCode", "==", groupCode).limit(1).get();
-  if (!existing.empty) {
-    return { ok: false, error: `Kode CG "${groupCode}" sudah dipakai` };
+  const existing = await docRef.get();
+  if (existing.exists) {
+    return { ok: false, error: `Kode "${groupCode}" sudah dipakai` };
   }
 
-  const docRef = await cgGroupsRef.add({
-    groupCode,
-    groupName,
-    cglId: null,
-    createdBy: uid,
-    createdAt: FieldValue.serverTimestamp(),
-  });
+  try {
+    await docRef.create({
+      groupCode,
+      cglId: null,
+      createdBy: uid,
+      createdAt: FieldValue.serverTimestamp(),
+    });
+  } catch {
+    return { ok: false, error: `Kode "${groupCode}" sudah dipakai` };
+  }
 
-  return { ok: true, cgGroup: { id: docRef.id, groupCode, groupName, cglId: null } };
+  return { ok: true, cgGroup: { id: groupCode, groupCode, cglId: null } };
 }

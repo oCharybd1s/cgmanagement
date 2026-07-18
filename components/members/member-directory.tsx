@@ -26,7 +26,7 @@ export function MemberDirectory({
   const cgLabelById = React.useMemo(() => {
     const map = new Map<string, string>();
     for (const group of cgGroups) {
-      map.set(group.id, group.groupName || group.groupCode);
+      map.set(group.id, group.groupCode);
     }
     return map;
   }, [cgGroups]);
@@ -79,7 +79,7 @@ export function MemberDirectory({
               <option value="all">Semua CG</option>
               {cgGroups.map((group) => (
                 <option key={group.id} value={group.id}>
-                  {group.groupName || group.groupCode}
+                  {group.groupCode}
                 </option>
               ))}
             </select>

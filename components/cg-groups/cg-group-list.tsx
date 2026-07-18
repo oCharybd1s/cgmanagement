@@ -44,16 +44,15 @@ export function CgGroupList({
       {cgGroups.length === 0 ? (
         <EmptyCgGroupState canCreate={canCreate} />
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {cgGroups.map((group) => (
             <div
               key={group.id}
-              className="rounded-2xl border border-border bg-card/70 p-4 shadow-sm backdrop-blur-xl"
+              className="flex items-center justify-center rounded-2xl border border-border bg-card/70 px-4 py-5 text-center shadow-sm backdrop-blur-xl"
             >
-              <span className="inline-flex items-center rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground">
+              <span className="font-display text-base font-bold tracking-tight text-foreground">
                 {group.groupCode}
               </span>
-              <p className="mt-2 font-medium text-foreground">{group.groupName}</p>
             </div>
           ))}
         </div>
