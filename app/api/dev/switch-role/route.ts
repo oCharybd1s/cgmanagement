@@ -49,6 +49,7 @@ export async function POST(request: NextRequest) {
     }
 
     await revokeSession(session.uid);
+    await new Promise((resolve) => setTimeout(resolve, 1100));
 
     const customToken = await adminAuth.createCustomToken(session.uid);
     const idToken = await signInWithCustomToken(customToken, apiKey);

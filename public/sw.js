@@ -19,8 +19,12 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
+function isCacheableRequest(request) {
+  return request.url.startsWith(self.location.origin);
+}
+
 self.addEventListener("fetch", (event) => {
-  if (event.request.method !== "GET") return;
+  if (event.request.method !== "GET" || !isCacheableRequest(event.request)) return;
 
   if (event.request.mode === "navigate") {
     event.respondWith(
