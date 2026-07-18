@@ -265,7 +265,7 @@ export function AddMemberDialog({
                           <option value="">Belum ditentukan</option>
                           {cgGroups.map((group) => (
                             <option key={group.id} value={group.id}>
-                              {group.groupCode} — {group.groupName}
+                              {group.groupCode}
                             </option>
                           ))}
                         </select>
@@ -277,7 +277,7 @@ export function AddMemberDialog({
                           type="text"
                           disabled
                           readOnly
-                          value={ownCgGroup ? `${ownCgGroup.groupCode} — ${ownCgGroup.groupName}` : "CG Anda saat ini"}
+                          value={ownCgGroup ? ownCgGroup.groupCode : "CG Anda saat ini"}
                           className={cn(inputClass, "text-muted-foreground")}
                         />
                       </Field>
