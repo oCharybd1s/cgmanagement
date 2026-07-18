@@ -29,7 +29,7 @@ export function Topbar({
         aria-label="Buka menu"
         className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors duration-200 hover:bg-muted hover:text-foreground lg:hidden"
       >
-        <Menu className="h-[18px] w-[18px]" strokeWidth={2} />
+        <Menu className="h-4.5 w-4.5" strokeWidth={2} />
       </button>
 
       <button
@@ -39,9 +39,9 @@ export function Topbar({
         className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors duration-200 hover:bg-muted hover:text-foreground lg:inline-flex"
       >
         {isOpen ? (
-          <PanelLeftClose className="h-[18px] w-[18px]" strokeWidth={2} />
+          <PanelLeftClose className="h-4.5 w-4.5" strokeWidth={2} />
         ) : (
-          <PanelLeftOpen className="h-[18px] w-[18px]" strokeWidth={2} />
+          <PanelLeftOpen className="h-4.5 w-4.5" strokeWidth={2} />
         )}
       </button>
 

@@ -75,7 +75,7 @@ export function MobileNav() {
                 aria-label="Tutup menu"
                 className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sidebar-foreground/70 transition-colors duration-200 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
               >
-                <X className="h-[18px] w-[18px]" strokeWidth={2} />
+                <X className="h-4.5 w-4.5" strokeWidth={2} />
               </button>
             </div>
 
@@ -102,7 +102,7 @@ export function MobileNav() {
                         className="absolute inset-0 rounded-xl bg-sidebar-primary"
                       />
                     ) : null}
-                    <Icon className="relative z-10 h-[18px] w-[18px] shrink-0" strokeWidth={2} />
+                    <Icon className="relative z-10 h-4.5 w-4.5 shrink-0" strokeWidth={2} />
                     <span className="relative z-10">{item.label}</span>
                   </Link>
                 );

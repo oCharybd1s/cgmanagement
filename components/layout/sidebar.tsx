@@ -56,7 +56,7 @@ export function Sidebar() {
                     className="absolute inset-0 rounded-xl bg-sidebar-primary"
                   />
                 ) : null}
-                <Icon className="relative z-10 h-[18px] w-[18px] shrink-0" strokeWidth={2} />
+                <Icon className="relative z-10 h-4.5 w-4.5 shrink-0" strokeWidth={2} />
                 <span className="relative z-10">{item.label}</span>
               </Link>
             );
