@@ -16,15 +16,13 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = React.useState(true);
   const [isMobileNavOpen, setIsMobileNavOpen] = React.useState(false);
 
+  const toggle = React.useCallback(() => setIsOpen((previous) => !previous), []);
+  const openMobileNav = React.useCallback(() => setIsMobileNavOpen(true), []);
+  const closeMobileNav = React.useCallback(() => setIsMobileNavOpen(false), []);
+
   const value = React.useMemo<SidebarContextValue>(
-    () => ({
-      isOpen,
-      toggle: () => setIsOpen((previous) => !previous),
-      isMobileNavOpen,
-      openMobileNav: () => setIsMobileNavOpen(true),
-      closeMobileNav: () => setIsMobileNavOpen(false),
-    }),
-    [isOpen, isMobileNavOpen],
+    () => ({ isOpen, toggle, isMobileNavOpen, openMobileNav, closeMobileNav }),
+    [isOpen, toggle, isMobileNavOpen, openMobileNav, closeMobileNav],
   );
 
   return <SidebarContext.Provider value={value}>{children}</SidebarContext.Provider>;

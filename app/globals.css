@@ -60,10 +60,6 @@
   --sidebar-border: oklch(0.9 0.01 90);
   --sidebar-ring: oklch(0.385 0.105 292);
 
-  --topography-line: rgba(15, 23, 42, 0.08);
-  --topography-soft: rgba(15, 23, 42, 0.05);
-  --topography-accent: rgba(15, 23, 42, 0.03);
-  --topography-background: url("/topography.svg");
 
   --motion-instant: 100ms;
   --motion-fast: 160ms;
@@ -127,10 +123,6 @@
   --sidebar-border: oklch(1 0 0 / 12%);
   --sidebar-ring: oklch(0.75 0.095 292);
 
-  --topography-line: rgba(75, 85, 99, 0.24);
-  --topography-soft: rgba(100, 116, 139, 0.10);
-  --topography-accent: rgba(148, 163, 184, 0.14);
-  --topography-background: url("/topography.svg");
 }
 
 @theme inline {
@@ -202,12 +194,6 @@
     min-height: 100vh;
     color: var(--foreground);
     background-color: var(--background);
-    background-image: var(--topography-background);
-    background-repeat: no-repeat;
-    background-position: center center;
-    background-size: cover;
-    background-attachment: fixed;
-    position: relative;
   }
 
   ::selection {
