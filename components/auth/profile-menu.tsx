@@ -105,7 +105,7 @@ export function ProfileMenu({ user }: { user?: ShellUser | null }) {
             </div>
 
             {user?.canSwitchRole ? (
-              <DemoRoleSwitcher currentRole={user.role} currentCgGroupId={user.cgGroupId} />
+              <DemoRoleSwitcher currentRole={user.role} currentOrgId={user.orgId} currentCgGroupId={user.cgGroupId} />
             ) : null}
           </motion.div>
         ) : null}

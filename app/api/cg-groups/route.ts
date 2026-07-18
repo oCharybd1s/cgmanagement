@@ -7,8 +7,15 @@ export async function POST(request: NextRequest) {
   const cookieValue = request.cookies.get(SESSION_COOKIE_NAME)?.value;
   const session = await verifySessionCookie(cookieValue, true);
 
-  if (!session || !session.orgId) {
-    return NextResponse.json({ ok: false, error: "Sesi tidak valid" }, { status: 401 });
+  if (!session) {
+    return NextResponse.json({ ok: false, error: "Sesi tidak valid, silakan login ulang" }, { status: 401 });
+  }
+
+  if (!session.orgId) {
+    return NextResponse.json(
+      { ok: false, error: "Akun Anda belum terhubung ke organisasi manapun" },
+      { status: 403 },
+    );
   }
 
   if (!canManageCgGroups(session.role)) {

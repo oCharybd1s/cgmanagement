@@ -10,6 +10,7 @@ import {
 } from "@/lib/auth/session";
 import { canUseDemoRoleSwitch, isDemoSwitchableRole } from "@/lib/auth/demo-role-switch";
 import { signInWithCustomToken } from "@/lib/auth/identity-toolkit";
+import { resolveDefaultOrgId } from "@/lib/organizations/data";
 import type { SessionUser } from "@/lib/auth/types";
 
 export async function POST(request: NextRequest) {
@@ -33,20 +34,26 @@ export async function POST(request: NextRequest) {
   try {
     const { adminAuth, adminDb } = getAdminServices();
 
+    const orgId = session.orgId ?? (await resolveDefaultOrgId());
+    if (!orgId) {
+      return NextResponse.json(
+        { ok: false, error: "Belum ada organisasi yang ter-seed di Firestore" },
+        { status: 500 },
+      );
+    }
+
     await adminAuth.setCustomUserClaims(session.uid, {
       role: payload.role,
-      orgId: session.orgId,
+      orgId,
       cgGroupId: payload.cgGroupId,
     });
 
-    if (session.orgId) {
-      await adminDb
-        .collection("organizations")
-        .doc(session.orgId)
-        .collection("users")
-        .doc(session.uid)
-        .set({ role: payload.role, cgGroupId: payload.cgGroupId }, { merge: true });
-    }
+    await adminDb
+      .collection("organizations")
+      .doc(orgId)
+      .collection("users")
+      .doc(session.uid)
+      .set({ role: payload.role, cgGroupId: payload.cgGroupId }, { merge: true });
 
     await revokeSession(session.uid);
     await new Promise((resolve) => setTimeout(resolve, 1100));
@@ -64,7 +71,7 @@ export async function POST(request: NextRequest) {
       uid: session.uid,
       email: session.email,
       role: payload.role,
-      orgId: session.orgId,
+      orgId,
       cgGroupId: payload.cgGroupId,
     };
 
