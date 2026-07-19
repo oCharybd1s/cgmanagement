@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { verifySession } from "@/lib/auth/dal";
 import { toShellUser } from "@/lib/auth/shell-user";
 import {
+  canCreateMember,
   canViewMemberDirectory,
   hasFullMemberDirectoryAccess,
   memberDirectoryFieldScope,
@@ -47,6 +48,9 @@ export default async function AnggotaPage() {
             members={members}
             cgGroups={cgGroups}
             fields={memberDirectoryFieldScope(session.role)}
+            canCreateMember={canCreateMember(session.role)}
+            viewerRole={session.role}
+            viewerCgGroupId={session.cgGroupId}
           />
         </Section>
       </Container>

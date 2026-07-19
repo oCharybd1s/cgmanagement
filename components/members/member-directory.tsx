@@ -4,6 +4,7 @@ import * as React from "react";
 import { Search, SearchX, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getRoleLabel } from "@/lib/auth/roles";
+import { AddMemberDialog } from "@/components/members/add-member-dialog";
 import type { Member, SpiritualStatus } from "@/lib/members/types";
 import type { CgGroup } from "@/lib/cg-groups/types";
 
@@ -13,15 +14,22 @@ export function MemberDirectory({
   members,
   cgGroups,
   fields,
+  canCreateMember,
+  viewerRole,
+  viewerCgGroupId,
 }: {
   members: Member[];
   cgGroups: CgGroup[];
   fields: "full" | "basic";
+  canCreateMember: boolean;
+  viewerRole: string | null;
+  viewerCgGroupId: string | null;
 }) {
   const [search, setSearch] = React.useState("");
   const [cgFilter, setCgFilter] = React.useState("all");
 
   const showCgColumn = fields === "full" && cgGroups.length > 0;
+  const hasMembers = members.length > 0;
 
   const cgLabelById = React.useMemo(() => {
     const map = new Map<string, string>();
@@ -40,121 +48,133 @@ export function MemberDirectory({
     });
   }, [members, search, cgFilter]);
 
-  if (members.length === 0) {
-    return <EmptyDirectoryState />;
-  }
-
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative w-full sm:max-w-xs">
-          <label htmlFor="member-search" className="sr-only">
-            Cari nama anggota
-          </label>
-          <Search
-            className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-            strokeWidth={2}
-          />
-          <input
-            id="member-search"
-            type="text"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Cari nama anggota"
-            className="w-full rounded-full border-[1.5px] border-input bg-input/40 py-2.5 pl-10 pr-4 text-sm text-foreground outline-none transition-colors duration-200 placeholder:text-muted-foreground hover:border-primary focus-visible:border-primary focus-visible:bg-card focus-visible:ring-[3px] focus-visible:ring-ring/25"
-          />
-        </div>
-
-        {showCgColumn ? (
-          <div className="w-full sm:w-auto">
-            <label htmlFor="member-cg-filter" className="sr-only">
-              Filter CG
+        {hasMembers ? (
+          <div className="relative w-full sm:max-w-xs">
+            <label htmlFor="member-search" className="sr-only">
+              Cari nama anggota
             </label>
-            <select
-              id="member-cg-filter"
-              value={cgFilter}
-              onChange={(event) => setCgFilter(event.target.value)}
-              className="w-full rounded-full border-[1.5px] border-input bg-input/40 px-4 py-2.5 text-sm text-foreground outline-none transition-colors duration-200 hover:border-primary focus-visible:border-primary focus-visible:ring-[3px] focus-visible:ring-ring/25 sm:w-auto"
-            >
-              <option value="all">Semua CG</option>
-              {cgGroups.map((group) => (
-                <option key={group.id} value={group.id}>
-                  {group.groupCode}
-                </option>
-              ))}
-            </select>
+            <Search
+              className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+              strokeWidth={2}
+            />
+            <input
+              id="member-search"
+              type="text"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Cari nama anggota"
+              className="w-full rounded-full border-[1.5px] border-input bg-input/40 py-2.5 pl-10 pr-4 text-sm text-foreground outline-none transition-colors duration-200 placeholder:text-muted-foreground hover:border-primary focus-visible:border-primary focus-visible:bg-card focus-visible:ring-[3px] focus-visible:ring-ring/25"
+            />
           </div>
-        ) : null}
+        ) : (
+          <p className="font-display text-lg font-bold tracking-tight text-foreground">Data Anggota</p>
+        )}
+
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+          {hasMembers && showCgColumn ? (
+            <div className="w-full sm:w-auto">
+              <label htmlFor="member-cg-filter" className="sr-only">
+                Filter CG
+              </label>
+              <select
+                id="member-cg-filter"
+                value={cgFilter}
+                onChange={(event) => setCgFilter(event.target.value)}
+                className="w-full rounded-full border-[1.5px] border-input bg-input/40 px-4 py-2.5 text-sm text-foreground outline-none transition-colors duration-200 hover:border-primary focus-visible:border-primary focus-visible:ring-[3px] focus-visible:ring-ring/25 sm:w-auto"
+              >
+                <option value="all">Semua CG</option>
+                {cgGroups.map((group) => (
+                  <option key={group.id} value={group.id}>
+                    {group.groupCode}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null}
+
+          {canCreateMember ? (
+            <AddMemberDialog cgGroups={cgGroups} viewerRole={viewerRole} viewerCgGroupId={viewerCgGroupId} />
+          ) : null}
+        </div>
       </div>
 
-      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-        {filteredMembers.length} dari {members.length} anggota
-      </p>
-
-      {filteredMembers.length === 0 ? (
-        <EmptySearchState />
-      ) : (
+      {hasMembers ? (
         <React.Fragment>
-          <div className="hidden overflow-x-auto rounded-2xl border border-border bg-card/70 shadow-sm backdrop-blur-xl md:block">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-border text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  <th scope="col" className="px-5 py-3.5 font-medium">
-                    Nama
-                  </th>
-                  {fields === "full" ? (
-                    <React.Fragment>
-                      {showCgColumn ? (
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            {filteredMembers.length} dari {members.length} anggota
+          </p>
+
+          {filteredMembers.length === 0 ? (
+            <EmptySearchState />
+          ) : (
+            <React.Fragment>
+              <div className="hidden overflow-x-auto rounded-2xl border border-border bg-card/70 shadow-sm backdrop-blur-xl md:block">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-border text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      <th scope="col" className="px-5 py-3.5 font-medium">
+                        Nama
+                      </th>
+                      {fields === "full" ? (
+                        <React.Fragment>
+                          {showCgColumn ? (
+                            <th scope="col" className="px-5 py-3.5 font-medium">
+                              CG
+                            </th>
+                          ) : null}
+                          <th scope="col" className="px-5 py-3.5 font-medium">
+                            Role
+                          </th>
+                          <th scope="col" className="px-5 py-3.5 font-medium">
+                            NIJ
+                          </th>
+                          <th scope="col" className="px-5 py-3.5 font-medium">
+                            Kontak
+                          </th>
+                          <th scope="col" className="px-5 py-3.5 font-medium">
+                            Status Rohani
+                          </th>
+                        </React.Fragment>
+                      ) : (
                         <th scope="col" className="px-5 py-3.5 font-medium">
-                          CG
+                          No HP
                         </th>
-                      ) : null}
-                      <th scope="col" className="px-5 py-3.5 font-medium">
-                        Role
-                      </th>
-                      <th scope="col" className="px-5 py-3.5 font-medium">
-                        NIJ
-                      </th>
-                      <th scope="col" className="px-5 py-3.5 font-medium">
-                        Kontak
-                      </th>
-                      <th scope="col" className="px-5 py-3.5 font-medium">
-                        Status Rohani
-                      </th>
-                    </React.Fragment>
-                  ) : (
-                    <th scope="col" className="px-5 py-3.5 font-medium">
-                      No HP
-                    </th>
-                  )}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {filteredMembers.map((member) => (
+                      <MemberRow
+                        key={member.id}
+                        member={member}
+                        cgLabel={member.cgGroupId ? (cgLabelById.get(member.cgGroupId) ?? null) : null}
+                        showCgColumn={showCgColumn}
+                        fields={fields}
+                      />
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="flex flex-col gap-3 md:hidden">
                 {filteredMembers.map((member) => (
-                  <MemberRow
+                  <MemberCard
                     key={member.id}
                     member={member}
                     cgLabel={member.cgGroupId ? (cgLabelById.get(member.cgGroupId) ?? null) : null}
-                    showCgColumn={showCgColumn}
+                    showCg={showCgColumn}
                     fields={fields}
                   />
                 ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="flex flex-col gap-3 md:hidden">
-            {filteredMembers.map((member) => (
-              <MemberCard
-                key={member.id}
-                member={member}
-                cgLabel={member.cgGroupId ? (cgLabelById.get(member.cgGroupId) ?? null) : null}
-                showCg={showCgColumn}
-                fields={fields}
-              />
-            ))}
-          </div>
+              </div>
+            </React.Fragment>
+          )}
         </React.Fragment>
+      ) : (
+        <EmptyDirectoryState canCreate={canCreateMember} />
       )}
     </div>
   );
@@ -307,7 +327,7 @@ function Badge({
   );
 }
 
-function EmptyDirectoryState() {
+function EmptyDirectoryState({ canCreate }: { canCreate: boolean }) {
   return (
     <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card/70 px-6 py-16 text-center shadow-sm backdrop-blur-xl">
       <span className="flex h-12 w-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
@@ -317,7 +337,9 @@ function EmptyDirectoryState() {
         Belum ada data anggota
       </h2>
       <p className="max-w-sm text-sm text-muted-foreground">
-        Data anggota akan muncul di sini setelah data dari Google Sheets berhasil dimigrasi.
+        {canCreate
+          ? "Tambahkan anggota pertama dengan tombol \"Tambah Anggota\" di atas, atau tunggu proses migrasi data dari Google Sheets."
+          : "Data anggota akan muncul di sini setelah data dari Google Sheets berhasil dimigrasi."}
       </p>
     </div>
   );
