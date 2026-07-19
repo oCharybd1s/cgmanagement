@@ -54,12 +54,10 @@ export function AddMemberDialog({
   const [formError, setFormError] = React.useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = React.useState<CreateMemberFieldErrors>({});
   const [successState, setSuccessState] = React.useState<SuccessState | null>(null);
-  const [selectedRole, setSelectedRole] = React.useState("");
 
   const assignableRoles = assignableRolesForCreator(viewerRole);
   const canPickCgGroup = isCoach(viewerRole);
   const ownCgGroup = cgGroups.find((group) => group.id === viewerCgGroupId) ?? null;
-  const isNewMemberCoach = selectedRole === "coach";
 
   React.useEffect(() => {
     if (!isOpen) {
@@ -78,7 +76,6 @@ export function AddMemberDialog({
     setFormError(null);
     setFieldErrors({});
     setSuccessState(null);
-    setSelectedRole("");
     setIsOpen(true);
   }
 
@@ -100,7 +97,7 @@ export function AddMemberDialog({
     setIsSubmitting(true);
 
     const role = String(formData.get("role") ?? "").trim();
-    const cgGroupId = role === "coach" ? "" : canPickCgGroup ? String(formData.get("cgGroupId") ?? "").trim() : "";
+    const cgGroupId = canPickCgGroup ? String(formData.get("cgGroupId") ?? "").trim() : "";
     const spiritualStatus = SPIRITUAL_STATUS_FIELDS.reduce<Record<string, boolean>>((acc, field) => {
       acc[field.key] = formData.get(field.key) === "on";
       return acc;
@@ -134,7 +131,6 @@ export function AddMemberDialog({
       }
 
       formRef.current?.reset();
-      setSelectedRole("");
       setSuccessState({ fullName, temporaryPassword: data.temporaryPassword });
       setIsSubmitting(false);
       router.refresh();
@@ -238,8 +234,7 @@ export function AddMemberDialog({
                         id="role"
                         name="role"
                         disabled={isSubmitting}
-                        value={selectedRole}
-                        onChange={(event) => setSelectedRole(event.target.value)}
+                        defaultValue=""
                         className={inputClass}
                       >
                         <option value="">Belum ditentukan</option>
@@ -258,13 +253,7 @@ export function AddMemberDialog({
                   </p>
 
                   <div className="grid gap-4 sm:grid-cols-2">
-                    {isNewMemberCoach ? (
-                      <Field label="CG">
-                        <p className="rounded-full border-[1.5px] border-dashed border-border bg-muted/30 px-4 py-2.5 text-sm text-muted-foreground">
-                          Coach mengelola semua CG
-                        </p>
-                      </Field>
-                    ) : canPickCgGroup ? (
+                    {canPickCgGroup ? (
                       <Field label="CG" htmlFor="cgGroupId" error={fieldErrors.cgGroupId}>
                         <select
                           id="cgGroupId"
@@ -405,7 +394,7 @@ function Field({
   children,
 }: {
   label: string;
-  htmlFor?: string;
+  htmlFor: string;
   error?: string;
   required?: boolean;
   children: React.ReactNode;

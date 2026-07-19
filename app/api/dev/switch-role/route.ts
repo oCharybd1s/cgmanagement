@@ -46,7 +46,6 @@ export async function POST(request: NextRequest) {
       role: payload.role,
       orgId,
       cgGroupId: payload.cgGroupId,
-      isBendahara: false,
     });
 
     await adminDb
@@ -54,7 +53,7 @@ export async function POST(request: NextRequest) {
       .doc(orgId)
       .collection("users")
       .doc(session.uid)
-      .set({ role: payload.role, cgGroupId: payload.cgGroupId, isBendahara: false }, { merge: true });
+      .set({ role: payload.role, cgGroupId: payload.cgGroupId }, { merge: true });
 
     await revokeSession(session.uid);
     await new Promise((resolve) => setTimeout(resolve, 1100));
@@ -74,7 +73,6 @@ export async function POST(request: NextRequest) {
       role: payload.role,
       orgId,
       cgGroupId: payload.cgGroupId,
-      isBendahara: false,
     };
 
     const response = NextResponse.json({ ok: true, user });

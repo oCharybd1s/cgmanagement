@@ -53,7 +53,6 @@ export async function verifySessionCookie(
       role: typeof decoded.role === "string" ? decoded.role : null,
       orgId: typeof decoded.orgId === "string" ? decoded.orgId : null,
       cgGroupId: typeof decoded.cgGroupId === "string" ? decoded.cgGroupId : null,
-      isBendahara: decoded.isBendahara === true,
     };
   } catch {
     return null;

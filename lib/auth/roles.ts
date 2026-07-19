@@ -41,6 +41,10 @@ export function canManageCgGroups(role: string | null) {
   return isCoach(role);
 }
 
+export function canViewOrganizationTree(role: string | null) {
+  return isCoach(role) || isCgl(role);
+}
+
 export function canViewMemberDirectory(role: string | null) {
   return isCoach(role) || isCgl(role) || isSponsor(role) || isMember(role) || isSimpatisan(role);
 }
@@ -61,35 +65,4 @@ export function assignableRolesForCreator(role: string | null): string[] {
     return ["cgl", "sponsor", "member", "simpatisan"];
   }
   return [];
-}
-
-export type BendaharaScope = "coach" | "cg";
-
-export function bendaharaScopeForRole(role: string | null): BendaharaScope | null {
-  if (isCgl(role)) {
-    return "coach";
-  }
-  if (isSponsor(role)) {
-    return "cg";
-  }
-  return null;
-}
-
-export function canAssignBendahara(
-  actorRole: string | null,
-  actorCgGroupId: string | null,
-  targetRole: string | null,
-  targetCgGroupId: string | null,
-) {
-  const scope = bendaharaScopeForRole(targetRole);
-  if (!scope) {
-    return false;
-  }
-  if (isCoach(actorRole)) {
-    return true;
-  }
-  if (scope === "cg" && isCgl(actorRole)) {
-    return actorCgGroupId !== null && actorCgGroupId === targetCgGroupId;
-  }
-  return false;
 }

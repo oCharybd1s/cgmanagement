@@ -1,13 +1,13 @@
 import { redirect } from "next/navigation";
-import { Network } from "lucide-react";
 import { verifySession } from "@/lib/auth/dal";
 import { toShellUser } from "@/lib/auth/shell-user";
-import { canManageCgGroups } from "@/lib/auth/roles";
+import { canManageCgGroups, canViewOrganizationTree } from "@/lib/auth/roles";
 import { getCgGroupsForOrg } from "@/lib/cg-groups/data";
+import { getOrganizationTreeForSession } from "@/lib/organizations/tree";
 import { AppShell } from "@/components/layout/app-shell";
 import { Container, Section } from "@/components/layout/container";
-import { ComingSoon } from "@/components/common/coming-soon";
 import { CgGroupList } from "@/components/cg-groups/cg-group-list";
+import { OrganizationTree } from "@/components/organizations/organization-tree";
 
 export default async function StrukturPage() {
   const session = await verifySession();
@@ -16,19 +16,22 @@ export default async function StrukturPage() {
     redirect("/auth");
   }
 
-  const cgGroups = session.orgId ? await getCgGroupsForOrg(session.orgId) : [];
+  const showTree = canViewOrganizationTree(session.role);
+
+  const [cgGroups, tree] = await Promise.all([
+    session.orgId ? getCgGroupsForOrg(session.orgId) : Promise.resolve([]),
+    showTree ? getOrganizationTreeForSession(session) : Promise.resolve(null),
+  ]);
 
   return (
     <AppShell title="Struktur Organisasi" user={toShellUser(session)}>
-      <Container size="md">
+      <Container size="xl">
         <Section spacing="lg" className="flex flex-col gap-10">
           <CgGroupList initialCgGroups={cgGroups} canCreate={canManageCgGroups(session.role)} />
 
-          <ComingSoon
-            icon={Network}
-            title="Visual Tree Struktur"
-            description="Visual tree Coach → CG → CGL → Sponsor → Member/Simpatisan, lengkap dengan promote, demote, dan replace beserta riwayatnya."
-          />
+          {showTree && tree ? (
+            <OrganizationTree tree={tree} viewerRole={session.role} viewerCgGroupId={session.cgGroupId} />
+          ) : null}
         </Section>
       </Container>
     </AppShell>
