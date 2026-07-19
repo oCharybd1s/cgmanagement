@@ -42,6 +42,7 @@ export async function POST(request: NextRequest) {
       role: typeof decoded.role === "string" ? decoded.role : null,
       orgId: typeof decoded.orgId === "string" ? decoded.orgId : null,
       cgGroupId: typeof decoded.cgGroupId === "string" ? decoded.cgGroupId : null,
+      isBendahara: decoded.isBendahara === true,
     };
 
     const response = NextResponse.json({ ok: true, user });

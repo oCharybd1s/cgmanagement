@@ -3,7 +3,7 @@
 import * as React from "react";
 import { ShieldCheck, UserCog, ArrowUpCircle, ArrowDownCircle, Wallet, WalletCards, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getRoleLabel } from "@/lib/auth/roles";
+import { getRoleLabel, canAssignBendahara } from "@/lib/auth/roles";
 import { StructureActionDialog, type StructureActionOutcome } from "@/components/organizations/structure-action-dialog";
 import type { OrganizationTreeCgGroup, OrganizationTreeMember } from "@/lib/organizations/tree";
 
@@ -14,12 +14,16 @@ export type BendaharaResult = { cgGroupId: string; memberId: string; isBendahara
 export function CgTreeView({
   coach,
   group,
+  viewerRole,
+  viewerCgGroupId,
   onPromoted,
   onDemoted,
   onBendaharaChanged,
 }: {
   coach: OrganizationTreeMember | null;
   group: OrganizationTreeCgGroup;
+  viewerRole: string | null;
+  viewerCgGroupId: string | null;
   onPromoted: (result: PromoteResult) => void;
   onDemoted: (result: DemoteResult) => void;
   onBendaharaChanged: (result: BendaharaResult) => void;
@@ -84,14 +88,10 @@ export function CgTreeView({
     const nextIsBendahara = !bendaharaTarget.isBendahara;
 
     try {
-      const response = await fetch("/api/struktur/bendahara", {
-        method: "POST",
+      const response = await fetch(`/api/members/${bendaharaTarget.id}/bendahara`, {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          cgGroupId: group.id,
-          memberId: bendaharaTarget.id,
-          isBendahara: nextIsBendahara,
-        }),
+        body: JSON.stringify({ isBendahara: nextIsBendahara }),
       });
       const result = await response.json();
 
@@ -100,7 +100,7 @@ export function CgTreeView({
       }
 
       onBendaharaChanged({
-        cgGroupId: result.cgGroupId,
+        cgGroupId: group.id,
         memberId: result.memberId,
         isBendahara: result.isBendahara,
       });
@@ -122,9 +122,14 @@ export function CgTreeView({
 
   const bendaharaDescription = bendaharaTarget
     ? bendaharaTarget.isBendahara
-      ? `Cabut status Bendahara dari ${bendaharaTarget.fullName} di ${group.groupCode}?`
-      : `Jadikan ${bendaharaTarget.fullName} sebagai Bendahara di ${group.groupCode}?`
+      ? `Cabut status Bendahara dari ${bendaharaTarget.fullName}?`
+      : bendaharaTarget.role === "cgl"
+        ? `Jadikan ${bendaharaTarget.fullName} sebagai Bendahara Kas Coach?`
+        : `Jadikan ${bendaharaTarget.fullName} sebagai Bendahara Kas ${group.groupCode}?`
     : "";
+
+  const canAssignCglBendahara =
+    group.cgl !== null && canAssignBendahara(viewerRole, viewerCgGroupId, group.cgl.role, group.id);
 
   return (
     <div className="flex flex-col items-center gap-6 rounded-2xl border border-border bg-card/40 px-4 py-10 shadow-sm backdrop-blur-xl">
@@ -137,16 +142,42 @@ export function CgTreeView({
       <Connector />
 
       {group.cgl ? (
-        <div className="flex flex-col items-center gap-3">
+        <div className="flex flex-col items-center gap-2">
           <TreeNode icon={UserCog} label="CGL" name={group.cgl.fullName} tone="secondary" />
-          <button
-            type="button"
-            onClick={() => setDemoteOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors duration-200 hover:border-destructive hover:text-destructive"
-          >
-            <ArrowDownCircle className="h-3.5 w-3.5" strokeWidth={2} />
-            Turunkan ke Sponsor
-          </button>
+
+          {group.cgl.isBendahara ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-warning px-2 py-0.5 text-[11px] font-medium text-warning-foreground">
+              <WalletCards className="h-3 w-3" strokeWidth={2} />
+              Bendahara Kas Coach
+            </span>
+          ) : null}
+
+          <div className="flex flex-wrap items-center justify-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => setDemoteOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors duration-200 hover:border-destructive hover:text-destructive"
+            >
+              <ArrowDownCircle className="h-3.5 w-3.5" strokeWidth={2} />
+              Turunkan ke Sponsor
+            </button>
+
+            {canAssignCglBendahara ? (
+              <button
+                type="button"
+                onClick={() => setBendaharaTarget(group.cgl)}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors duration-200",
+                  group.cgl.isBendahara
+                    ? "border-warning/40 bg-warning/10 text-warning-foreground hover:border-destructive hover:text-destructive"
+                    : "border-border text-muted-foreground hover:border-warning hover:text-warning-foreground",
+                )}
+              >
+                <Wallet className="h-3.5 w-3.5" strokeWidth={2} />
+                {group.cgl.isBendahara ? "Cabut Bendahara" : "Jadikan Bendahara"}
+              </button>
+            ) : null}
+          </div>
         </div>
       ) : (
         <TreeNode label="CGL" name="Belum ada CGL" tone="empty" />
@@ -168,19 +199,21 @@ export function CgTreeView({
               <ArrowUpCircle className="h-3.5 w-3.5" strokeWidth={2} />
               Jadikan CGL
             </button>
-            <button
-              type="button"
-              onClick={() => setBendaharaTarget(member)}
-              className={cn(
-                "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors duration-200",
-                member.isBendahara
-                  ? "border-warning/40 bg-warning/10 text-warning-foreground hover:border-destructive hover:text-destructive"
-                  : "border-border text-muted-foreground hover:border-warning hover:text-warning-foreground",
-              )}
-            >
-              <Wallet className="h-3.5 w-3.5" strokeWidth={2} />
-              {member.isBendahara ? "Cabut Bendahara" : "Jadikan Bendahara"}
-            </button>
+            {canAssignBendahara(viewerRole, viewerCgGroupId, member.role, group.id) ? (
+              <button
+                type="button"
+                onClick={() => setBendaharaTarget(member)}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors duration-200",
+                  member.isBendahara
+                    ? "border-warning/40 bg-warning/10 text-warning-foreground hover:border-destructive hover:text-destructive"
+                    : "border-border text-muted-foreground hover:border-warning hover:text-warning-foreground",
+                )}
+              >
+                <Wallet className="h-3.5 w-3.5" strokeWidth={2} />
+                {member.isBendahara ? "Cabut Bendahara" : "Jadikan Bendahara"}
+              </button>
+            ) : null}
           </div>
         )}
       />

@@ -58,7 +58,9 @@ export async function createMemberForSession(
   }
 
   let cgGroupId: string | null;
-  if (isCoach(session.role)) {
+  if (requestedRole === "coach") {
+    cgGroupId = null;
+  } else if (isCoach(session.role)) {
     const requestedCgGroupId = toStringValue(payload.cgGroupId).trim();
     cgGroupId = requestedCgGroupId === "" ? null : requestedCgGroupId;
   } else {
@@ -100,6 +102,7 @@ export async function createMemberForSession(
       role: requestedRole || null,
       orgId: session.orgId,
       cgGroupId,
+      isBendahara: false,
     });
   } catch {
     await adminAuth.deleteUser(uid).catch(() => undefined);

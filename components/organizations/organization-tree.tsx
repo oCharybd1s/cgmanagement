@@ -88,6 +88,8 @@ export function OrganizationTree({
         <CgTreeView
           coach={treeData.coach}
           group={selectedGroup}
+          viewerRole={viewerRole}
+          viewerCgGroupId={viewerCgGroupId}
           onPromoted={handlePromoted}
           onDemoted={handleDemoted}
           onBendaharaChanged={handleBendaharaChanged}
@@ -113,7 +115,7 @@ function applyPromotion(tree: OrganizationTreeData, result: PromoteResult): Orga
       const remainingSponsors = group.sponsors.filter((sponsor) => sponsor.id !== result.newCglUserId);
       const nextSponsors =
         result.previousCglUserId && group.cgl
-          ? [...remainingSponsors, { ...group.cgl, role: "sponsor" }]
+          ? [...remainingSponsors, { ...group.cgl, role: "sponsor", isBendahara: false }]
           : remainingSponsors;
 
       return {
@@ -131,6 +133,10 @@ function applyBendaharaChange(tree: OrganizationTreeData, result: BendaharaResul
     cgGroups: tree.cgGroups.map((group) => {
       if (group.id !== result.cgGroupId) {
         return group;
+      }
+
+      if (group.cgl && group.cgl.id === result.memberId) {
+        return { ...group, cgl: { ...group.cgl, isBendahara: result.isBendahara } };
       }
 
       return {
@@ -154,7 +160,7 @@ function applyDemotion(tree: OrganizationTreeData, result: DemoteResult): Organi
       return {
         ...group,
         cgl: null,
-        sponsors: [...group.sponsors, { ...group.cgl, role: "sponsor" }].sort((a, b) =>
+        sponsors: [...group.sponsors, { ...group.cgl, role: "sponsor", isBendahara: false }].sort((a, b) =>
           a.fullName.localeCompare(b.fullName, "id"),
         ),
       };

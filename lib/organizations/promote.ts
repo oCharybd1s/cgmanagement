@@ -20,16 +20,6 @@ export type DemoteCglResult =
   | { ok: true; cgGroupId: string; demotedUserId: string }
   | { ok: false; status: number; error: string };
 
-export type SetBendaharaInput = {
-  cgGroupId: string;
-  memberId: string;
-  isBendahara: boolean;
-};
-
-export type SetBendaharaResult =
-  | { ok: true; cgGroupId: string; memberId: string; isBendahara: boolean }
-  | { ok: false; status: number; error: string };
-
 export async function promoteToCglForSession(
   session: SessionUser,
   input: PromoteToCglInput,
@@ -94,7 +84,7 @@ export async function promoteToCglForSession(
       transaction.update(newCglRef, { role: "cgl", isBendahara: false, updatedBy: session.uid, updatedAt: now });
 
       if (previousCglRef) {
-        transaction.update(previousCglRef, { role: "sponsor", updatedBy: session.uid, updatedAt: now });
+        transaction.update(previousCglRef, { role: "sponsor", isBendahara: false, updatedBy: session.uid, updatedAt: now });
       }
 
       transaction.set(logRef, {
@@ -114,12 +104,17 @@ export async function promoteToCglForSession(
   }
 
   const claimUpdates = [
-    adminAuth.setCustomUserClaims(newCglUserId, { role: "cgl", orgId: session.orgId, cgGroupId }),
+    adminAuth.setCustomUserClaims(newCglUserId, { role: "cgl", orgId: session.orgId, cgGroupId, isBendahara: false }),
   ];
 
   if (previousCglUserId) {
     claimUpdates.push(
-      adminAuth.setCustomUserClaims(previousCglUserId, { role: "sponsor", orgId: session.orgId, cgGroupId }),
+      adminAuth.setCustomUserClaims(previousCglUserId, {
+        role: "sponsor",
+        orgId: session.orgId,
+        cgGroupId,
+        isBendahara: false,
+      }),
     );
   }
 
@@ -169,7 +164,7 @@ export async function demoteCglForSession(session: SessionUser, input: DemoteCgl
   try {
     await adminDb.runTransaction(async (transaction) => {
       transaction.update(cgGroupRef, { cglId: null });
-      transaction.update(cglRef, { role: "sponsor", updatedBy: session.uid, updatedAt: now });
+      transaction.update(cglRef, { role: "sponsor", isBendahara: false, updatedBy: session.uid, updatedAt: now });
       transaction.set(logRef, {
         memberId: currentCglId,
         actionType: "demote_cgl",
@@ -187,83 +182,8 @@ export async function demoteCglForSession(session: SessionUser, input: DemoteCgl
   }
 
   await adminAuth
-    .setCustomUserClaims(currentCglId, { role: "sponsor", orgId: session.orgId, cgGroupId })
+    .setCustomUserClaims(currentCglId, { role: "sponsor", orgId: session.orgId, cgGroupId, isBendahara: false })
     .catch(() => undefined);
 
   return { ok: true, cgGroupId, demotedUserId: currentCglId };
-}
-
-export async function setBendaharaForSession(
-  session: SessionUser,
-  input: SetBendaharaInput,
-): Promise<SetBendaharaResult> {
-  if (!session.orgId) {
-    return { ok: false, status: 403, error: "Sesi Anda belum terhubung ke organisasi" };
-  }
-
-  if (!canViewOrganizationTree(session.role)) {
-    return { ok: false, status: 403, error: "Anda tidak memiliki akses untuk mengubah status Bendahara" };
-  }
-
-  const cgGroupId = input.cgGroupId.trim();
-  const memberId = input.memberId.trim();
-
-  if (!cgGroupId || !memberId) {
-    return { ok: false, status: 400, error: "CG dan anggota wajib dipilih" };
-  }
-
-  if (isCgl(session.role) && session.cgGroupId !== cgGroupId) {
-    return { ok: false, status: 403, error: "Anda hanya bisa mengubah status Bendahara di CG Anda sendiri" };
-  }
-
-  const { adminDb } = getAdminServices();
-  const orgRef = adminDb.collection("organizations").doc(session.orgId);
-  const memberRef = orgRef.collection("users").doc(memberId);
-
-  const memberDoc = await memberRef.get();
-  if (!memberDoc.exists) {
-    return { ok: false, status: 404, error: "Anggota yang dipilih tidak ditemukan" };
-  }
-
-  const memberData = memberDoc.data() ?? {};
-
-  if (memberData.cgGroupId !== cgGroupId) {
-    return { ok: false, status: 400, error: "Anggota yang dipilih bukan bagian dari CG ini" };
-  }
-
-  if (memberData.role !== "sponsor") {
-    return { ok: false, status: 400, error: "Status Bendahara hanya berlaku untuk Sponsor" };
-  }
-
-  if (memberData.isBendahara === input.isBendahara) {
-    return {
-      ok: false,
-      status: 400,
-      error: input.isBendahara ? "Anggota ini sudah menjadi Bendahara" : "Anggota ini bukan Bendahara",
-    };
-  }
-
-  const now = FieldValue.serverTimestamp();
-  const logRef = orgRef.collection("organizationLog").doc();
-
-  try {
-    await adminDb.runTransaction(async (transaction) => {
-      transaction.update(memberRef, { isBendahara: input.isBendahara, updatedBy: session.uid, updatedAt: now });
-      transaction.set(logRef, {
-        memberId,
-        actionType: input.isBendahara ? "assign_bendahara" : "revoke_bendahara",
-        oldRole: null,
-        newRole: null,
-        cgGroupId,
-        previousCglUserId: null,
-        reason: null,
-        changedBy: session.uid,
-        createdAt: now,
-      });
-    });
-  } catch {
-    return { ok: false, status: 500, error: "Gagal menyimpan perubahan status Bendahara. Coba lagi." };
-  }
-
-  return { ok: true, cgGroupId, memberId, isBendahara: input.isBendahara };
 }
