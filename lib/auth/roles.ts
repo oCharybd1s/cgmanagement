@@ -62,3 +62,34 @@ export function assignableRolesForCreator(role: string | null): string[] {
   }
   return [];
 }
+
+export type BendaharaScope = "coach" | "cg";
+
+export function bendaharaScopeForRole(role: string | null): BendaharaScope | null {
+  if (isCgl(role)) {
+    return "coach";
+  }
+  if (isSponsor(role)) {
+    return "cg";
+  }
+  return null;
+}
+
+export function canAssignBendahara(
+  actorRole: string | null,
+  actorCgGroupId: string | null,
+  targetRole: string | null,
+  targetCgGroupId: string | null,
+) {
+  const scope = bendaharaScopeForRole(targetRole);
+  if (!scope) {
+    return false;
+  }
+  if (isCoach(actorRole)) {
+    return true;
+  }
+  if (scope === "cg" && isCgl(actorRole)) {
+    return actorCgGroupId !== null && actorCgGroupId === targetCgGroupId;
+  }
+  return false;
+}

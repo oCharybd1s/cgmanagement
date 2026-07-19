@@ -4,4 +4,5 @@ export interface SessionUser {
   role: string | null;
   orgId: string | null;
   cgGroupId: string | null;
+  isBendahara: boolean;
 }

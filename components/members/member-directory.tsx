@@ -1,10 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { Search, SearchX, Users } from "lucide-react";
+import { Eye, Search, SearchX, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getRoleLabel } from "@/lib/auth/roles";
 import { AddMemberDialog } from "@/components/members/add-member-dialog";
+import { MemberDetailDialog } from "@/components/members/member-detail-dialog";
 import type { Member, SpiritualStatus } from "@/lib/members/types";
 import type { CgGroup } from "@/lib/cg-groups/types";
 
@@ -27,9 +28,11 @@ export function MemberDirectory({
 }) {
   const [search, setSearch] = React.useState("");
   const [cgFilter, setCgFilter] = React.useState("all");
+  const [selectedMember, setSelectedMember] = React.useState<Member | null>(null);
 
   const showCgColumn = fields === "full" && cgGroups.length > 0;
   const hasMembers = members.length > 0;
+  const showDetail = fields === "full";
 
   const cgLabelById = React.useMemo(() => {
     const map = new Map<string, string>();
@@ -137,6 +140,9 @@ export function MemberDirectory({
                           <th scope="col" className="px-5 py-3.5 font-medium">
                             Status Rohani
                           </th>
+                          <th scope="col" className="px-5 py-3.5 font-medium">
+                            <span className="sr-only">Detail</span>
+                          </th>
                         </React.Fragment>
                       ) : (
                         <th scope="col" className="px-5 py-3.5 font-medium">
@@ -153,6 +159,7 @@ export function MemberDirectory({
                         cgLabel={member.cgGroupId ? (cgLabelById.get(member.cgGroupId) ?? null) : null}
                         showCgColumn={showCgColumn}
                         fields={fields}
+                        onSelect={showDetail ? setSelectedMember : undefined}
                       />
                     ))}
                   </tbody>
@@ -167,6 +174,7 @@ export function MemberDirectory({
                     cgLabel={member.cgGroupId ? (cgLabelById.get(member.cgGroupId) ?? null) : null}
                     showCg={showCgColumn}
                     fields={fields}
+                    onSelect={showDetail ? setSelectedMember : undefined}
                   />
                 ))}
               </div>
@@ -176,6 +184,14 @@ export function MemberDirectory({
       ) : (
         <EmptyDirectoryState canCreate={canCreateMember} />
       )}
+
+      <MemberDetailDialog
+        member={selectedMember}
+        cgLabel={selectedMember?.cgGroupId ? (cgLabelById.get(selectedMember.cgGroupId) ?? null) : null}
+        viewerRole={viewerRole}
+        viewerCgGroupId={viewerCgGroupId}
+        onClose={() => setSelectedMember(null)}
+      />
     </div>
   );
 }
@@ -185,11 +201,13 @@ function MemberRow({
   cgLabel,
   showCgColumn,
   fields,
+  onSelect,
 }: {
   member: Member;
   cgLabel: string | null;
   showCgColumn: boolean;
   fields: "full" | "basic";
+  onSelect?: (member: Member) => void;
 }) {
   if (fields === "basic") {
     return (
@@ -224,6 +242,18 @@ function MemberRow({
       <td className="px-5 py-3.5">
         <SpiritualStatusBadge status={member.spiritualStatus} />
       </td>
+      <td className="px-5 py-3.5 text-right">
+        {onSelect ? (
+          <button
+            type="button"
+            onClick={() => onSelect(member)}
+            className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors duration-200 hover:bg-muted"
+          >
+            <Eye className="h-3.5 w-3.5" strokeWidth={2} />
+            Detail
+          </button>
+        ) : null}
+      </td>
     </tr>
   );
 }
@@ -233,11 +263,13 @@ function MemberCard({
   cgLabel,
   showCg,
   fields,
+  onSelect,
 }: {
   member: Member;
   cgLabel: string | null;
   showCg: boolean;
   fields: "full" | "basic";
+  onSelect?: (member: Member) => void;
 }) {
   if (fields === "basic") {
     return (
@@ -249,7 +281,11 @@ function MemberCard({
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-card/70 p-4 shadow-sm backdrop-blur-xl">
+    <button
+      type="button"
+      onClick={() => onSelect?.(member)}
+      className="w-full rounded-2xl border border-border bg-card/70 p-4 text-left shadow-sm backdrop-blur-xl transition-colors duration-200 hover:bg-muted/40"
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate font-medium text-foreground">{member.fullName || "Tanpa nama"}</p>
@@ -277,7 +313,7 @@ function MemberCard({
           <NijValue value={member.nij} />
         </div>
       </div>
-    </div>
+    </button>
   );
 }
 
