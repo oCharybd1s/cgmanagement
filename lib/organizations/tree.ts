@@ -19,7 +19,7 @@ export type OrganizationTreeCgGroup = {
 };
 
 export type OrganizationTree = {
-  coach: OrganizationTreeMember | null;
+  coach: OrganizationTreeMember[];
   cgGroups: OrganizationTreeCgGroup[];
 };
 
@@ -27,7 +27,7 @@ const TREE_FIELDS = ["fullName", "role", "cgGroupId", "isBendahara"] as const;
 
 export async function getOrganizationTreeForSession(session: SessionUser): Promise<OrganizationTree> {
   if (!session.orgId) {
-    return { coach: null, cgGroups: [] };
+    return { coach: [], cgGroups: [] };
   }
 
   if (isCoach(session.role)) {
@@ -38,7 +38,7 @@ export async function getOrganizationTreeForSession(session: SessionUser): Promi
     return buildSingleCgOrganizationTree(session.orgId, session.cgGroupId);
   }
 
-  return { coach: null, cgGroups: [] };
+  return { coach: [], cgGroups: [] };
 }
 
 async function buildFullOrganizationTree(orgId: string): Promise<OrganizationTree> {
@@ -52,13 +52,13 @@ async function buildFullOrganizationTree(orgId: string): Promise<OrganizationTre
 
   const cgGroups = cgGroupsSnapshot.docs.map(createEmptyGroup).sort(compareGroups);
   const cgGroupById = new Map(cgGroups.map((group) => [group.id, group]));
-  let coach: OrganizationTreeMember | null = null;
+  const coach: OrganizationTreeMember[] = [];
 
   for (const doc of usersSnapshot.docs) {
     const member = toMember(doc);
 
     if (member.role === "coach") {
-      coach = coach ?? member;
+      coach.push(member);
       continue;
     }
 
@@ -68,6 +68,8 @@ async function buildFullOrganizationTree(orgId: string): Promise<OrganizationTre
 
     assignMemberToGroup(group, member);
   }
+
+  coach.sort((a, b) => a.fullName.localeCompare(b.fullName, "id"));
 
   for (const group of cgGroups) {
     sortGroupMembers(group);
@@ -80,13 +82,16 @@ async function buildSingleCgOrganizationTree(orgId: string, cgGroupId: string): 
   const { adminDb } = getAdminServices();
   const orgRef = adminDb.collection("organizations").doc(orgId);
 
-  const [cgGroupDoc, cgUsersSnapshot] = await Promise.all([
+  const [cgGroupDoc, cgUsersSnapshot, coachSnapshot] = await Promise.all([
     orgRef.collection("cgGroups").doc(cgGroupId).get(),
     orgRef.collection("users").where("cgGroupId", "==", cgGroupId).select(...TREE_FIELDS).get(),
+    orgRef.collection("users").where("role", "==", "coach").select(...TREE_FIELDS).get(),
   ]);
 
+  const coach = coachSnapshot.docs.map(toMember).sort((a, b) => a.fullName.localeCompare(b.fullName, "id"));
+
   if (!cgGroupDoc.exists) {
-    return { coach: null, cgGroups: [] };
+    return { coach, cgGroups: [] };
   }
 
   const group = createEmptyGroup(cgGroupDoc);
@@ -99,7 +104,7 @@ async function buildSingleCgOrganizationTree(orgId: string, cgGroupId: string): 
 
   sortGroupMembers(group);
 
-  return { coach: null, cgGroups: [group] };
+  return { coach, cgGroups: [group] };
 }
 
 function createEmptyGroup(doc: FirebaseFirestore.DocumentSnapshot): OrganizationTreeCgGroup {
