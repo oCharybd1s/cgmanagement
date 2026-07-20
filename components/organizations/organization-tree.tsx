@@ -73,6 +73,7 @@ export function OrganizationTree({
 
       {selectedGroup ? (
         <CgTreeView
+          coach={isCoachView ? [] : treeData.coach}
           group={selectedGroup}
           viewerRole={viewerRole}
           viewerCgGroupId={viewerCgGroupId}

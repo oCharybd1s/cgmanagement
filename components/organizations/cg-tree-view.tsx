@@ -12,7 +12,7 @@ export type DemoteResult = { cgGroupId: string; demotedUserId: string };
 export type BendaharaResult = { cgGroupId: string; memberId: string; isBendahara: boolean };
 
 export function CgTreeView({
-  coach,
+  coach = [],
   group,
   viewerRole,
   viewerCgGroupId,
@@ -20,7 +20,7 @@ export function CgTreeView({
   onDemoted,
   onBendaharaChanged,
 }: {
-  coach: OrganizationTreeMember[];
+  coach?: OrganizationTreeMember[];
   group: OrganizationTreeCgGroup;
   viewerRole: string | null;
   viewerCgGroupId: string | null;
@@ -134,16 +134,16 @@ export function CgTreeView({
   return (
     <div className="flex flex-col items-center gap-6 rounded-2xl border border-border bg-card/40 px-4 py-10 shadow-sm backdrop-blur-xl">
       {coach.length > 0 ? (
-        <div className="flex flex-wrap items-center justify-center gap-2">
-          {coach.map((person) => (
-            <TreeNode key={person.id} icon={ShieldCheck} label="Coach" name={person.fullName} tone="primary" />
-          ))}
-        </div>
-      ) : (
-        <TreeNode icon={ShieldCheck} label="Coach" name="Belum ada Coach" tone="empty" />
-      )}
+        <React.Fragment>
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            {coach.map((person) => (
+              <TreeNode key={person.id} icon={ShieldCheck} label="Coach" name={person.fullName} tone="primary" />
+            ))}
+          </div>
 
-      <Connector />
+          <Connector />
+        </React.Fragment>
+      ) : null}
 
       <TreeNode label="CG" name={group.groupCode} tone="accent" />
 

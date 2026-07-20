@@ -10,22 +10,37 @@ export function CoachTreeOverview({
   selectedCgId,
   onSelectCg,
 }: {
-  coach: OrganizationTreeMember | null;
+  coach: OrganizationTreeMember[];
   cgGroups: OrganizationTreeCgGroup[];
   selectedCgId: string | null;
   onSelectCg: (cgGroupId: string) => void;
 }) {
   return (
     <div className="flex flex-col items-center gap-6">
-      <div className="flex min-w-40 flex-col items-center gap-1 rounded-2xl border-[1.5px] border-primary bg-primary px-5 py-3 text-center text-primary-foreground shadow-sm">
-        <span className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide opacity-80">
-          <ShieldCheck className="h-3.5 w-3.5" strokeWidth={2} />
-          Coach
-        </span>
-        <span className="font-display text-sm font-bold tracking-tight">
-          {coach?.fullName || "Belum ada Coach"}
-        </span>
-      </div>
+      {coach.length > 0 ? (
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          {coach.map((person) => (
+            <div
+              key={person.id}
+              className="flex min-w-40 flex-col items-center gap-1 rounded-2xl border-[1.5px] border-primary bg-primary px-5 py-3 text-center text-primary-foreground shadow-sm"
+            >
+              <span className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide opacity-80">
+                <ShieldCheck className="h-3.5 w-3.5" strokeWidth={2} />
+                Coach
+              </span>
+              <span className="font-display text-sm font-bold tracking-tight">{person.fullName}</span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="flex min-w-40 flex-col items-center gap-1 rounded-2xl border-[1.5px] border-dashed border-border bg-muted/40 px-5 py-3 text-center text-muted-foreground shadow-sm">
+          <span className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide opacity-80">
+            <ShieldCheck className="h-3.5 w-3.5" strokeWidth={2} />
+            Coach
+          </span>
+          <span className="font-display text-sm font-bold tracking-tight">Belum ada Coach</span>
+        </div>
+      )}
 
       <div aria-hidden="true" className="h-6 w-px bg-border" />
 
