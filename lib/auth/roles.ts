@@ -97,3 +97,10 @@ export function canAssignBendahara(
 export function canViewOrganizationTree(role: string | null) {
   return isCoach(role) || isCgl(role);
 }
+
+export function cgGroupDisplayLabel(role: string | null, cgLabel: string | null) {
+  if (isCoach(role)) {
+    return "Semua CG";
+  }
+  return cgLabel ?? "Belum ada CG";
+}

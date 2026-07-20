@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Eye, Search, SearchX, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getRoleLabel } from "@/lib/auth/roles";
+import { cgGroupDisplayLabel, getRoleLabel } from "@/lib/auth/roles";
 import { AddMemberDialog } from "@/components/members/add-member-dialog";
 import { MemberDetailDialog } from "@/components/members/member-detail-dialog";
 import type { Member, SpiritualStatus } from "@/lib/members/types";
@@ -226,7 +226,7 @@ function MemberRow({
       </td>
       {showCgColumn ? (
         <td className="px-5 py-3.5">
-          <Badge tone="secondary">{cgLabel ?? "Belum ada CG"}</Badge>
+          <Badge tone="secondary">{cgGroupDisplayLabel(member.role, cgLabel)}</Badge>
         </td>
       ) : null}
       <td className="px-5 py-3.5">
@@ -296,7 +296,7 @@ function MemberCard({
 
       <div className="mt-3 flex flex-wrap gap-1.5">
         <Badge tone="muted">{getRoleLabel(member.role)}</Badge>
-        {showCg ? <Badge tone="secondary">{cgLabel ?? "Belum ada CG"}</Badge> : null}
+        {showCg ? <Badge tone="secondary">{cgGroupDisplayLabel(member.role, cgLabel)}</Badge> : null}
       </div>
 
       <div className="mt-3 grid gap-1.5 border-t border-border pt-3 text-xs">

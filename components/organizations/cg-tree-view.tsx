@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ShieldCheck, UserCog, ArrowUpCircle, ArrowDownCircle, Wallet, WalletCards, type LucideIcon } from "lucide-react";
+import { UserCog, ArrowUpCircle, ArrowDownCircle, Wallet, WalletCards, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getRoleLabel, canAssignBendahara } from "@/lib/auth/roles";
 import { StructureActionDialog, type StructureActionOutcome } from "@/components/organizations/structure-action-dialog";
@@ -12,7 +12,6 @@ export type DemoteResult = { cgGroupId: string; demotedUserId: string };
 export type BendaharaResult = { cgGroupId: string; memberId: string; isBendahara: boolean };
 
 export function CgTreeView({
-  coach,
   group,
   viewerRole,
   viewerCgGroupId,
@@ -20,7 +19,6 @@ export function CgTreeView({
   onDemoted,
   onBendaharaChanged,
 }: {
-  coach: OrganizationTreeMember | null;
   group: OrganizationTreeCgGroup;
   viewerRole: string | null;
   viewerCgGroupId: string | null;
@@ -133,17 +131,9 @@ export function CgTreeView({
 
   return (
     <div className="flex flex-col items-center gap-6 rounded-2xl border border-border bg-card/40 px-4 py-10 shadow-sm backdrop-blur-xl">
-      <TreeNode icon={ShieldCheck} label="Coach" name={coach?.fullName || "Belum ada Coach"} tone="primary" />
-
-      <Connector />
-
-      <TreeNode label="CG" name={group.groupCode} tone="accent" />
-
-      <Connector />
-
       {group.cgl ? (
         <div className="flex flex-col items-center gap-2">
-          <TreeNode icon={UserCog} label="CGL" name={group.cgl.fullName} tone="secondary" />
+          <TreeNode icon={UserCog} label={`CGL — ${group.groupCode}`} name={group.cgl.fullName} tone="secondary" />
 
           {group.cgl.isBendahara ? (
             <span className="inline-flex items-center gap-1 rounded-full bg-warning px-2 py-0.5 text-[11px] font-medium text-warning-foreground">
@@ -180,7 +170,7 @@ export function CgTreeView({
           </div>
         </div>
       ) : (
-        <TreeNode label="CGL" name="Belum ada CGL" tone="empty" />
+        <TreeNode icon={UserCog} label={`CGL — ${group.groupCode}`} name="Belum ada CGL" tone="empty" />
       )}
 
       <Connector />
@@ -271,12 +261,10 @@ function TreeNode({
   icon?: LucideIcon;
   label: string;
   name: string;
-  tone: "primary" | "secondary" | "accent" | "empty";
+  tone: "secondary" | "empty";
 }) {
   const toneClasses: Record<typeof tone, string> = {
-    primary: "border-primary bg-primary text-primary-foreground",
     secondary: "border-border bg-card text-foreground",
-    accent: "border-accent bg-accent text-accent-foreground",
     empty: "border-dashed border-border bg-muted/40 text-muted-foreground",
   };
 

@@ -2,13 +2,13 @@
 
 import * as React from "react";
 import { Network } from "lucide-react";
-import { cn } from "@/lib/utils";
 import {
   CgTreeView,
   type BendaharaResult,
   type DemoteResult,
   type PromoteResult,
 } from "@/components/organizations/cg-tree-view";
+import { CoachTreeOverview } from "@/components/organizations/coach-tree-overview";
 import type { OrganizationTree as OrganizationTreeData } from "@/lib/organizations/tree";
 
 export function OrganizationTree({
@@ -48,27 +48,14 @@ export function OrganizationTree({
         treeData.cgGroups.length === 0 ? (
           <EmptyTreeState />
         ) : (
-          <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {treeData.cgGroups.map((group) => {
-              const isSelected = group.id === selectedCgId;
-              return (
-                <button
-                  key={group.id}
-                  type="button"
-                  onClick={() => setSelectedCgId(isSelected ? null : group.id)}
-                  aria-pressed={isSelected}
-                  className={cn(
-                    "flex items-center justify-center rounded-2xl border px-4 py-5 text-center shadow-sm backdrop-blur-xl transition-colors duration-200",
-                    isSelected
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-border bg-card/70 text-foreground hover:border-primary/60",
-                  )}
-                >
-                  <span className="font-display text-base font-bold tracking-tight">{group.groupCode}</span>
-                </button>
-              );
-            })}
-          </div>
+          <CoachTreeOverview
+            coach={treeData.coach}
+            cgGroups={treeData.cgGroups}
+            selectedCgId={selectedCgId}
+            onSelectCg={(cgGroupId) =>
+              setSelectedCgId((current) => (current === cgGroupId ? null : cgGroupId))
+            }
+          />
         )
       ) : null}
 
@@ -86,7 +73,6 @@ export function OrganizationTree({
 
       {selectedGroup ? (
         <CgTreeView
-          coach={treeData.coach}
           group={selectedGroup}
           viewerRole={viewerRole}
           viewerCgGroupId={viewerCgGroupId}

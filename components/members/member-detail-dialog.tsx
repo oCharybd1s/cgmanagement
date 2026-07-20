@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Check, Circle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { bendaharaScopeForRole, canAssignBendahara, getRoleLabel } from "@/lib/auth/roles";
+import { bendaharaScopeForRole, canAssignBendahara, cgGroupDisplayLabel, getRoleLabel } from "@/lib/auth/roles";
 import type { Member, SpiritualStatus } from "@/lib/members/types";
 
 const SPIRITUAL_STATUS_FIELDS: { key: keyof SpiritualStatus; label: string }[] = [
@@ -136,7 +136,7 @@ export function MemberDetailDialog({
             <div className="flex flex-col gap-5 overflow-y-auto px-6 py-5">
               <div className="flex flex-wrap gap-1.5">
                 <DetailBadge>{getRoleLabel(member.role)}</DetailBadge>
-                <DetailBadge>{cgLabel ?? "Belum ada CG"}</DetailBadge>
+                <DetailBadge>{cgGroupDisplayLabel(member.role, cgLabel)}</DetailBadge>
                 {localIsBendahara ? <DetailBadge tone="spark">Bendahara</DetailBadge> : null}
               </div>
 

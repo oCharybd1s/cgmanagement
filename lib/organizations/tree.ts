@@ -80,16 +80,13 @@ async function buildSingleCgOrganizationTree(orgId: string, cgGroupId: string): 
   const { adminDb } = getAdminServices();
   const orgRef = adminDb.collection("organizations").doc(orgId);
 
-  const [cgGroupDoc, cgUsersSnapshot, coachSnapshot] = await Promise.all([
+  const [cgGroupDoc, cgUsersSnapshot] = await Promise.all([
     orgRef.collection("cgGroups").doc(cgGroupId).get(),
     orgRef.collection("users").where("cgGroupId", "==", cgGroupId).select(...TREE_FIELDS).get(),
-    orgRef.collection("users").where("role", "==", "coach").select(...TREE_FIELDS).limit(1).get(),
   ]);
 
-  const coach = coachSnapshot.docs[0] ? toMember(coachSnapshot.docs[0]) : null;
-
   if (!cgGroupDoc.exists) {
-    return { coach, cgGroups: [] };
+    return { coach: null, cgGroups: [] };
   }
 
   const group = createEmptyGroup(cgGroupDoc);
@@ -102,7 +99,7 @@ async function buildSingleCgOrganizationTree(orgId: string, cgGroupId: string): 
 
   sortGroupMembers(group);
 
-  return { coach, cgGroups: [group] };
+  return { coach: null, cgGroups: [group] };
 }
 
 function createEmptyGroup(doc: FirebaseFirestore.DocumentSnapshot): OrganizationTreeCgGroup {

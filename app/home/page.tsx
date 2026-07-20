@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { Sunrise, Shield, Users2 } from "lucide-react";
 import { verifySession } from "@/lib/auth/dal";
-import { getRoleLabel } from "@/lib/auth/roles";
+import { cgGroupDisplayLabel, getRoleLabel } from "@/lib/auth/roles";
 import { toShellUser } from "@/lib/auth/shell-user";
 import { AppShell } from "@/components/layout/app-shell";
 import { Container, Section } from "@/components/layout/container";
@@ -52,7 +52,7 @@ export default async function HomePage() {
                   CG
                 </p>
                 <p className="mt-0.5 font-display text-base font-bold text-foreground">
-                  {session.cgGroupId ?? "Belum ada CG"}
+                  {cgGroupDisplayLabel(session.role, session.cgGroupId)}
                 </p>
               </div>
             </div>
