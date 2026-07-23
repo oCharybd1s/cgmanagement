@@ -51,6 +51,7 @@ export default async function AnggotaPage() {
             canCreateMember={canCreateMember(session.role)}
             viewerRole={session.role}
             viewerCgGroupId={session.cgGroupId}
+            viewerUserId={session.uid}
           />
         </Section>
       </Container>

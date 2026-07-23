@@ -18,6 +18,7 @@ export function MemberDirectory({
   canCreateMember,
   viewerRole,
   viewerCgGroupId,
+  viewerUserId,
 }: {
   members: Member[];
   cgGroups: CgGroup[];
@@ -25,6 +26,7 @@ export function MemberDirectory({
   canCreateMember: boolean;
   viewerRole: string | null;
   viewerCgGroupId: string | null;
+  viewerUserId: string | null;
 }) {
   const [search, setSearch] = React.useState("");
   const [cgFilter, setCgFilter] = React.useState("all");
@@ -190,6 +192,7 @@ export function MemberDirectory({
         cgLabel={selectedMember?.cgGroupId ? (cgLabelById.get(selectedMember.cgGroupId) ?? null) : null}
         viewerRole={viewerRole}
         viewerCgGroupId={viewerCgGroupId}
+        viewerUserId={viewerUserId}
         onClose={() => setSelectedMember(null)}
       />
     </div>

@@ -63,6 +63,37 @@ export function assignableRolesForCreator(role: string | null): string[] {
   return [];
 }
 
+export function isManagedRole(role: string | null) {
+  return role === "sponsor" || role === "cgl";
+}
+
+export function canEditMember(
+  actorRole: string | null,
+  actorCgGroupId: string | null,
+  targetRole: string | null,
+  targetCgGroupId: string | null,
+) {
+  if (isCoach(actorRole)) {
+    return true;
+  }
+  if (isCgl(actorRole)) {
+    return actorCgGroupId !== null && actorCgGroupId === targetCgGroupId;
+  }
+  if (isSponsor(actorRole)) {
+    return actorCgGroupId !== null && actorCgGroupId === targetCgGroupId && !isManagedRole(targetRole);
+  }
+  return false;
+}
+
+export function canDeleteMember(
+  actorRole: string | null,
+  actorCgGroupId: string | null,
+  targetRole: string | null,
+  targetCgGroupId: string | null,
+) {
+  return canEditMember(actorRole, actorCgGroupId, targetRole, targetCgGroupId);
+}
+
 export type BendaharaScope = "coach" | "cg";
 
 export function bendaharaScopeForRole(role: string | null): BendaharaScope | null {

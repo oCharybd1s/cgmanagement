@@ -1,6 +1,7 @@
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export type CreateMemberFieldErrors = Partial<Record<"fullName" | "email" | "role" | "cgGroupId", string>>;
+export type UpdateMemberFieldErrors = Partial<Record<"fullName" | "email", string>>;
 
 export function validateCreateMemberInput(input: {
   fullName: string;
@@ -21,4 +22,11 @@ export function validateCreateMemberInput(input: {
   }
 
   return errors;
+}
+
+export function validateUpdateMemberInput(input: {
+  fullName: string;
+  email: string;
+}): UpdateMemberFieldErrors {
+  return validateCreateMemberInput(input);
 }
