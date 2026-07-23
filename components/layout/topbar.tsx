@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useSidebar } from "./sidebar-context";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -10,11 +9,9 @@ import type { ShellUser } from "@/lib/auth/shell-user";
 export function Topbar({
   title,
   user,
-  showBrand = false,
 }: {
   title?: string;
   user?: ShellUser | null;
-  showBrand?: boolean;
 }) {
   const { isOpen, toggle, openMobileNav } = useSidebar();
 
@@ -46,19 +43,11 @@ export function Topbar({
       </button>
 
       <div className="flex min-w-0 flex-1 items-center">
-        {showBrand ? (
-          <Image
-            src="/logo-mark.png"
-            alt="CoachApp"
-            width={32}
-            height={32}
-            className="h-8 w-8 shrink-0 rounded-full"
-          />
-        ) : (
+        {title ? (
           <h1 className="truncate font-display text-base font-bold tracking-tight text-foreground">
             {title}
           </h1>
-        )}
+        ) : null}
       </div>
 
       <div className="flex shrink-0 items-center gap-2">
