@@ -8,12 +8,10 @@ import type { ShellUser } from "@/lib/auth/shell-user";
 export function AppShell({
   children,
   title,
-  showBrand,
   user,
 }: {
   children: React.ReactNode;
   title?: string;
-  showBrand?: boolean;
   user?: ShellUser | null;
 }) {
   if (user?.mustChangePassword) {
@@ -26,7 +24,7 @@ export function AppShell({
         <Sidebar />
         <MobileNav />
         <div className="flex min-w-0 flex-1 flex-col">
-          <Topbar title={title} showBrand={showBrand} user={user} />
+          <Topbar title={title} user={user} />
           <main className="flex-1">{children}</main>
         </div>
       </div>
