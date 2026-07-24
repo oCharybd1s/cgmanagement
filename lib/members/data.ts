@@ -22,6 +22,7 @@ const FULL_FIELDS = [
   "email",
   "phone",
   "isBendahara",
+  "mustChangePassword",
   "spiritualStatus",
   "pelayanan",
 ] as const;
@@ -91,6 +92,7 @@ function toMember(doc: QueryDocumentSnapshot): Member {
     email: readString(data.email),
     phone: readString(data.phone),
     isBendahara: data.isBendahara === true,
+    mustChangePassword: data.mustChangePassword === true,
     spiritualStatus: toSpiritualStatus(data.spiritualStatus),
     pelayanan: readString(data.pelayanan),
   };

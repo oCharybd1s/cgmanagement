@@ -4,6 +4,7 @@ import { canEditMember } from "@/lib/auth/roles";
 import { validateUpdateMemberInput, type UpdateMemberFieldErrors } from "@/lib/members/validation";
 import { getErrorCode, normalizeOptional, normalizeSpiritualStatus, toStringValue } from "@/lib/members/shared";
 import type { SessionUser } from "@/lib/auth/types";
+import type { Member } from "@/lib/members/types";
 
 export type UpdateMemberRequest = {
   fullName: unknown;
@@ -18,7 +19,7 @@ export type UpdateMemberRequest = {
 };
 
 export type UpdateMemberResult =
-  | { ok: true; memberId: string }
+  | { ok: true; member: Member }
   | { ok: false; status: number; error: string; fieldErrors?: UpdateMemberFieldErrors };
 
 export async function updateMemberForSession(
@@ -86,17 +87,25 @@ export async function updateMemberForSession(
     await adminAuth.updateUser(trimmedTargetUserId, { displayName: fullName }).catch(() => undefined);
   }
 
+  const nij = normalizeOptional(payload.nij);
+  const address = normalizeOptional(payload.address);
+  const birthPlace = normalizeOptional(payload.birthPlace);
+  const birthDate = normalizeOptional(payload.birthDate);
+  const phone = normalizeOptional(payload.phone);
+  const spiritualStatus = normalizeSpiritualStatus(payload.spiritualStatus);
+  const pelayanan = normalizeOptional(payload.pelayanan);
+
   try {
     await targetRef.update({
       fullName,
-      nij: normalizeOptional(payload.nij),
-      address: normalizeOptional(payload.address),
-      birthPlace: normalizeOptional(payload.birthPlace),
-      birthDate: normalizeOptional(payload.birthDate),
+      nij,
+      address,
+      birthPlace,
+      birthDate,
       email,
-      phone: normalizeOptional(payload.phone),
-      spiritualStatus: normalizeSpiritualStatus(payload.spiritualStatus),
-      pelayanan: normalizeOptional(payload.pelayanan),
+      phone,
+      spiritualStatus,
+      pelayanan,
       updatedBy: session.uid,
       updatedAt: FieldValue.serverTimestamp(),
     });
@@ -104,7 +113,25 @@ export async function updateMemberForSession(
     return { ok: false, status: 500, error: "Gagal menyimpan perubahan data anggota" };
   }
 
-  return { ok: true, memberId: trimmedTargetUserId };
+  return {
+    ok: true,
+    member: {
+      id: trimmedTargetUserId,
+      fullName,
+      role: targetRole ?? "",
+      cgGroupId: targetCgGroupId,
+      nij,
+      address,
+      birthPlace,
+      birthDate,
+      email,
+      phone,
+      isBendahara: targetData.isBendahara === true,
+      mustChangePassword: targetData.mustChangePassword === true,
+      spiritualStatus,
+      pelayanan,
+    },
+  };
 }
 
 function mapUpdateUserError(error: unknown): string {

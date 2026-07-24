@@ -15,6 +15,8 @@ import {
 } from "@/lib/auth/roles";
 import { EditMemberDialog } from "@/components/members/edit-member-dialog";
 import { DeleteMemberDialog } from "@/components/members/delete-member-dialog";
+import { ResetPasswordDialog } from "@/components/members/reset-password-dialog";
+import { PasswordStatusPanel } from "@/components/members/password-status-panel";
 import type { Member, SpiritualStatus } from "@/lib/members/types";
 
 const SPIRITUAL_STATUS_FIELDS: { key: keyof SpiritualStatus; label: string }[] = [
@@ -35,6 +37,8 @@ export function MemberDetailDialog({
   viewerCgGroupId,
   viewerUserId,
   onClose,
+  onMemberUpdated,
+  onMemberDeleted,
 }: {
   member: Member | null;
   cgLabel: string | null;
@@ -42,6 +46,8 @@ export function MemberDetailDialog({
   viewerCgGroupId: string | null;
   viewerUserId: string | null;
   onClose: () => void;
+  onMemberUpdated?: (member: Member) => void;
+  onMemberDeleted?: (memberId: string) => void;
 }) {
   const router = useRouter();
   const [renderedMemberId, setRenderedMemberId] = React.useState(member?.id ?? null);
@@ -50,6 +56,7 @@ export function MemberDetailDialog({
   const [bendaharaError, setBendaharaError] = React.useState<string | null>(null);
   const [isEditOpen, setIsEditOpen] = React.useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = React.useState(false);
+  const [isResetPasswordOpen, setIsResetPasswordOpen] = React.useState(false);
 
   if (member && member.id !== renderedMemberId) {
     setRenderedMemberId(member.id);
@@ -58,6 +65,7 @@ export function MemberDetailDialog({
     setIsUpdating(false);
     setIsEditOpen(false);
     setIsDeleteOpen(false);
+    setIsResetPasswordOpen(false);
   }
 
   React.useEffect(() => {
@@ -200,6 +208,8 @@ export function MemberDetailDialog({
                   </div>
                 </div>
 
+                {canEdit ? <PasswordStatusPanel member={member} onResetPassword={() => setIsResetPasswordOpen(true)} /> : null}
+
                 {canManageBendahara ? (
                   <div className="flex flex-col gap-2.5 rounded-2xl border border-dashed border-border p-4">
                     <p className="text-xs font-medium text-muted-foreground">
@@ -265,8 +275,9 @@ export function MemberDetailDialog({
           member={member}
           cgLabel={cgLabel}
           onClose={() => setIsEditOpen(false)}
-          onUpdated={() => {
+          onUpdated={(updatedMember) => {
             setIsEditOpen(false);
+            onMemberUpdated?.(updatedMember);
             onClose();
           }}
         />
@@ -278,8 +289,17 @@ export function MemberDetailDialog({
           onClose={() => setIsDeleteOpen(false)}
           onDeleted={() => {
             setIsDeleteOpen(false);
+            onMemberDeleted?.(member.id);
             onClose();
           }}
+        />
+      ) : null}
+
+      {member && isResetPasswordOpen ? (
+        <ResetPasswordDialog
+          member={member}
+          onClose={() => setIsResetPasswordOpen(false)}
+          onReset={() => onMemberUpdated?.({ ...member, mustChangePassword: true })}
         />
       ) : null}
     </>

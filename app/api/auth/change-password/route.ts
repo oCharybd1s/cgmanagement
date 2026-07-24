@@ -1,3 +1,4 @@
+import { FieldValue } from "firebase-admin/firestore";
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminServices } from "@/lib/firebase/firebase-admin";
 import {
@@ -8,17 +9,21 @@ import {
   revokeSession,
   verifySessionCookie,
 } from "@/lib/auth/session";
-import { canUseDemoRoleSwitch, isDemoSwitchableRole } from "@/lib/auth/demo-role-switch";
 import { signInWithCustomToken } from "@/lib/auth/identity-toolkit";
-import { resolveDefaultOrgId } from "@/lib/organizations/data";
 import type { SessionUser } from "@/lib/auth/types";
+
+const MIN_PASSWORD_LENGTH = 6;
 
 export async function POST(request: NextRequest) {
   const cookieValue = request.cookies.get(SESSION_COOKIE_NAME)?.value;
   const session = await verifySessionCookie(cookieValue, true);
 
-  if (!session || !canUseDemoRoleSwitch(session)) {
-    return NextResponse.json({ ok: false, error: "Tidak diizinkan" }, { status: 403 });
+  if (!session) {
+    return NextResponse.json({ ok: false, error: "Sesi tidak valid, silakan login ulang" }, { status: 401 });
+  }
+
+  if (!session.orgId) {
+    return NextResponse.json({ ok: false, error: "Sesi Anda belum terhubung ke organisasi" }, { status: 403 });
   }
 
   const apiKey = process.env.FIREBASE_WEB_API_KEY;
@@ -26,36 +31,40 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: false, error: "Konfigurasi server belum lengkap" }, { status: 500 });
   }
 
-  const payload = await readPayload(request);
-  if (!payload) {
-    return NextResponse.json({ ok: false, error: "Role tidak valid" }, { status: 400 });
+  const newPassword = await readNewPassword(request);
+  if (!newPassword || newPassword.length < MIN_PASSWORD_LENGTH) {
+    return NextResponse.json(
+      { ok: false, error: `Password baru minimal ${MIN_PASSWORD_LENGTH} karakter` },
+      { status: 400 },
+    );
   }
 
   try {
     const { adminAuth, adminDb } = getAdminServices();
 
-    const orgId = session.orgId ?? (await resolveDefaultOrgId());
-    if (!orgId) {
-      return NextResponse.json(
-        { ok: false, error: "Belum ada organisasi yang ter-seed di Firestore" },
-        { status: 500 },
-      );
-    }
-
+    await adminAuth.updateUser(session.uid, { password: newPassword });
     await adminAuth.setCustomUserClaims(session.uid, {
-      role: payload.role,
-      orgId,
-      cgGroupId: payload.cgGroupId,
-      isBendahara: false,
+      role: session.role,
+      orgId: session.orgId,
+      cgGroupId: session.cgGroupId,
+      isBendahara: session.isBendahara,
       mustChangePassword: false,
     });
 
     await adminDb
       .collection("organizations")
-      .doc(orgId)
+      .doc(session.orgId)
       .collection("users")
       .doc(session.uid)
-      .set({ role: payload.role, cgGroupId: payload.cgGroupId, isBendahara: false }, { merge: true });
+      .set(
+        {
+          mustChangePassword: false,
+          temporaryPasswordPending: null,
+          updatedBy: session.uid,
+          updatedAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      );
 
     await revokeSession(session.uid);
     await new Promise((resolve) => setTimeout(resolve, 1100));
@@ -72,10 +81,10 @@ export async function POST(request: NextRequest) {
     const user: SessionUser = {
       uid: session.uid,
       email: session.email,
-      role: payload.role,
-      orgId,
-      cgGroupId: payload.cgGroupId,
-      isBendahara: false,
+      role: session.role,
+      orgId: session.orgId,
+      cgGroupId: session.cgGroupId,
+      isBendahara: session.isBendahara,
       mustChangePassword: false,
     };
 
@@ -83,31 +92,17 @@ export async function POST(request: NextRequest) {
     response.cookies.set(SESSION_COOKIE_NAME, sessionCookie, getSessionCookieOptions(maxAgeMs));
     return response;
   } catch (error) {
-    console.error("Gagal switch role demo", error);
-    return NextResponse.json({ ok: false, error: "Gagal switch role" }, { status: 500 });
+    console.error("Gagal mengganti password", error);
+    return NextResponse.json({ ok: false, error: "Gagal mengganti password" }, { status: 500 });
   }
 }
 
-async function readPayload(request: NextRequest) {
-  let body: { role?: unknown; cgGroupId?: unknown };
+async function readNewPassword(request: NextRequest): Promise<string | null> {
+  let body: { newPassword?: unknown };
   try {
     body = await request.json();
   } catch {
     return null;
   }
-
-  if (!isDemoSwitchableRole(body.role)) {
-    return null;
-  }
-
-  if (body.role === "coach") {
-    return { role: body.role, cgGroupId: null };
-  }
-
-  const cgGroupId = typeof body.cgGroupId === "string" && body.cgGroupId.length > 0 ? body.cgGroupId : null;
-  if (!cgGroupId) {
-    return null;
-  }
-
-  return { role: body.role, cgGroupId };
+  return typeof body.newPassword === "string" ? body.newPassword : null;
 }

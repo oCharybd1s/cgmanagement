@@ -1,4 +1,16 @@
+import { randomInt } from "node:crypto";
 import type { SpiritualStatus } from "@/lib/members/types";
+
+const TEMP_PASSWORD_LENGTH = 12;
+const TEMP_PASSWORD_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+
+export function generateTemporaryPassword(): string {
+  let result = "";
+  for (let index = 0; index < TEMP_PASSWORD_LENGTH; index += 1) {
+    result += TEMP_PASSWORD_CHARS[randomInt(TEMP_PASSWORD_CHARS.length)];
+  }
+  return result;
+}
 
 export function toStringValue(value: unknown): string {
   return typeof value === "string" ? value : "";

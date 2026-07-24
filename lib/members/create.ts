@@ -1,13 +1,16 @@
-import { randomInt } from "node:crypto";
 import { FieldValue } from "firebase-admin/firestore";
 import { getAdminServices } from "@/lib/firebase/firebase-admin";
 import { assignableRolesForCreator, canCreateMember, isCoach } from "@/lib/auth/roles";
 import { validateCreateMemberInput, type CreateMemberFieldErrors } from "@/lib/members/validation";
-import { getErrorCode, normalizeOptional, normalizeSpiritualStatus, toStringValue } from "@/lib/members/shared";
+import {
+  generateTemporaryPassword,
+  getErrorCode,
+  normalizeOptional,
+  normalizeSpiritualStatus,
+  toStringValue,
+} from "@/lib/members/shared";
 import type { SessionUser } from "@/lib/auth/types";
-
-const TEMP_PASSWORD_LENGTH = 12;
-const TEMP_PASSWORD_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+import type { Member } from "@/lib/members/types";
 
 export type CreateMemberRequest = {
   fullName: unknown;
@@ -24,7 +27,7 @@ export type CreateMemberRequest = {
 };
 
 export type CreateMemberResult =
-  | { ok: true; memberId: string; temporaryPassword: string }
+  | { ok: true; member: Member; temporaryPassword: string }
   | { ok: false; status: number; error: string; fieldErrors?: CreateMemberFieldErrors };
 
 export async function createMemberForSession(
@@ -103,6 +106,7 @@ export async function createMemberForSession(
       orgId: session.orgId,
       cgGroupId,
       isBendahara: false,
+      mustChangePassword: true,
     });
   } catch {
     await adminAuth.deleteUser(uid).catch(() => undefined);
@@ -110,6 +114,14 @@ export async function createMemberForSession(
   }
 
   const now = FieldValue.serverTimestamp();
+
+  const nij = normalizeOptional(payload.nij);
+  const address = normalizeOptional(payload.address);
+  const birthPlace = normalizeOptional(payload.birthPlace);
+  const birthDate = normalizeOptional(payload.birthDate);
+  const phone = normalizeOptional(payload.phone);
+  const spiritualStatus = normalizeSpiritualStatus(payload.spiritualStatus);
+  const pelayanan = normalizeOptional(payload.pelayanan);
 
   try {
     await adminDb
@@ -121,15 +133,17 @@ export async function createMemberForSession(
         fullName,
         role: requestedRole || null,
         cgGroupId,
-        nij: normalizeOptional(payload.nij),
-        address: normalizeOptional(payload.address),
-        birthPlace: normalizeOptional(payload.birthPlace),
-        birthDate: normalizeOptional(payload.birthDate),
+        nij,
+        address,
+        birthPlace,
+        birthDate,
         email,
-        phone: normalizeOptional(payload.phone),
+        phone,
         isBendahara: false,
-        spiritualStatus: normalizeSpiritualStatus(payload.spiritualStatus),
-        pelayanan: normalizeOptional(payload.pelayanan),
+        mustChangePassword: true,
+        temporaryPasswordPending: temporaryPassword,
+        spiritualStatus,
+        pelayanan,
         createdBy: session.uid,
         createdAt: now,
         updatedBy: session.uid,
@@ -140,15 +154,26 @@ export async function createMemberForSession(
     return { ok: false, status: 500, error: "Gagal menyimpan data anggota" };
   }
 
-  return { ok: true, memberId: uid, temporaryPassword };
-}
-
-function generateTemporaryPassword(): string {
-  let result = "";
-  for (let index = 0; index < TEMP_PASSWORD_LENGTH; index += 1) {
-    result += TEMP_PASSWORD_CHARS[randomInt(TEMP_PASSWORD_CHARS.length)];
-  }
-  return result;
+  return {
+    ok: true,
+    member: {
+      id: uid,
+      fullName,
+      role: requestedRole || "",
+      cgGroupId,
+      nij,
+      address,
+      birthPlace,
+      birthDate,
+      email,
+      phone,
+      isBendahara: false,
+      mustChangePassword: true,
+      spiritualStatus,
+      pelayanan,
+    },
+    temporaryPassword,
+  };
 }
 
 function mapCreateUserError(error: unknown): string {

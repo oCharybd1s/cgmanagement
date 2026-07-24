@@ -34,7 +34,7 @@ export function EditMemberDialog({
   member: Member;
   cgLabel: string | null;
   onClose: () => void;
-  onUpdated: () => void;
+  onUpdated: (member: Member) => void;
 }) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -98,7 +98,7 @@ export function EditMemberDialog({
       }
 
       setIsSubmitting(false);
-      onUpdated();
+      onUpdated(data.member);
       router.refresh();
     } catch {
       setFormError("Tidak bisa menghubungi server. Coba lagi");

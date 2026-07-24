@@ -54,6 +54,7 @@ export async function verifySessionCookie(
       orgId: typeof decoded.orgId === "string" ? decoded.orgId : null,
       cgGroupId: typeof decoded.cgGroupId === "string" ? decoded.cgGroupId : null,
       isBendahara: decoded.isBendahara === true,
+      mustChangePassword: decoded.mustChangePassword === true,
     };
   } catch {
     return null;

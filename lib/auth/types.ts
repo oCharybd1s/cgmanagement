@@ -5,4 +5,5 @@ export interface SessionUser {
   orgId: string | null;
   cgGroupId: string | null;
   isBendahara: boolean;
+  mustChangePassword: boolean;
 }

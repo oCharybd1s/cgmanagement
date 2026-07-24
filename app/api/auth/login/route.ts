@@ -43,6 +43,7 @@ export async function POST(request: NextRequest) {
       orgId: typeof decoded.orgId === "string" ? decoded.orgId : null,
       cgGroupId: typeof decoded.cgGroupId === "string" ? decoded.cgGroupId : null,
       isBendahara: decoded.isBendahara === true,
+      mustChangePassword: decoded.mustChangePassword === true,
     };
 
     const response = NextResponse.json({ ok: true, user });

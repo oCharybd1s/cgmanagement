@@ -31,9 +31,16 @@ export function MemberDirectory({
   const [search, setSearch] = React.useState("");
   const [cgFilter, setCgFilter] = React.useState("all");
   const [selectedMember, setSelectedMember] = React.useState<Member | null>(null);
+  const [directoryMembers, setDirectoryMembers] = React.useState(members);
+  const [syncedMembers, setSyncedMembers] = React.useState(members);
+
+  if (members !== syncedMembers) {
+    setSyncedMembers(members);
+    setDirectoryMembers(members);
+  }
 
   const showCgColumn = fields === "full" && cgGroups.length > 0;
-  const hasMembers = members.length > 0;
+  const hasMembers = directoryMembers.length > 0;
   const showDetail = fields === "full";
 
   const cgLabelById = React.useMemo(() => {
@@ -46,12 +53,30 @@ export function MemberDirectory({
 
   const filteredMembers = React.useMemo(() => {
     const query = search.trim().toLowerCase();
-    return members.filter((member) => {
+    return directoryMembers.filter((member) => {
       const matchesQuery = query === "" || member.fullName.toLowerCase().includes(query);
       const matchesCg = cgFilter === "all" || member.cgGroupId === cgFilter;
       return matchesQuery && matchesCg;
     });
-  }, [members, search, cgFilter]);
+  }, [directoryMembers, search, cgFilter]);
+
+  function handleMemberCreated(newMember: Member) {
+    setDirectoryMembers((current) =>
+      [...current, newMember].sort((a, b) => a.fullName.localeCompare(b.fullName, "id")),
+    );
+  }
+
+  function handleMemberUpdated(updatedMember: Member) {
+    setDirectoryMembers((current) =>
+      current.map((member) => (member.id === updatedMember.id ? updatedMember : member)),
+    );
+    setSelectedMember((current) => (current?.id === updatedMember.id ? updatedMember : current));
+  }
+
+  function handleMemberDeleted(memberId: string) {
+    setDirectoryMembers((current) => current.filter((member) => member.id !== memberId));
+    setSelectedMember((current) => (current?.id === memberId ? null : current));
+  }
 
   return (
     <div className="flex flex-col gap-5">
@@ -101,7 +126,12 @@ export function MemberDirectory({
           ) : null}
 
           {canCreateMember ? (
-            <AddMemberDialog cgGroups={cgGroups} viewerRole={viewerRole} viewerCgGroupId={viewerCgGroupId} />
+            <AddMemberDialog
+              cgGroups={cgGroups}
+              viewerRole={viewerRole}
+              viewerCgGroupId={viewerCgGroupId}
+              onCreated={handleMemberCreated}
+            />
           ) : null}
         </div>
       </div>
@@ -109,7 +139,7 @@ export function MemberDirectory({
       {hasMembers ? (
         <React.Fragment>
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            {filteredMembers.length} dari {members.length} anggota
+            {filteredMembers.length} dari {directoryMembers.length} anggota
           </p>
 
           {filteredMembers.length === 0 ? (
@@ -194,6 +224,8 @@ export function MemberDirectory({
         viewerCgGroupId={viewerCgGroupId}
         viewerUserId={viewerUserId}
         onClose={() => setSelectedMember(null)}
+        onMemberUpdated={handleMemberUpdated}
+        onMemberDeleted={handleMemberDeleted}
       />
     </div>
   );

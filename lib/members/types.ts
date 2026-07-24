@@ -21,6 +21,7 @@ export type Member = {
   email: string | null;
   phone: string | null;
   isBendahara: boolean;
+  mustChangePassword: boolean;
   spiritualStatus: SpiritualStatus;
   pelayanan: string | null;
 };

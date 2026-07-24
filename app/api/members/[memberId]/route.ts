@@ -27,7 +27,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     );
   }
 
-  return NextResponse.json({ ok: true, memberId: result.memberId });
+  return NextResponse.json({ ok: true, member: result.member });
 }
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ memberId: string }> }) {

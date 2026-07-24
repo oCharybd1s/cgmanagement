@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { ROLE_LABELS, assignableRolesForCreator, isCoach } from "@/lib/auth/roles";
 import { validateCreateMemberInput, type CreateMemberFieldErrors } from "@/lib/members/validation";
 import type { CgGroup } from "@/lib/cg-groups/types";
+import type { Member } from "@/lib/members/types";
 
 type SpiritualStatusKey =
   | "baptisSelam"
@@ -42,10 +43,12 @@ export function AddMemberDialog({
   cgGroups,
   viewerRole,
   viewerCgGroupId,
+  onCreated,
 }: {
   cgGroups: CgGroup[];
   viewerRole: string | null;
   viewerCgGroupId: string | null;
+  onCreated?: (member: Member) => void;
 }) {
   const router = useRouter();
   const formRef = React.useRef<HTMLFormElement>(null);
@@ -137,6 +140,7 @@ export function AddMemberDialog({
       setSelectedRole("");
       setSuccessState({ fullName, temporaryPassword: data.temporaryPassword });
       setIsSubmitting(false);
+      onCreated?.(data.member);
       router.refresh();
     } catch {
       setFormError("Tidak bisa menghubungi server. Coba lagi");

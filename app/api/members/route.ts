@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({
     ok: true,
-    memberId: result.memberId,
+    member: result.member,
     temporaryPassword: result.temporaryPassword,
   });
 }
