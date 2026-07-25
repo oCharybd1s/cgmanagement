@@ -9,7 +9,7 @@ import {
   type PromoteResult,
 } from "@/components/organizations/cg-tree-view";
 import { CoachTreeOverview } from "@/components/organizations/coach-tree-overview";
-import type { OrganizationTree as OrganizationTreeData } from "@/lib/organizations/tree";
+import type { OrganizationTree as OrganizationTreeData, OrganizationTreeMember } from "@/lib/organizations/tree";
 
 export function OrganizationTree({
   tree,
@@ -86,6 +86,17 @@ export function OrganizationTree({
   );
 }
 
+function tierKey(role: string): "sponsors" | "members" | "simpatisans" | null {
+  if (role === "sponsor") return "sponsors";
+  if (role === "member") return "members";
+  if (role === "simpatisan") return "simpatisans";
+  return null;
+}
+
+function sortByName(members: OrganizationTreeMember[]): OrganizationTreeMember[] {
+  return [...members].sort((a, b) => a.fullName.localeCompare(b.fullName, "id"));
+}
+
 function applyPromotion(tree: OrganizationTreeData, result: PromoteResult): OrganizationTreeData {
   return {
     coach: tree.coach,
@@ -94,21 +105,88 @@ function applyPromotion(tree: OrganizationTreeData, result: PromoteResult): Orga
         return group;
       }
 
-      const promoted = group.sponsors.find((sponsor) => sponsor.id === result.newCglUserId);
+      if (result.newRole === "cgl") {
+        const promoted = group.sponsors.find((sponsor) => sponsor.id === result.memberId);
+        if (!promoted) {
+          return group;
+        }
+
+        const remainingSponsors = group.sponsors.filter((sponsor) => sponsor.id !== result.memberId);
+        const nextSponsors =
+          result.swappedCglUserId && group.cgl
+            ? [...remainingSponsors, { ...group.cgl, role: "sponsor", isBendahara: false }]
+            : remainingSponsors;
+
+        return {
+          ...group,
+          cgl: { ...promoted, role: "cgl", isBendahara: false },
+          sponsors: sortByName(nextSponsors),
+        };
+      }
+
+      const fromKey = tierKey(result.oldRole);
+      const toKey = tierKey(result.newRole);
+      if (!fromKey || !toKey) {
+        return group;
+      }
+
+      const promoted = group[fromKey].find((member) => member.id === result.memberId);
       if (!promoted) {
         return group;
       }
 
-      const remainingSponsors = group.sponsors.filter((sponsor) => sponsor.id !== result.newCglUserId);
-      const nextSponsors =
-        result.previousCglUserId && group.cgl
-          ? [...remainingSponsors, { ...group.cgl, role: "sponsor", isBendahara: false }]
-          : remainingSponsors;
+      const updatedMember: OrganizationTreeMember = {
+        ...promoted,
+        role: result.newRole,
+        hasAccount: result.temporaryPassword ? true : promoted.hasAccount,
+      };
 
       return {
         ...group,
-        cgl: { ...promoted, role: "cgl", isBendahara: false },
-        sponsors: nextSponsors.sort((a, b) => a.fullName.localeCompare(b.fullName, "id")),
+        [fromKey]: group[fromKey].filter((member) => member.id !== result.memberId),
+        [toKey]: sortByName([...group[toKey], updatedMember]),
+      };
+    }),
+  };
+}
+
+function applyDemotion(tree: OrganizationTreeData, result: DemoteResult): OrganizationTreeData {
+  return {
+    coach: tree.coach,
+    cgGroups: tree.cgGroups.map((group) => {
+      if (group.id !== result.cgGroupId) {
+        return group;
+      }
+
+      if (result.oldRole === "cgl") {
+        if (!group.cgl || group.cgl.id !== result.memberId) {
+          return group;
+        }
+
+        return {
+          ...group,
+          cgl: null,
+          sponsors: sortByName([...group.sponsors, { ...group.cgl, role: "sponsor", isBendahara: false }]),
+        };
+      }
+
+      const fromKey = tierKey(result.oldRole);
+      const toKey = tierKey(result.newRole);
+      if (!fromKey || !toKey) {
+        return group;
+      }
+
+      const demoted = group[fromKey].find((member) => member.id === result.memberId);
+      if (!demoted) {
+        return group;
+      }
+
+      const updatedMember: OrganizationTreeMember = { ...demoted, role: result.newRole };
+
+      return {
+        ...group,
+        [fromKey]: group[fromKey].filter((member) => member.id !== result.memberId),
+        [toKey]: sortByName([...group[toKey], updatedMember]),
       };
     }),
   };
@@ -130,25 +208,6 @@ function applyBendaharaChange(tree: OrganizationTreeData, result: BendaharaResul
         ...group,
         sponsors: group.sponsors.map((sponsor) =>
           sponsor.id === result.memberId ? { ...sponsor, isBendahara: result.isBendahara } : sponsor,
-        ),
-      };
-    }),
-  };
-}
-
-function applyDemotion(tree: OrganizationTreeData, result: DemoteResult): OrganizationTreeData {
-  return {
-    coach: tree.coach,
-    cgGroups: tree.cgGroups.map((group) => {
-      if (group.id !== result.cgGroupId || !group.cgl || group.cgl.id !== result.demotedUserId) {
-        return group;
-      }
-
-      return {
-        ...group,
-        cgl: null,
-        sponsors: [...group.sponsors, { ...group.cgl, role: "sponsor", isBendahara: false }].sort((a, b) =>
-          a.fullName.localeCompare(b.fullName, "id"),
         ),
       };
     }),

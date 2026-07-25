@@ -128,6 +128,7 @@ export async function updateMemberForSession(
       phone,
       isBendahara: targetData.isBendahara === true,
       mustChangePassword: targetData.mustChangePassword === true,
+      hasAccount: targetData.hasAccount !== false,
       spiritualStatus,
       pelayanan,
     },

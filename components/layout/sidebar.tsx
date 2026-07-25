@@ -5,15 +5,16 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { navItems } from "./nav-items";
+import { getNavItemsForRole } from "./nav-items";
 import { useSidebar } from "./sidebar-context";
 
 const SIDEBAR_WIDTH_EXPANDED = 256;
 const SIDEBAR_WIDTH_COLLAPSED = 80;
 
-export function Sidebar() {
+export function Sidebar({ role }: { role?: string | null }) {
   const pathname = usePathname();
   const { isOpen } = useSidebar();
+  const navItems = getNavItemsForRole(role ?? null);
 
   return (
     <motion.aside

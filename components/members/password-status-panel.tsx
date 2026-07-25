@@ -68,7 +68,7 @@ export function PasswordStatusPanel({
 
   return (
     <div className="w-full rounded-2xl border border-warning/40 bg-warning/10 p-4 text-left">
-      <p className="text-xs font-medium uppercase tracking-wide text-warning-foreground">Belum Ganti Password</p>
+      <p className="text-xs font-medium uppercase tracking-wide text-warning-foreground dark:text-warning">Belum Ganti Password</p>
 
       {revealedPassword ? (
         <div className="mt-2 flex items-center justify-between gap-2">
@@ -111,7 +111,7 @@ export function PasswordStatusPanel({
         <button
           type="button"
           onClick={onResetPassword}
-          className="inline-flex items-center gap-1.5 rounded-full border border-warning/40 px-3 py-1.5 text-xs font-semibold text-warning-foreground transition-colors duration-200 hover:bg-warning/20"
+          className="inline-flex items-center gap-1.5 rounded-full border border-warning/40 px-3 py-1.5 text-xs font-semibold text-warning-foreground transition-colors duration-200 hover:bg-warning/20 dark:text-warning"
         >
           <KeyRound className="h-3.5 w-3.5" strokeWidth={2} />
           Reset Password

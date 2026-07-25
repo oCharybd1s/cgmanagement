@@ -10,6 +10,7 @@ import {
 } from "@/lib/auth/roles";
 import type { SessionUser } from "@/lib/auth/types";
 import type { Member, SpiritualStatus } from "@/lib/members/types";
+import { compareMembersForDirectory } from "@/lib/members/sort";
 
 const FULL_FIELDS = [
   "fullName",
@@ -23,6 +24,7 @@ const FULL_FIELDS = [
   "phone",
   "isBendahara",
   "mustChangePassword",
+  "hasAccount",
   "spiritualStatus",
   "pelayanan",
 ] as const;
@@ -64,7 +66,7 @@ export async function getMembersForSession(session: SessionUser): Promise<Member
 }
 
 function finalizeMembers(docs: QueryDocumentSnapshot[]): Member[] {
-  return docs.map(toMember).sort((a, b) => a.fullName.localeCompare(b.fullName, "id"));
+  return docs.map(toMember).sort(compareMembersForDirectory);
 }
 
 function mergeUnique(...snapshots: QuerySnapshot[]): QueryDocumentSnapshot[] {
@@ -93,6 +95,7 @@ function toMember(doc: QueryDocumentSnapshot): Member {
     phone: readString(data.phone),
     isBendahara: data.isBendahara === true,
     mustChangePassword: data.mustChangePassword === true,
+    hasAccount: data.hasAccount !== false,
     spiritualStatus: toSpiritualStatus(data.spiritualStatus),
     pelayanan: readString(data.pelayanan),
   };

@@ -15,6 +15,7 @@ export function StructureActionDialog({
   tone = "primary",
   onClose,
   onConfirm,
+  children,
 }: {
   open: boolean;
   title: string;
@@ -23,6 +24,7 @@ export function StructureActionDialog({
   tone?: "primary" | "destructive";
   onClose: () => void;
   onConfirm: () => Promise<StructureActionOutcome>;
+  children?: React.ReactNode;
 }) {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -97,6 +99,8 @@ export function StructureActionDialog({
             </div>
 
             <p className="mt-3 text-sm text-muted-foreground">{description}</p>
+
+            {children ? <div className="mt-3">{children}</div> : null}
 
             {error ? <p className="mt-3 text-sm text-destructive">{error}</p> : null}
 

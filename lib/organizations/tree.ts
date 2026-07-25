@@ -1,5 +1,5 @@
 import { getAdminServices } from "@/lib/firebase/firebase-admin";
-import { isCoach, isCgl } from "@/lib/auth/roles";
+import { isCoach, isCgl, isSponsor } from "@/lib/auth/roles";
 import type { SessionUser } from "@/lib/auth/types";
 
 export type OrganizationTreeMember = {
@@ -7,6 +7,7 @@ export type OrganizationTreeMember = {
   fullName: string;
   role: string;
   isBendahara: boolean;
+  hasAccount: boolean;
 };
 
 export type OrganizationTreeCgGroup = {
@@ -23,7 +24,7 @@ export type OrganizationTree = {
   cgGroups: OrganizationTreeCgGroup[];
 };
 
-const TREE_FIELDS = ["fullName", "role", "cgGroupId", "isBendahara"] as const;
+const TREE_FIELDS = ["fullName", "role", "cgGroupId", "isBendahara", "hasAccount"] as const;
 
 export async function getOrganizationTreeForSession(session: SessionUser): Promise<OrganizationTree> {
   if (!session.orgId) {
@@ -34,7 +35,7 @@ export async function getOrganizationTreeForSession(session: SessionUser): Promi
     return buildFullOrganizationTree(session.orgId);
   }
 
-  if (isCgl(session.role) && session.cgGroupId) {
+  if ((isCgl(session.role) || isSponsor(session.role)) && session.cgGroupId) {
     return buildSingleCgOrganizationTree(session.orgId, session.cgGroupId);
   }
 
@@ -147,6 +148,7 @@ function toMember(doc: FirebaseFirestore.DocumentSnapshot): OrganizationTreeMemb
     fullName: readString(data.fullName) ?? "",
     role: readString(data.role) ?? "",
     isBendahara: data.isBendahara === true,
+    hasAccount: data.hasAccount !== false,
   };
 }
 

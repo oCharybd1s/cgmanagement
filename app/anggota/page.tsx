@@ -3,6 +3,7 @@ import { verifySession } from "@/lib/auth/dal";
 import { toShellUser } from "@/lib/auth/shell-user";
 import {
   canCreateMember,
+  canQuickAddMember,
   canViewMemberDirectory,
   hasFullMemberDirectoryAccess,
   memberDirectoryFieldScope,
@@ -49,6 +50,7 @@ export default async function AnggotaPage() {
             cgGroups={cgGroups}
             fields={memberDirectoryFieldScope(session.role)}
             canCreateMember={canCreateMember(session.role)}
+            canQuickAddMember={canQuickAddMember(session.role)}
             viewerRole={session.role}
             viewerCgGroupId={session.cgGroupId}
             viewerUserId={session.uid}

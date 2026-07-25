@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SESSION_COOKIE_NAME, verifySessionCookie } from "@/lib/auth/session";
-import { promoteMemberForSession } from "@/lib/organizations/promote";
+import { quickAddMemberForSession } from "@/lib/members/quick-create";
 
 export async function POST(request: NextRequest) {
   const cookieValue = request.cookies.get(SESSION_COOKIE_NAME)?.value;
@@ -11,10 +11,14 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json().catch(() => null);
-  const memberId = typeof body?.memberId === "string" ? body.memberId : "";
-  const email = typeof body?.email === "string" ? body.email : undefined;
+  if (!body || typeof body !== "object") {
+    return NextResponse.json({ ok: false, error: "Data yang dikirim tidak valid" }, { status: 400 });
+  }
 
-  const result = await promoteMemberForSession(session, memberId, email);
+  const result = await quickAddMemberForSession(session, {
+    fullName: (body as Record<string, unknown>).fullName,
+    cgGroupId: (body as Record<string, unknown>).cgGroupId,
+  });
 
   if (!result.ok) {
     return NextResponse.json(
@@ -23,13 +27,5 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  return NextResponse.json({
-    ok: true,
-    memberId: result.memberId,
-    cgGroupId: result.cgGroupId,
-    oldRole: result.oldRole,
-    newRole: result.newRole,
-    swappedCglUserId: result.swappedCglUserId,
-    temporaryPassword: result.temporaryPassword,
-  });
+  return NextResponse.json({ ok: true, member: result.member });
 }

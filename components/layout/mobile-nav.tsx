@@ -7,12 +7,13 @@ import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { navItems } from "./nav-items";
+import { getNavItemsForRole } from "./nav-items";
 import { useSidebar } from "./sidebar-context";
 
-export function MobileNav() {
+export function MobileNav({ role }: { role?: string | null }) {
   const pathname = usePathname();
   const { isMobileNavOpen, closeMobileNav } = useSidebar();
+  const navItems = getNavItemsForRole(role ?? null);
 
   React.useEffect(() => {
     closeMobileNav();

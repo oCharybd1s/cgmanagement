@@ -53,6 +53,10 @@ export function canCreateMember(role: string | null) {
   return isCoach(role) || isCgl(role);
 }
 
+export function canQuickAddMember(role: string | null) {
+  return isCoach(role) || isCgl(role) || isSponsor(role) || isSimpatisan(role);
+}
+
 export function assignableRolesForCreator(role: string | null): string[] {
   if (isCoach(role)) {
     return ["coach", "cgl", "sponsor", "member", "simpatisan"];
@@ -125,8 +129,87 @@ export function canAssignBendahara(
   return false;
 }
 
+export const PROMOTABLE_ROLE_ORDER = ["simpatisan", "member", "sponsor", "cgl"] as const;
+
+function roleTierIndex(role: string | null): number {
+  if (!role) {
+    return -1;
+  }
+  return PROMOTABLE_ROLE_ORDER.indexOf(role as (typeof PROMOTABLE_ROLE_ORDER)[number]);
+}
+
+export function nextRoleUp(role: string | null): string | null {
+  const index = roleTierIndex(role);
+  if (index === -1 || index >= PROMOTABLE_ROLE_ORDER.length - 1) {
+    return null;
+  }
+  return PROMOTABLE_ROLE_ORDER[index + 1];
+}
+
+export function nextRoleDown(role: string | null): string | null {
+  const index = roleTierIndex(role);
+  if (index <= 0) {
+    return null;
+  }
+  return PROMOTABLE_ROLE_ORDER[index - 1];
+}
+
+export function canPromoteMember(
+  actorRole: string | null,
+  actorCgGroupId: string | null,
+  targetRole: string | null,
+  targetCgGroupId: string | null,
+) {
+  const promotedRole = nextRoleUp(targetRole);
+  if (!promotedRole) {
+    return false;
+  }
+
+  if (isCoach(actorRole)) {
+    return true;
+  }
+
+  if (isCgl(actorRole)) {
+    if (promotedRole === "cgl") {
+      return false;
+    }
+    return actorCgGroupId !== null && actorCgGroupId === targetCgGroupId;
+  }
+
+  if (isSponsor(actorRole)) {
+    return targetRole === "simpatisan" && actorCgGroupId !== null && actorCgGroupId === targetCgGroupId;
+  }
+
+  return false;
+}
+
+export function canDemoteMember(
+  actorRole: string | null,
+  actorCgGroupId: string | null,
+  targetRole: string | null,
+  targetCgGroupId: string | null,
+) {
+  const demotedRole = nextRoleDown(targetRole);
+  if (!demotedRole) {
+    return false;
+  }
+
+  if (isCoach(actorRole)) {
+    return true;
+  }
+
+  if (isCgl(actorRole)) {
+    if (targetRole === "cgl") {
+      return false;
+    }
+    return actorCgGroupId !== null && actorCgGroupId === targetCgGroupId;
+  }
+
+  return false;
+}
+
 export function canViewOrganizationTree(role: string | null) {
-  return isCoach(role) || isCgl(role);
+  return isCoach(role) || isCgl(role) || isSponsor(role);
 }
 
 export function cgGroupDisplayLabel(role: string | null, cgLabel: string | null) {

@@ -22,6 +22,7 @@ export type Member = {
   phone: string | null;
   isBendahara: boolean;
   mustChangePassword: boolean;
+  hasAccount: boolean;
   spiritualStatus: SpiritualStatus;
   pelayanan: string | null;
 };

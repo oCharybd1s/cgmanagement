@@ -113,7 +113,7 @@ export function ResetPasswordDialog({
           <div className="flex flex-col gap-4 px-6 py-5">
             {temporaryPassword ? (
               <div className="w-full rounded-2xl border border-warning/40 bg-warning/10 p-4 text-left">
-                <p className="text-xs font-medium uppercase tracking-wide text-warning-foreground">
+                <p className="text-xs font-medium uppercase tracking-wide text-warning-foreground dark:text-warning">
                   Password Sementara Baru
                 </p>
                 <div className="mt-2 flex items-center justify-between gap-2">
@@ -134,7 +134,7 @@ export function ResetPasswordDialog({
               </div>
             ) : (
               <div className="flex items-start gap-3 rounded-2xl border border-warning/40 bg-warning/10 p-4">
-                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-warning-foreground" strokeWidth={2} />
+                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-warning-foreground dark:text-warning" strokeWidth={2} />
                 <p className="text-sm text-foreground">
                   Password login <span className="font-semibold">{member.fullName || "anggota ini"}</span> saat
                   ini akan langsung tidak berlaku, diganti password sementara yang baru.

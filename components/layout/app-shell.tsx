@@ -21,8 +21,8 @@ export function AppShell({
   return (
     <SidebarProvider>
       <div className="flex min-h-dvh bg-background">
-        <Sidebar />
-        <MobileNav />
+        <Sidebar role={user?.role} />
+        <MobileNav role={user?.role} />
         <div className="flex min-w-0 flex-1 flex-col">
           <Topbar title={title} user={user} />
           <main className="flex-1">{children}</main>

@@ -5,8 +5,10 @@ import { Eye, Search, SearchX, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { cgGroupDisplayLabel, getRoleLabel } from "@/lib/auth/roles";
 import { AddMemberDialog } from "@/components/members/add-member-dialog";
+import { QuickAddMemberDialog } from "@/components/members/quick-add-member-dialog";
 import { MemberDetailDialog } from "@/components/members/member-detail-dialog";
 import type { Member, SpiritualStatus } from "@/lib/members/types";
+import { compareMembersForDirectory } from "@/lib/members/sort";
 import type { CgGroup } from "@/lib/cg-groups/types";
 
 const SPIRITUAL_STATUS_TOTAL = 8;
@@ -16,6 +18,7 @@ export function MemberDirectory({
   cgGroups,
   fields,
   canCreateMember,
+  canQuickAddMember,
   viewerRole,
   viewerCgGroupId,
   viewerUserId,
@@ -24,6 +27,7 @@ export function MemberDirectory({
   cgGroups: CgGroup[];
   fields: "full" | "basic";
   canCreateMember: boolean;
+  canQuickAddMember: boolean;
   viewerRole: string | null;
   viewerCgGroupId: string | null;
   viewerUserId: string | null;
@@ -61,14 +65,12 @@ export function MemberDirectory({
   }, [directoryMembers, search, cgFilter]);
 
   function handleMemberCreated(newMember: Member) {
-    setDirectoryMembers((current) =>
-      [...current, newMember].sort((a, b) => a.fullName.localeCompare(b.fullName, "id")),
-    );
+    setDirectoryMembers((current) => [...current, newMember].sort(compareMembersForDirectory));
   }
 
   function handleMemberUpdated(updatedMember: Member) {
     setDirectoryMembers((current) =>
-      current.map((member) => (member.id === updatedMember.id ? updatedMember : member)),
+      current.map((member) => (member.id === updatedMember.id ? updatedMember : member)).sort(compareMembersForDirectory),
     );
     setSelectedMember((current) => (current?.id === updatedMember.id ? updatedMember : current));
   }
@@ -123,6 +125,10 @@ export function MemberDirectory({
                 ))}
               </select>
             </div>
+          ) : null}
+
+          {canQuickAddMember ? (
+            <QuickAddMemberDialog cgGroups={cgGroups} viewerRole={viewerRole} onCreated={handleMemberCreated} />
           ) : null}
 
           {canCreateMember ? (
@@ -214,7 +220,7 @@ export function MemberDirectory({
           )}
         </React.Fragment>
       ) : (
-        <EmptyDirectoryState canCreate={canCreateMember} />
+        <EmptyDirectoryState canCreate={canCreateMember || canQuickAddMember} />
       )}
 
       <MemberDetailDialog

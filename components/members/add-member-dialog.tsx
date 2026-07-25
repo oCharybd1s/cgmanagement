@@ -141,7 +141,6 @@ export function AddMemberDialog({
       setSuccessState({ fullName, temporaryPassword: data.temporaryPassword });
       setIsSubmitting(false);
       onCreated?.(data.member);
-      router.refresh();
     } catch {
       setFormError("Tidak bisa menghubungi server. Coba lagi");
       setIsSubmitting(false);
@@ -201,8 +200,14 @@ export function AddMemberDialog({
                 <SuccessPanel
                   fullName={successState.fullName}
                   temporaryPassword={successState.temporaryPassword}
-                  onAddAnother={() => setSuccessState(null)}
-                  onClose={() => setIsOpen(false)}
+                  onAddAnother={() => {
+                    setSuccessState(null);
+                    router.refresh();
+                  }}
+                  onClose={() => {
+                    setIsOpen(false);
+                    router.refresh();
+                  }}
                 />
               ) : (
                 <form
@@ -462,7 +467,7 @@ function SuccessPanel({
       </div>
 
       <div className="w-full rounded-2xl border border-warning/40 bg-warning/10 p-4 text-left">
-        <p className="text-xs font-medium uppercase tracking-wide text-warning-foreground">
+        <p className="text-xs font-medium uppercase tracking-wide text-warning-foreground dark:text-warning">
           Password Sementara
         </p>
         <div className="mt-2 flex items-center justify-between gap-2">
