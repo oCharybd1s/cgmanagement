@@ -41,6 +41,10 @@ export function canManageCgGroups(role: string | null) {
   return isCoach(role);
 }
 
+export function canViewFormerMembers(role: string | null) {
+  return isCoach(role) || isCgl(role);
+}
+
 export function canViewMemberDirectory(role: string | null) {
   return isCoach(role) || isCgl(role) || isSponsor(role) || isMember(role) || isSimpatisan(role);
 }
