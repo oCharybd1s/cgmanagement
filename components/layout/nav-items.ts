@@ -5,9 +5,7 @@ import {
   Wallet,
   CalendarDays,
   UserPlus,
-  UserMinus,
   NotebookPen,
-  UserCircle,
   type LucideIcon,
 } from "lucide-react";
 
@@ -24,22 +22,14 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { label: "Keuangan", href: "/keuangan", icon: Wallet },
   { label: "Kalender", href: "/kalender", icon: CalendarDays },
   { label: "List VIP", href: "/vip", icon: UserPlus },
-  { label: "Past Member", href: "/alumni", icon: UserMinus },
   { label: "Laporan CG", href: "/laporan", icon: NotebookPen },
-  { label: "Profil", href: "/profil", icon: UserCircle },
 ];
 
-const HIDDEN_ROLES_BY_HREF: Record<string, Set<string>> = {
-  "/struktur": new Set(["member", "simpatisan"]),
-  "/alumni": new Set(["sponsor", "member", "simpatisan"]),
-};
+const STRUKTUR_HIDDEN_ROLES = new Set(["member", "simpatisan"]);
 
 export function getNavItemsForRole(role: string | null): NavItem[] {
-  return ALL_NAV_ITEMS.filter((item) => {
-    const hiddenRoles = HIDDEN_ROLES_BY_HREF[item.href];
-    if (!hiddenRoles) {
-      return true;
-    }
-    return role === null || !hiddenRoles.has(role);
-  });
+  if (role !== null && STRUKTUR_HIDDEN_ROLES.has(role)) {
+    return ALL_NAV_ITEMS.filter((item) => item.href !== "/struktur");
+  }
+  return ALL_NAV_ITEMS;
 }
