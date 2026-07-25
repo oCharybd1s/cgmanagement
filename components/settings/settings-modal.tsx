@@ -56,7 +56,7 @@ export function SettingsModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-0 backdrop-blur-sm sm:p-4"
           onClick={onClose}
         >
           <motion.div
@@ -68,13 +68,13 @@ export function SettingsModal({
             exit={{ opacity: 0, y: 16, scale: 0.97 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
             onClick={(event) => event.stopPropagation()}
-            className="flex h-[600px] max-h-[calc(100vh-2rem)] w-[720px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-3xl border border-border bg-card shadow-2xl"
+            className="flex h-[100dvh] w-full flex-col overflow-hidden border-border bg-card shadow-2xl sm:h-[600px] sm:max-h-[calc(100dvh-2rem)] sm:w-[720px] sm:max-w-[calc(100vw-2rem)] sm:flex-row sm:rounded-3xl sm:border"
           >
-            <div className="flex w-56 shrink-0 flex-col border-r border-border bg-muted/30 p-3">
-              <p className="px-3 pb-2 pt-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <div className="flex shrink-0 flex-row items-center gap-1 overflow-x-auto border-b border-border bg-muted/30 p-2 sm:w-56 sm:flex-col sm:items-stretch sm:gap-1 sm:overflow-visible sm:border-b-0 sm:border-r sm:p-3">
+              <p className="hidden px-3 pb-2 pt-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground sm:block">
                 Pengaturan
               </p>
-              <nav className="flex flex-col gap-1">
+              <nav className="flex flex-row gap-1 sm:flex-col">
                 {SECTIONS.map((section) => {
                   const Icon = section.icon;
                   const isActive = activeSection === section.id;
@@ -85,7 +85,7 @@ export function SettingsModal({
                       onClick={() => setActiveSection(section.id)}
                       aria-current={isActive}
                       className={cn(
-                        "flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors duration-200",
+                        "flex shrink-0 items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors duration-200",
                         isActive
                           ? "bg-primary/10 text-primary"
                           : "text-muted-foreground hover:bg-muted hover:text-foreground",
@@ -100,7 +100,7 @@ export function SettingsModal({
             </div>
 
             <div className="flex flex-1 flex-col overflow-hidden">
-              <div className="flex items-center justify-between border-b border-border px-6 py-4">
+              <div className="flex items-center justify-between border-b border-border px-4 py-3 sm:px-6 sm:py-4">
                 <h2
                   id="settings-modal-title"
                   className="font-display text-lg font-bold tracking-tight text-foreground"
@@ -117,7 +117,7 @@ export function SettingsModal({
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto px-6 py-6">
+              <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6">
                 {activeSection === "profile" ? (
                   <ComingSoon
                     icon={User}
