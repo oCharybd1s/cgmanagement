@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { KeyRound, User, X, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -23,7 +24,12 @@ export function SettingsModal({
   onClose: () => void;
   defaultSection?: SettingsSection;
 }) {
+  const [mounted, setMounted] = React.useState(false);
   const [activeSection, setActiveSection] = React.useState<SettingsSection>(defaultSection);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   React.useEffect(() => {
     if (isOpen) {
@@ -48,7 +54,11 @@ export function SettingsModal({
 
   const activeSectionData = SECTIONS.find((section) => section.id === activeSection) ?? SECTIONS[0];
 
-  return (
+  if (!mounted) {
+    return null;
+  }
+
+  return createPortal(
     <AnimatePresence>
       {isOpen ? (
         <motion.div
@@ -132,6 +142,7 @@ export function SettingsModal({
           </motion.div>
         </motion.div>
       ) : null}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }
