@@ -19,10 +19,12 @@ export function SettingsModal({
   isOpen,
   onClose,
   defaultSection = "profile",
+  onAvatarChange,
 }: {
   isOpen: boolean;
   onClose: () => void;
   defaultSection?: SettingsSection;
+  onAvatarChange?: (avatarId: string) => void;
 }) {
   const [mounted, setMounted] = React.useState(false);
   const [activeSection, setActiveSection] = React.useState<SettingsSection>(defaultSection);
@@ -128,7 +130,11 @@ export function SettingsModal({
               </div>
 
               <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6">
-                {activeSection === "profile" ? <ProfileSection /> : <SecuritySection />}
+                {activeSection === "profile" ? (
+                  <ProfileSection onAvatarChange={onAvatarChange} />
+                ) : (
+                  <SecuritySection />
+                )}
               </div>
             </div>
           </motion.div>

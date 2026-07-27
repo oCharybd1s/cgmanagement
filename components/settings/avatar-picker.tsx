@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { Check, Loader2 } from "lucide-react";
+import { Check, Loader2, User } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { AVATAR_CATALOG, type AvatarId } from "@/components/settings/avatars/avatar-catalog";
+import { AVATAR_CATALOG, getAvatarComponent, type AvatarId } from "@/components/settings/avatars/avatar-catalog";
 
 export function AvatarPicker({
   selectedAvatarId,
@@ -30,12 +30,27 @@ export function AvatarPicker({
     }
   }
 
+  const CurrentAvatar = getAvatarComponent(selectedAvatarId);
+  const isSaving = pendingAvatarId !== null;
+
   return (
-    <div className="flex flex-col gap-3">
-      <div className="grid grid-cols-4 gap-3 sm:grid-cols-5">
+    <div className="flex flex-col items-center gap-4">
+      <div className="relative flex h-28 w-28 items-center justify-center overflow-hidden rounded-full border-2 border-border bg-muted">
+        {CurrentAvatar ? (
+          <CurrentAvatar />
+        ) : (
+          <User className="h-10 w-10 text-muted-foreground" strokeWidth={1.5} />
+        )}
+        {isSaving ? (
+          <span className="absolute inset-0 flex items-center justify-center bg-black/40">
+            <Loader2 className="h-6 w-6 animate-spin text-white" strokeWidth={2.5} />
+          </span>
+        ) : null}
+      </div>
+
+      <div className="flex w-full gap-2.5 overflow-x-auto px-1 pb-1">
         {AVATAR_CATALOG.map((avatar) => {
           const isSelected = avatar.id === selectedAvatarId;
-          const isPending = avatar.id === pendingAvatarId;
           const AvatarImage = avatar.Component;
 
           return (
@@ -43,30 +58,26 @@ export function AvatarPicker({
               key={avatar.id}
               type="button"
               onClick={() => handleSelect(avatar.id)}
-              disabled={pendingAvatarId !== null}
+              disabled={isSaving}
               aria-label={avatar.label}
               aria-pressed={isSelected}
               title={avatar.label}
               className={cn(
-                "group relative aspect-square overflow-hidden rounded-full border-2 transition-all duration-200 disabled:cursor-not-allowed",
+                "relative h-12 w-12 shrink-0 overflow-hidden rounded-full border-2 transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60",
                 isSelected ? "border-primary ring-2 ring-primary/30" : "border-border hover:border-primary/50",
               )}
             >
               <AvatarImage />
               {isSelected ? (
-                <span className="absolute bottom-0.5 right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground shadow">
-                  <Check className="h-3 w-3" strokeWidth={3} />
-                </span>
-              ) : null}
-              {isPending ? (
-                <span className="absolute inset-0 flex items-center justify-center bg-black/40">
-                  <Loader2 className="h-5 w-5 animate-spin text-white" strokeWidth={2.5} />
+                <span className="absolute bottom-0 right-0 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                  <Check className="h-2 w-2" strokeWidth={4} />
                 </span>
               ) : null}
             </button>
           );
         })}
       </div>
+
       {errorMessage ? (
         <p role="alert" className="text-sm text-destructive">
           {errorMessage}
@@ -75,3 +86,4 @@ export function AvatarPicker({
     </div>
   );
 }
+

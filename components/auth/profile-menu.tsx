@@ -8,13 +8,36 @@ import { getRoleLabel } from "@/lib/auth/roles";
 import { useLogout } from "@/hooks/use-logout";
 import { DemoRoleSwitcher } from "@/components/dev/demo-role-switcher";
 import { SettingsModal } from "@/components/settings/settings-modal";
+import { getAvatarComponent } from "@/components/settings/avatars/avatar-catalog";
 import type { ShellUser } from "@/lib/auth/shell-user";
 
 export function ProfileMenu({ user }: { user?: ShellUser | null }) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = React.useState(false);
+  const [avatarId, setAvatarId] = React.useState<string | null>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
   const { logout, isLoggingOut } = useLogout();
+
+  React.useEffect(() => {
+    let isCancelled = false;
+
+    async function loadAvatar() {
+      try {
+        const response = await fetch("/api/members/me");
+        const data = await response.json();
+        if (!isCancelled && response.ok && data.ok) {
+          setAvatarId(data.member.avatarId ?? null);
+        }
+      } catch {
+        // Biarkan fallback ke inisial huruf kalau gagal dimuat
+      }
+    }
+
+    loadAvatar();
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
 
   React.useEffect(() => {
     if (!isOpen) {
@@ -42,6 +65,7 @@ export function ProfileMenu({ user }: { user?: ShellUser | null }) {
   }, [isOpen]);
 
   const initial = user?.email ? user.email.charAt(0).toUpperCase() : null;
+  const AvatarImage = getAvatarComponent(avatarId);
 
   return (
     <>
@@ -53,8 +77,8 @@ export function ProfileMenu({ user }: { user?: ShellUser | null }) {
           aria-expanded={isOpen}
           className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2.5 transition-colors duration-200 hover:bg-muted"
         >
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
-            {initial ?? <User className="h-4 w-4" strokeWidth={2} />}
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary text-sm font-semibold text-primary-foreground">
+            {AvatarImage ? <AvatarImage /> : (initial ?? <User className="h-4 w-4" strokeWidth={2} />)}
           </span>
           <ChevronDown
             className={cn(
@@ -75,11 +99,16 @@ export function ProfileMenu({ user }: { user?: ShellUser | null }) {
               role="menu"
               className="absolute right-0 top-full z-50 mt-2 w-64 overflow-hidden rounded-2xl border border-border bg-popover text-popover-foreground shadow-2xl backdrop-blur-xl"
             >
-              <div className="px-4 py-3">
-                <p className="truncate text-sm font-semibold text-foreground">
-                  {user?.email ?? "Pengguna"}
-                </p>
-                <p className="text-xs text-muted-foreground">{getRoleLabel(user?.role ?? null)}</p>
+              <div className="flex items-center gap-3 px-4 py-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary text-sm font-semibold text-primary-foreground">
+                  {AvatarImage ? <AvatarImage /> : (initial ?? <User className="h-4 w-4" strokeWidth={2} />)}
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-foreground">
+                    {user?.email ?? "Pengguna"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{getRoleLabel(user?.role ?? null)}</p>
+                </div>
               </div>
 
               <div className="h-px bg-border" />
@@ -117,7 +146,11 @@ export function ProfileMenu({ user }: { user?: ShellUser | null }) {
         </AnimatePresence>
       </div>
 
-      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        onAvatarChange={setAvatarId}
+      />
     </>
   );
 }

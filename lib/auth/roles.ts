@@ -45,6 +45,58 @@ export function canViewFormerMembers(role: string | null) {
   return isCoach(role) || isCgl(role);
 }
 
+export function canViewVipList(role: string | null) {
+  return isCoach(role) || isCgl(role) || isSponsor(role);
+}
+
+export function canCreateVipProspect(role: string | null) {
+  return canViewVipList(role);
+}
+
+export function canManageVipProspect(
+  actorRole: string | null,
+  actorCgGroupId: string | null,
+  targetCgId: string | null,
+) {
+  if (isCoach(actorRole)) {
+    return true;
+  }
+  if (isCgl(actorRole) || isSponsor(actorRole)) {
+    return actorCgGroupId !== null && actorCgGroupId === targetCgId;
+  }
+  return false;
+}
+
+export function canDeleteVipProspect(
+  actorRole: string | null,
+  actorCgGroupId: string | null,
+  targetCgId: string | null,
+) {
+  if (isCoach(actorRole)) {
+    return true;
+  }
+  if (isCgl(actorRole)) {
+    return actorCgGroupId !== null && actorCgGroupId === targetCgId;
+  }
+  return false;
+}
+
+export function canViewMeetingReports(role: string | null) {
+  return isCoach(role) || isCgl(role) || isSponsor(role);
+}
+
+export function canCreateMeetingReport(role: string | null) {
+  return isCoach(role) || isCgl(role) || isSponsor(role);
+}
+
+export function canManageMeetingReport(role: string | null) {
+  return isCoach(role);
+}
+
+export function canDeleteMeetingReport(role: string | null) {
+  return isCoach(role);
+}
+
 export function canViewMemberDirectory(role: string | null) {
   return isCoach(role) || isCgl(role) || isSponsor(role) || isMember(role) || isSimpatisan(role);
 }

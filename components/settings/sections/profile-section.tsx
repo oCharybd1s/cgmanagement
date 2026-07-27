@@ -47,7 +47,7 @@ function RequestOnlyField({ label, value }: { label: string; value: string }) {
   );
 }
 
-export function ProfileSection() {
+export function ProfileSection({ onAvatarChange }: { onAvatarChange?: (avatarId: string) => void }) {
   const [member, setMember] = React.useState<Member | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
@@ -97,6 +97,7 @@ export function ProfileSection() {
       throw new Error(data.error ?? "Gagal menyimpan avatar");
     }
     setMember((current) => (current ? { ...current, avatarId } : current));
+    onAvatarChange?.(avatarId);
   }
 
   if (isLoading) {
