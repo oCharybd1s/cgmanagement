@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { KeyRound, User, X, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ComingSoon } from "@/components/common/coming-soon";
+import { ProfileSection } from "@/components/settings/sections/profile-section";
 import { SecuritySection } from "@/components/settings/sections/security-section";
 
 type SettingsSection = "profile" | "security";
@@ -18,7 +18,7 @@ const SECTIONS: { id: SettingsSection; label: string; title: string; icon: Lucid
 export function SettingsModal({
   isOpen,
   onClose,
-  defaultSection = "security",
+  defaultSection = "profile",
 }: {
   isOpen: boolean;
   onClose: () => void;
@@ -128,15 +128,7 @@ export function SettingsModal({
               </div>
 
               <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6">
-                {activeSection === "profile" ? (
-                  <ComingSoon
-                    icon={User}
-                    title="Profile"
-                    description="Edit foto profil dan lihat data diri kamu di sini."
-                  />
-                ) : (
-                  <SecuritySection />
-                )}
+                {activeSection === "profile" ? <ProfileSection /> : <SecuritySection />}
               </div>
             </div>
           </motion.div>

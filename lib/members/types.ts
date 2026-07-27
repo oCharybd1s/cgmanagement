@@ -25,4 +25,5 @@ export type Member = {
   hasAccount: boolean;
   spiritualStatus: SpiritualStatus;
   pelayanan: string | null;
+  avatarId: string | null;
 };

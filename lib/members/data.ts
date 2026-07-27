@@ -65,8 +65,24 @@ export async function getMembersForSession(session: SessionUser): Promise<Member
   return [];
 }
 
+export async function getOwnMemberForSession(session: SessionUser): Promise<Member | null> {
+  if (!session.orgId) {
+    return null;
+  }
+
+  const { adminDb } = getAdminServices();
+  const userRef = adminDb.collection("organizations").doc(session.orgId).collection("users").doc(session.uid);
+  const snapshot = await userRef.get();
+
+  if (!snapshot.exists) {
+    return null;
+  }
+
+  return toMember(snapshot.id, snapshot.data() ?? {});
+}
+
 function finalizeMembers(docs: QueryDocumentSnapshot[]): Member[] {
-  return docs.map(toMember).sort(compareMembersForDirectory);
+  return docs.map((doc) => toMember(doc.id, doc.data())).sort(compareMembersForDirectory);
 }
 
 function mergeUnique(...snapshots: QuerySnapshot[]): QueryDocumentSnapshot[] {
@@ -79,11 +95,9 @@ function mergeUnique(...snapshots: QuerySnapshot[]): QueryDocumentSnapshot[] {
   return Array.from(byId.values());
 }
 
-function toMember(doc: QueryDocumentSnapshot): Member {
-  const data = doc.data();
-
+function toMember(id: string, data: FirebaseFirestore.DocumentData): Member {
   return {
-    id: doc.id,
+    id,
     fullName: readString(data.fullName) ?? "",
     role: readString(data.role) ?? "",
     cgGroupId: readString(data.cgGroupId),
@@ -98,6 +112,7 @@ function toMember(doc: QueryDocumentSnapshot): Member {
     hasAccount: data.hasAccount !== false,
     spiritualStatus: toSpiritualStatus(data.spiritualStatus),
     pelayanan: readString(data.pelayanan),
+    avatarId: readString(data.avatarId),
   };
 }
 
