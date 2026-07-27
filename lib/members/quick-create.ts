@@ -74,6 +74,7 @@ export async function quickAddMemberForSession(
       hasAccount: false,
       spiritualStatus: emptySpiritualStatus,
       pelayanan: null,
+      avatarId: null,
       createdBy: session.uid,
       createdAt: now,
       updatedBy: session.uid,
@@ -101,6 +102,7 @@ export async function quickAddMemberForSession(
       hasAccount: false,
       spiritualStatus: emptySpiritualStatus,
       pelayanan: null,
+      avatarId: null,
     },
   };
 }

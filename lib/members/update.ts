@@ -131,6 +131,7 @@ export async function updateMemberForSession(
       hasAccount: targetData.hasAccount !== false,
       spiritualStatus,
       pelayanan,
+      avatarId: normalizeOptional(targetData.avatarId),
     },
   };
 }

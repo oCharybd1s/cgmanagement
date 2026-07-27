@@ -145,6 +145,7 @@ export async function createMemberForSession(
         temporaryPasswordPending: temporaryPassword,
         spiritualStatus,
         pelayanan,
+        avatarId: null,
         createdBy: session.uid,
         createdAt: now,
         updatedBy: session.uid,
@@ -173,6 +174,7 @@ export async function createMemberForSession(
       hasAccount: true,
       spiritualStatus,
       pelayanan,
+      avatarId: null,
     },
     temporaryPassword,
   };
