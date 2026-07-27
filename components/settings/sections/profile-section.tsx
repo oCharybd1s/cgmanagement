@@ -175,6 +175,15 @@ export function ProfileSection({ onAvatarChange }: { onAvatarChange?: (avatarId:
           ) : null}
         </div>
       </section>
+
+      <div className="h-px bg-border" />
+
+      <section className="flex flex-col gap-2">
+        <h3 className="text-sm font-semibold text-foreground">[Debug sementara] Data mentah dari server</h3>
+        <pre className="overflow-x-auto rounded-lg bg-muted/50 px-3 py-2 font-mono text-[10px] text-muted-foreground">
+          {JSON.stringify(member, null, 2)}
+        </pre>
+      </section>
     </div>
   );
 }
