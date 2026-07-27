@@ -23,7 +23,7 @@ export function ProfileMenu({ user }: { user?: ShellUser | null }) {
 
     async function loadAvatar() {
       try {
-        const response = await fetch("/api/members/me");
+        const response = await fetch("/api/members/me", { cache: "no-store" });
         const data = await response.json();
         if (!isCancelled && response.ok && data.ok) {
           setAvatarId(data.member.avatarId ?? null);

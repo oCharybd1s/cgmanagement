@@ -59,7 +59,7 @@ export function ProfileSection({ onAvatarChange }: { onAvatarChange?: (avatarId:
       setIsLoading(true);
       setErrorMessage(null);
       try {
-        const response = await fetch("/api/members/me");
+        const response = await fetch("/api/members/me", { cache: "no-store" });
         const data = await response.json();
         if (isCancelled) {
           return;

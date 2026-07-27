@@ -26,16 +26,10 @@ const ALL_NAV_ITEMS: NavItem[] = [
 ];
 
 const STRUKTUR_HIDDEN_ROLES = new Set(["member", "simpatisan"]);
-const VIP_HIDDEN_ROLES = new Set(["member", "simpatisan"]);
 
 export function getNavItemsForRole(role: string | null): NavItem[] {
-  return ALL_NAV_ITEMS.filter((item) => {
-    if (item.href === "/struktur" && role !== null && STRUKTUR_HIDDEN_ROLES.has(role)) {
-      return false;
-    }
-    if (item.href === "/vip" && role !== null && VIP_HIDDEN_ROLES.has(role)) {
-      return false;
-    }
-    return true;
-  });
+  if (role !== null && STRUKTUR_HIDDEN_ROLES.has(role)) {
+    return ALL_NAV_ITEMS.filter((item) => item.href !== "/struktur");
+  }
+  return ALL_NAV_ITEMS;
 }
