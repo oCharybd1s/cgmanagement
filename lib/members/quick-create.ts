@@ -1,7 +1,8 @@
 import { FieldValue } from "firebase-admin/firestore";
 import { getAdminServices } from "@/lib/firebase/firebase-admin";
 import { canQuickAddMember, isCoach } from "@/lib/auth/roles";
-import { toStringValue } from "@/lib/members/shared";
+import { normalizeOptional, toStringValue } from "@/lib/members/shared";
+import { linkVipProspectToNewSimpatisan } from "@/lib/vip-prospects/auto-link";
 import type { SessionUser } from "@/lib/auth/types";
 import type { Member } from "@/lib/members/types";
 
@@ -11,7 +12,7 @@ export type QuickAddMemberResult =
 
 export async function quickAddMemberForSession(
   session: SessionUser,
-  payload: { fullName: unknown; cgGroupId: unknown },
+  payload: { fullName: unknown; phone: unknown; cgGroupId: unknown },
 ): Promise<QuickAddMemberResult> {
   if (!session.orgId) {
     return { ok: false, status: 403, error: "Sesi Anda belum terhubung ke organisasi" };
@@ -26,6 +27,7 @@ export async function quickAddMemberForSession(
     return { ok: false, status: 400, error: "Nama wajib diisi", fieldErrors: { fullName: "Nama wajib diisi" } };
   }
 
+  const phone = normalizeOptional(payload.phone);
   const cgGroupId = isCoach(session.role) ? toStringValue(payload.cgGroupId).trim() : session.cgGroupId;
 
   if (!cgGroupId) {
@@ -68,7 +70,7 @@ export async function quickAddMemberForSession(
       birthPlace: null,
       birthDate: null,
       email: null,
-      phone: null,
+      phone,
       isBendahara: false,
       mustChangePassword: false,
       hasAccount: false,
@@ -84,6 +86,8 @@ export async function quickAddMemberForSession(
     return { ok: false, status: 500, error: "Gagal menyimpan data anggota" };
   }
 
+  await linkVipProspectToNewSimpatisan(adminDb, session.orgId, cgGroupId, fullName, phone, memberRef.id);
+
   return {
     ok: true,
     member: {
@@ -96,7 +100,7 @@ export async function quickAddMemberForSession(
       birthPlace: null,
       birthDate: null,
       email: null,
-      phone: null,
+      phone,
       isBendahara: false,
       mustChangePassword: false,
       hasAccount: false,

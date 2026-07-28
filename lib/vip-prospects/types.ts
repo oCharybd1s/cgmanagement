@@ -1,4 +1,4 @@
-export type VipProspectStatus = "pending" | "accept" | "reject";
+export type VipProspectStatus = "pending" | "berpotensi" | "accept" | "reject";
 
 export type VipProspect = {
   id: string;
@@ -8,5 +8,6 @@ export type VipProspect = {
   followUpByUserId: string | null;
   status: VipProspectStatus;
   notes: string | null;
+  linkedMemberId: string | null;
   createdBy: string | null;
 };

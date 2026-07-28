@@ -3,6 +3,7 @@ import { getAdminServices } from "@/lib/firebase/firebase-admin";
 import { canPromoteMember, canDemoteMember, nextRoleUp, nextRoleDown } from "@/lib/auth/roles";
 import { EMAIL_REGEX } from "@/lib/members/validation";
 import { generateTemporaryPassword, getErrorCode } from "@/lib/members/shared";
+import { markLinkedVipProspectAsAccepted } from "@/lib/vip-prospects/auto-link";
 import type { SessionUser } from "@/lib/auth/types";
 
 export type PromoteMemberResult =
@@ -121,6 +122,12 @@ export async function promoteMemberForSession(
       await adminAuth.deleteUser(trimmedMemberId).catch(() => undefined);
       return { ok: false, status: 500, error: "Gagal menyimpan perubahan struktur. Coba lagi." };
     }
+
+    const fullName = typeof memberData.fullName === "string" ? memberData.fullName : "";
+    const phone = typeof memberData.phone === "string" ? memberData.phone : null;
+    await markLinkedVipProspectAsAccepted(adminDb, session.orgId, trimmedMemberId, cgGroupId, fullName, phone).catch(
+      () => undefined,
+    );
 
     return {
       ok: true,

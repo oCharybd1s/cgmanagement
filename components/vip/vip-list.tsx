@@ -1,9 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { Pencil, Search, SearchX, Trash2, UserPlus } from "lucide-react";
+import { Loader2, Pencil, Search, SearchX, Trash2, UserPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { canDeleteVipProspect, canManageVipProspect, isCoach } from "@/lib/auth/roles";
+import { VIP_STATUS_LABELS, VIP_STATUS_OPTIONS } from "@/lib/vip-prospects/shared";
 import { AddVipProspectDialog } from "@/components/vip/add-vip-prospect-dialog";
 import { EditVipProspectDialog } from "@/components/vip/edit-vip-prospect-dialog";
 import { DeleteVipProspectDialog } from "@/components/vip/delete-vip-prospect-dialog";
@@ -11,14 +12,11 @@ import type { VipProspect, VipProspectStatus } from "@/lib/vip-prospects/types";
 import type { CgGroup } from "@/lib/cg-groups/types";
 import type { Member } from "@/lib/members/types";
 
-const STATUS_LABELS: Record<VipProspectStatus, string> = {
-  pending: "Pending",
-  accept: "Accept",
-  reject: "Reject",
-};
+const STATUS_LABELS = VIP_STATUS_LABELS;
 
-const STATUS_TONES: Record<VipProspectStatus, "warning" | "success" | "destructive"> = {
+const STATUS_TONES: Record<VipProspectStatus, "warning" | "secondary" | "success" | "destructive"> = {
   pending: "warning",
+  berpotensi: "secondary",
   accept: "success",
   reject: "destructive",
 };
@@ -42,6 +40,7 @@ export function VipList({
   const [statusFilter, setStatusFilter] = React.useState("all");
   const [editingProspect, setEditingProspect] = React.useState<VipProspect | null>(null);
   const [deletingProspect, setDeletingProspect] = React.useState<VipProspect | null>(null);
+  const [statusUpdatingId, setStatusUpdatingId] = React.useState<string | null>(null);
 
   const showCgColumn = isCoach(viewerRole) && cgGroups.length > 0;
   const hasProspects = prospects.length > 0;
@@ -84,6 +83,35 @@ export function VipList({
   function handleDeleted(prospectId: string) {
     setProspects((current) => current.filter((item) => item.id !== prospectId));
     setDeletingProspect(null);
+  }
+
+  async function handleStatusChange(prospect: VipProspect, status: VipProspectStatus) {
+    if (status === prospect.status) {
+      return;
+    }
+    setStatusUpdatingId(prospect.id);
+    try {
+      const response = await fetch(`/api/vip-prospects/${prospect.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: prospect.name,
+          phone: prospect.phone ?? "",
+          cgId: prospect.cgId ?? "",
+          followUpByUserId: prospect.followUpByUserId ?? "",
+          status,
+          notes: prospect.notes ?? "",
+        }),
+      });
+      const data = await response.json();
+      if (response.ok && data.ok) {
+        setProspects((current) => current.map((item) => (item.id === prospect.id ? data.prospect : item)));
+      }
+    } catch {
+      // Diamkan, status akan tetap seperti semula karena data tidak diperbarui
+    } finally {
+      setStatusUpdatingId(null);
+    }
   }
 
   return (
@@ -207,6 +235,8 @@ export function VipList({
                         showCgColumn={showCgColumn}
                         canEdit={canManageVipProspect(viewerRole, viewerCgGroupId, prospect.cgId)}
                         canDelete={canDeleteVipProspect(viewerRole, viewerCgGroupId, prospect.cgId)}
+                        isUpdatingStatus={statusUpdatingId === prospect.id}
+                        onStatusChange={(status) => handleStatusChange(prospect, status)}
                         onEdit={() => setEditingProspect(prospect)}
                         onDelete={() => setDeletingProspect(prospect)}
                       />
@@ -227,6 +257,8 @@ export function VipList({
                     showCg={showCgColumn}
                     canEdit={canManageVipProspect(viewerRole, viewerCgGroupId, prospect.cgId)}
                     canDelete={canDeleteVipProspect(viewerRole, viewerCgGroupId, prospect.cgId)}
+                    isUpdatingStatus={statusUpdatingId === prospect.id}
+                    onStatusChange={(status) => handleStatusChange(prospect, status)}
                     onEdit={() => setEditingProspect(prospect)}
                     onDelete={() => setDeletingProspect(prospect)}
                   />
@@ -269,6 +301,8 @@ function VipRow({
   showCgColumn,
   canEdit,
   canDelete,
+  isUpdatingStatus,
+  onStatusChange,
   onEdit,
   onDelete,
 }: {
@@ -278,6 +312,8 @@ function VipRow({
   showCgColumn: boolean;
   canEdit: boolean;
   canDelete: boolean;
+  isUpdatingStatus: boolean;
+  onStatusChange: (status: VipProspectStatus) => void;
   onEdit: () => void;
   onDelete: () => void;
 }) {
@@ -292,7 +328,12 @@ function VipRow({
       ) : null}
       <td className="px-5 py-3.5 text-foreground">{followUpName ?? "-"}</td>
       <td className="px-5 py-3.5">
-        <Badge tone={STATUS_TONES[prospect.status]}>{STATUS_LABELS[prospect.status]}</Badge>
+        <StatusControl
+          status={prospect.status}
+          canEdit={canEdit}
+          isUpdating={isUpdatingStatus}
+          onChange={onStatusChange}
+        />
       </td>
       <td className="max-w-xs px-5 py-3.5 text-muted-foreground">
         <p className="truncate">{prospect.notes ?? "-"}</p>
@@ -325,6 +366,49 @@ function VipRow({
   );
 }
 
+function StatusControl({
+  status,
+  canEdit,
+  isUpdating,
+  onChange,
+}: {
+  status: VipProspectStatus;
+  canEdit: boolean;
+  isUpdating: boolean;
+  onChange: (status: VipProspectStatus) => void;
+}) {
+  if (!canEdit) {
+    return <Badge tone={STATUS_TONES[status]}>{STATUS_LABELS[status]}</Badge>;
+  }
+
+  return (
+    <div className="relative inline-flex items-center">
+      <select
+        aria-label="Ubah status VIP"
+        value={status}
+        disabled={isUpdating}
+        onChange={(event) => onChange(event.target.value as VipProspectStatus)}
+        className={cn(
+          "appearance-none rounded-full border-[1.5px] border-transparent py-1 pl-2.5 pr-7 text-xs font-medium outline-none transition-colors duration-200 hover:border-primary focus-visible:border-primary focus-visible:ring-[3px] focus-visible:ring-ring/25 disabled:cursor-not-allowed disabled:opacity-60",
+          STATUS_TONES[status] === "warning" && "bg-warning text-warning-foreground",
+          STATUS_TONES[status] === "secondary" && "bg-secondary text-secondary-foreground",
+          STATUS_TONES[status] === "success" && "bg-success text-success-foreground",
+          STATUS_TONES[status] === "destructive" && "bg-destructive/15 text-destructive",
+        )}
+      >
+        {VIP_STATUS_OPTIONS.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+      {isUpdating ? (
+        <Loader2 className="pointer-events-none absolute right-2 h-3 w-3 animate-spin" strokeWidth={2.5} />
+      ) : null}
+    </div>
+  );
+}
+
 function VipCard({
   prospect,
   cgLabel,
@@ -332,6 +416,8 @@ function VipCard({
   showCg,
   canEdit,
   canDelete,
+  isUpdatingStatus,
+  onStatusChange,
   onEdit,
   onDelete,
 }: {
@@ -341,6 +427,8 @@ function VipCard({
   showCg: boolean;
   canEdit: boolean;
   canDelete: boolean;
+  isUpdatingStatus: boolean;
+  onStatusChange: (status: VipProspectStatus) => void;
   onEdit: () => void;
   onDelete: () => void;
 }) {
@@ -348,7 +436,12 @@ function VipCard({
     <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card/70 p-4 shadow-sm backdrop-blur-xl">
       <div className="flex items-start justify-between gap-3">
         <p className="font-medium text-foreground">{prospect.name || "Tanpa nama"}</p>
-        <Badge tone={STATUS_TONES[prospect.status]}>{STATUS_LABELS[prospect.status]}</Badge>
+        <StatusControl
+          status={prospect.status}
+          canEdit={canEdit}
+          isUpdating={isUpdatingStatus}
+          onChange={onStatusChange}
+        />
       </div>
 
       <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">

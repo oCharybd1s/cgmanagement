@@ -4,8 +4,8 @@ import { isCoach, isCgl, isSponsor } from "@/lib/auth/roles";
 import type { SessionUser } from "@/lib/auth/types";
 import type { VipProspect, VipProspectStatus } from "@/lib/vip-prospects/types";
 
-const STATUS_VALUES: VipProspectStatus[] = ["pending", "accept", "reject"];
-const STATUS_ORDER: Record<VipProspectStatus, number> = { pending: 0, accept: 1, reject: 2 };
+const STATUS_VALUES: VipProspectStatus[] = ["pending", "berpotensi", "accept", "reject"];
+const STATUS_ORDER: Record<VipProspectStatus, number> = { pending: 0, berpotensi: 1, accept: 2, reject: 3 };
 
 export async function getVipProspectsForSession(session: SessionUser): Promise<VipProspect[]> {
   if (!session.orgId) {
@@ -53,6 +53,7 @@ function toVipProspect(doc: QueryDocumentSnapshot): VipProspect {
     followUpByUserId: readString(data.followUpByUserId),
     status: toStatus(data.status),
     notes: readString(data.notes),
+    linkedMemberId: readString(data.linkedMemberId),
     createdBy: readString(data.createdBy),
   };
 }

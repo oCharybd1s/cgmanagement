@@ -5,6 +5,7 @@ import Link from "next/link";
 import { CheckCircle2, Loader2, NotebookPen } from "lucide-react";
 import { isCoach } from "@/lib/auth/roles";
 import { useSubmitMeetingReport } from "@/lib/meeting-reports/use-submit-meeting-report";
+import { getTodayDateInputValue } from "@/lib/meeting-reports/date";
 import type { CgGroup } from "@/lib/cg-groups/types";
 
 const inputClass =
@@ -21,12 +22,16 @@ export function QuickLaporanCard({
   viewerRole: string | null;
 }) {
   const formRef = React.useRef<HTMLFormElement>(null);
+  const meetingDateRef = React.useRef<HTMLInputElement>(null);
   const [justSubmitted, setJustSubmitted] = React.useState(false);
 
   const canPickCgGroup = isCoach(viewerRole);
 
   const { isSubmitting, formError, fieldErrors, submit } = useSubmitMeetingReport(() => {
     formRef.current?.reset();
+    if (meetingDateRef.current) {
+      meetingDateRef.current.value = getTodayDateInputValue();
+    }
     setJustSubmitted(true);
     window.setTimeout(() => setJustSubmitted(false), 4000);
   });
@@ -78,9 +83,11 @@ export function QuickLaporanCard({
 
         <Field label="Tanggal Pertemuan" htmlFor="quick-meetingDate" error={fieldErrors.meetingDate} required>
           <input
+            ref={meetingDateRef}
             id="quick-meetingDate"
             name="meetingDate"
             type="date"
+            defaultValue={getTodayDateInputValue()}
             disabled={isSubmitting}
             className={inputClass}
           />

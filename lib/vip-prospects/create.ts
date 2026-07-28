@@ -3,6 +3,7 @@ import { getAdminServices } from "@/lib/firebase/firebase-admin";
 import { canCreateVipProspect, isCoach } from "@/lib/auth/roles";
 import { validateVipProspectInput, type VipProspectFieldErrors } from "@/lib/vip-prospects/validation";
 import { normalizeOptional, normalizeStatus, toStringValue } from "@/lib/vip-prospects/shared";
+import { createLinkedSimpatisanFromProspect } from "@/lib/vip-prospects/auto-link";
 import type { SessionUser } from "@/lib/auth/types";
 import type { VipProspect } from "@/lib/vip-prospects/types";
 
@@ -70,6 +71,11 @@ export async function createVipProspectForSession(
     .collection("vipProspects")
     .doc();
 
+  let linkedMemberId: string | null = null;
+  if (status === "berpotensi") {
+    linkedMemberId = await createLinkedSimpatisanFromProspect(adminDb, session.orgId, session.uid, cgId, name, phone);
+  }
+
   try {
     await docRef.set({
       name,
@@ -78,6 +84,7 @@ export async function createVipProspectForSession(
       followUpByUserId,
       status,
       notes,
+      linkedMemberId,
       createdBy: session.uid,
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
@@ -96,6 +103,7 @@ export async function createVipProspectForSession(
       followUpByUserId,
       status,
       notes,
+      linkedMemberId,
       createdBy: session.uid,
     },
   };

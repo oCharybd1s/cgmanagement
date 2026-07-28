@@ -17,6 +17,7 @@ export async function POST(request: NextRequest) {
 
   const result = await quickAddMemberForSession(session, {
     fullName: (body as Record<string, unknown>).fullName,
+    phone: (body as Record<string, unknown>).phone,
     cgGroupId: (body as Record<string, unknown>).cgGroupId,
   });
 

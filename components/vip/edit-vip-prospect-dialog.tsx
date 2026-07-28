@@ -5,16 +5,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Pencil, X, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { isCoach } from "@/lib/auth/roles";
+import { VIP_STATUS_OPTIONS } from "@/lib/vip-prospects/shared";
 import { validateVipProspectInput, type VipProspectFieldErrors } from "@/lib/vip-prospects/validation";
-import type { VipProspect, VipProspectStatus } from "@/lib/vip-prospects/types";
+import type { VipProspect } from "@/lib/vip-prospects/types";
 import type { CgGroup } from "@/lib/cg-groups/types";
 import type { Member } from "@/lib/members/types";
-
-const STATUS_OPTIONS: { value: VipProspectStatus; label: string }[] = [
-  { value: "pending", label: "Pending" },
-  { value: "accept", label: "Accept" },
-  { value: "reject", label: "Reject" },
-];
 
 const inputClass =
   "w-full rounded-full border-[1.5px] border-input bg-input/40 px-4 py-2.5 text-sm text-foreground outline-none transition-colors duration-200 placeholder:text-muted-foreground hover:border-primary focus-visible:border-primary focus-visible:bg-card focus-visible:ring-[3px] focus-visible:ring-ring/25 disabled:cursor-not-allowed disabled:opacity-60";
@@ -222,7 +217,7 @@ export function EditVipProspectDialog({
                 disabled={isSubmitting}
                 className={inputClass}
               >
-                {STATUS_OPTIONS.map((option) => (
+                {VIP_STATUS_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>

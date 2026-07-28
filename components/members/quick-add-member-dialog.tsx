@@ -39,6 +39,7 @@ export function QuickAddMemberDialog({
 
     const formData = new FormData(event.currentTarget);
     const fullName = String(formData.get("fullName") ?? "").trim();
+    const phone = String(formData.get("phone") ?? "").trim();
     const cgGroupId = String(formData.get("cgGroupId") ?? "").trim();
 
     if (fullName === "") {
@@ -55,7 +56,7 @@ export function QuickAddMemberDialog({
       const response = await fetch("/api/members/quick-add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fullName, cgGroupId: isCoach ? cgGroupId : undefined }),
+        body: JSON.stringify({ fullName, phone, cgGroupId: isCoach ? cgGroupId : undefined }),
       });
       const data = await response.json();
 
@@ -130,7 +131,7 @@ export function QuickAddMemberDialog({
 
               <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col gap-4 px-6 py-5">
                 <p className="text-sm text-muted-foreground">
-                  Cukup nama saja. Data ini bisa dinaikkan menjadi Member nanti lewat halaman Struktur.
+                  Cukup nama dan No HP. Data ini bisa dinaikkan menjadi Member nanti lewat halaman Struktur.
                 </p>
 
                 <div className="flex flex-col gap-1.5">
@@ -144,6 +145,22 @@ export function QuickAddMemberDialog({
                     disabled={isSubmitting}
                     className="w-full rounded-full border-[1.5px] border-input bg-input/40 px-4 py-2.5 text-sm text-foreground outline-none transition-colors duration-200 placeholder:text-muted-foreground hover:border-primary focus-visible:border-primary focus-visible:bg-card focus-visible:ring-[3px] focus-visible:ring-ring/25 disabled:cursor-not-allowed disabled:opacity-60"
                   />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="quick-add-phone" className="text-xs font-medium text-muted-foreground">
+                    No HP
+                  </label>
+                  <input
+                    id="quick-add-phone"
+                    name="phone"
+                    type="tel"
+                    disabled={isSubmitting}
+                    className="w-full rounded-full border-[1.5px] border-input bg-input/40 px-4 py-2.5 font-mono text-sm text-foreground outline-none transition-colors duration-200 placeholder:text-muted-foreground hover:border-primary focus-visible:border-primary focus-visible:bg-card focus-visible:ring-[3px] focus-visible:ring-ring/25 disabled:cursor-not-allowed disabled:opacity-60"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Kalau nama dan No HP cocok dengan data di List VIP, statusnya otomatis diubah jadi Berpotensi.
+                  </p>
                 </div>
 
                 {isCoach ? (

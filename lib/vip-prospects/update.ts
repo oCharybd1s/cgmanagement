@@ -3,6 +3,7 @@ import { getAdminServices } from "@/lib/firebase/firebase-admin";
 import { canManageVipProspect, isCoach } from "@/lib/auth/roles";
 import { validateVipProspectInput, type VipProspectFieldErrors } from "@/lib/vip-prospects/validation";
 import { normalizeOptional, normalizeStatus, toStringValue } from "@/lib/vip-prospects/shared";
+import { createLinkedSimpatisanFromProspect } from "@/lib/vip-prospects/auto-link";
 import type { SessionUser } from "@/lib/auth/types";
 import type { VipProspect } from "@/lib/vip-prospects/types";
 
@@ -70,6 +71,14 @@ export async function updateVipProspectForSession(
   const followUpByUserId = normalizeOptional(payload.followUpByUserId);
   const status = normalizeStatus(payload.status);
   const notes = normalizeOptional(payload.notes);
+  const previousStatus = typeof targetData.status === "string" ? targetData.status : "pending";
+  const existingLinkedMemberId =
+    typeof targetData.linkedMemberId === "string" && targetData.linkedMemberId ? targetData.linkedMemberId : null;
+
+  let linkedMemberId = existingLinkedMemberId;
+  if (status === "berpotensi" && !existingLinkedMemberId && previousStatus !== "berpotensi" && cgId) {
+    linkedMemberId = await createLinkedSimpatisanFromProspect(adminDb, session.orgId, session.uid, cgId, name, phone);
+  }
 
   try {
     await targetRef.update({
@@ -79,6 +88,7 @@ export async function updateVipProspectForSession(
       followUpByUserId,
       status,
       notes,
+      linkedMemberId,
       updatedBy: session.uid,
       updatedAt: FieldValue.serverTimestamp(),
     });
@@ -96,6 +106,7 @@ export async function updateVipProspectForSession(
       followUpByUserId,
       status,
       notes,
+      linkedMemberId,
       createdBy: typeof targetData.createdBy === "string" ? targetData.createdBy : null,
     },
   };

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { NotebookPen, X, Loader2 } from "lucide-react";
 import { isCoach } from "@/lib/auth/roles";
 import { useSubmitMeetingReport } from "@/lib/meeting-reports/use-submit-meeting-report";
+import { getTodayDateInputValue } from "@/lib/meeting-reports/date";
 import type { MeetingReport } from "@/lib/meeting-reports/types";
 import type { CgGroup } from "@/lib/cg-groups/types";
 
@@ -139,6 +140,7 @@ export function AddLaporanDialog({
                     id="meetingDate"
                     name="meetingDate"
                     type="date"
+                    defaultValue={getTodayDateInputValue()}
                     disabled={isSubmitting}
                     className={inputClass}
                   />
