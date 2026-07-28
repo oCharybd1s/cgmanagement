@@ -1,8 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { CalendarDays, NotebookPen, Pencil, Search, SearchX, Trash2, User } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ArrowLeft, CalendarDays, ChevronRight, NotebookPen, Pencil, Search, SearchX, Trash2, User, Users2 } from "lucide-react";
 import { canDeleteMeetingReport, canManageMeetingReport, isCoach } from "@/lib/auth/roles";
 import { AddLaporanDialog } from "@/components/laporan/add-laporan-dialog";
 import { EditLaporanDialog } from "@/components/laporan/edit-laporan-dialog";
@@ -24,14 +23,13 @@ export function LaporanList({
 }) {
   const [reports, setReports] = React.useState(initialReports);
   const [search, setSearch] = React.useState("");
-  const [cgFilter, setCgFilter] = React.useState("all");
+  const [selectedCgId, setSelectedCgId] = React.useState<string | null>(null);
   const [editingReport, setEditingReport] = React.useState<MeetingReport | null>(null);
   const [deletingReport, setDeletingReport] = React.useState<MeetingReport | null>(null);
 
-  const showCgFilter = isCoach(viewerRole) && cgGroups.length > 0;
+  const requiresCgPicker = isCoach(viewerRole);
   const canEdit = canManageMeetingReport(viewerRole);
   const canDelete = canDeleteMeetingReport(viewerRole);
-  const hasReports = reports.length > 0;
 
   const cgLabelById = React.useMemo(() => {
     const map = new Map<string, string>();
@@ -49,17 +47,33 @@ export function LaporanList({
     return map;
   }, [members]);
 
+  const reportCountByCg = React.useMemo(() => {
+    const map = new Map<string, number>();
+    for (const report of reports) {
+      if (!report.cgId) {
+        continue;
+      }
+      map.set(report.cgId, (map.get(report.cgId) ?? 0) + 1);
+    }
+    return map;
+  }, [reports]);
+
+  const scopedReports = React.useMemo(() => {
+    if (!requiresCgPicker) {
+      return reports;
+    }
+    return reports.filter((report) => report.cgId === selectedCgId);
+  }, [reports, requiresCgPicker, selectedCgId]);
+
   const filteredReports = React.useMemo(() => {
     const query = search.trim().toLowerCase();
-    return reports.filter((report) => {
-      const matchesQuery =
-        query === "" ||
-        report.agenda.toLowerCase().includes(query) ||
-        report.result.toLowerCase().includes(query);
-      const matchesCg = cgFilter === "all" || report.cgId === cgFilter;
-      return matchesQuery && matchesCg;
-    });
-  }, [reports, search, cgFilter]);
+    if (query === "") {
+      return scopedReports;
+    }
+    return scopedReports.filter(
+      (report) => report.agenda.toLowerCase().includes(query) || report.result.toLowerCase().includes(query),
+    );
+  }, [scopedReports, search]);
 
   function handleCreated(report: MeetingReport) {
     setReports((current) => [report, ...current]);
@@ -75,56 +89,76 @@ export function LaporanList({
     setDeletingReport(null);
   }
 
+  if (requiresCgPicker && selectedCgId === null) {
+    return (
+      <CgPicker
+        cgGroups={cgGroups}
+        reportCountByCg={reportCountByCg}
+        onSelect={(cgId) => {
+          setSearch("");
+          setSelectedCgId(cgId);
+        }}
+      />
+    );
+  }
+
+  const selectedCgLabel = selectedCgId ? (cgLabelById.get(selectedCgId) ?? "-") : null;
+  const hasReports = scopedReports.length > 0;
+
   return (
     <div className="flex flex-col gap-5">
+      {requiresCgPicker ? (
+        <button
+          type="button"
+          onClick={() => setSelectedCgId(null)}
+          className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors duration-200 hover:text-foreground"
+        >
+          <ArrowLeft className="h-4 w-4" strokeWidth={2} />
+          Ganti CG
+        </button>
+      ) : null}
+
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        {hasReports ? (
-          <div className="relative w-full sm:max-w-xs">
-            <label htmlFor="laporan-search" className="sr-only">
-              Cari agenda atau hasil pertemuan
-            </label>
-            <Search
-              className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-              strokeWidth={2}
-            />
-            <input
-              id="laporan-search"
-              type="text"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Cari agenda atau hasil pertemuan"
-              className="w-full rounded-full border-[1.5px] border-input bg-input/40 py-2.5 pl-10 pr-4 text-sm text-foreground outline-none transition-colors duration-200 placeholder:text-muted-foreground hover:border-primary focus-visible:border-primary focus-visible:bg-card focus-visible:ring-[3px] focus-visible:ring-ring/25"
-            />
-          </div>
-        ) : (
-          <p className="font-display text-lg font-bold tracking-tight text-foreground">Laporan CG</p>
-        )}
+        <div className="flex items-center gap-2">
+          <p className="font-display text-lg font-bold tracking-tight text-foreground">
+            {requiresCgPicker ? `Laporan CG ${selectedCgLabel}` : "Laporan CG"}
+          </p>
+        </div>
 
         <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
-          {hasReports && showCgFilter ? (
-            <select
-              aria-label="Filter CG"
-              value={cgFilter}
-              onChange={(event) => setCgFilter(event.target.value)}
-              className="w-full rounded-full border-[1.5px] border-input bg-input/40 px-4 py-2.5 text-sm text-foreground outline-none transition-colors duration-200 hover:border-primary focus-visible:border-primary focus-visible:ring-[3px] focus-visible:ring-ring/25 sm:w-auto"
-            >
-              <option value="all">Semua CG</option>
-              {cgGroups.map((group) => (
-                <option key={group.id} value={group.id}>
-                  {group.groupCode}
-                </option>
-              ))}
-            </select>
+          {hasReports ? (
+            <div className="relative w-full sm:w-64">
+              <label htmlFor="laporan-search" className="sr-only">
+                Cari agenda atau hasil pertemuan
+              </label>
+              <Search
+                className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                strokeWidth={2}
+              />
+              <input
+                id="laporan-search"
+                type="text"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Cari agenda atau hasil pertemuan"
+                className="w-full rounded-full border-[1.5px] border-input bg-input/40 py-2.5 pl-10 pr-4 text-sm text-foreground outline-none transition-colors duration-200 placeholder:text-muted-foreground hover:border-primary focus-visible:border-primary focus-visible:bg-card focus-visible:ring-[3px] focus-visible:ring-ring/25"
+              />
+            </div>
           ) : null}
 
-          <AddLaporanDialog cgGroups={cgGroups} viewerRole={viewerRole} onCreated={handleCreated} />
+          <AddLaporanDialog
+            cgGroups={cgGroups}
+            viewerRole={viewerRole}
+            defaultCgId={selectedCgId ?? undefined}
+            onCreated={handleCreated}
+          />
         </div>
       </div>
 
       {hasReports ? (
         <React.Fragment>
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            {filteredReports.length} dari {reports.length} laporan
+            {filteredReports.length} dari {scopedReports.length} laporan
           </p>
 
           {filteredReports.length === 0 ? (
@@ -135,9 +169,7 @@ export function LaporanList({
                 <LaporanCard
                   key={report.id}
                   report={report}
-                  cgLabel={report.cgId ? (cgLabelById.get(report.cgId) ?? null) : null}
                   submittedByName={report.submittedBy ? (memberNameById.get(report.submittedBy) ?? null) : null}
-                  showCg={showCgFilter}
                   canEdit={canEdit}
                   canDelete={canDelete}
                   onEdit={() => setEditingReport(report)}
@@ -171,20 +203,68 @@ export function LaporanList({
   );
 }
 
+function CgPicker({
+  cgGroups,
+  reportCountByCg,
+  onSelect,
+}: {
+  cgGroups: CgGroup[];
+  reportCountByCg: Map<string, number>;
+  onSelect: (cgId: string) => void;
+}) {
+  if (cgGroups.length === 0) {
+    return (
+      <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card/70 px-6 py-16 text-center shadow-sm backdrop-blur-xl">
+        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+          <Users2 className="h-5 w-5" strokeWidth={2} />
+        </span>
+        <h2 className="font-display text-lg font-bold tracking-tight text-foreground">Belum ada CG</h2>
+        <p className="max-w-sm text-sm text-muted-foreground">Buat CG terlebih dahulu untuk mulai mencatat Laporan CG.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <p className="font-display text-lg font-bold tracking-tight text-foreground">Pilih CG</p>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {cgGroups.map((group) => {
+          const count = reportCountByCg.get(group.id) ?? 0;
+          return (
+            <button
+              key={group.id}
+              type="button"
+              onClick={() => onSelect(group.id)}
+              className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card/70 px-5 py-4 text-left shadow-sm backdrop-blur-xl transition-colors duration-200 hover:border-primary"
+            >
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-secondary text-secondary-foreground">
+                  <Users2 className="h-4 w-4" strokeWidth={2} />
+                </span>
+                <div>
+                  <p className="font-display text-base font-bold tracking-tight text-foreground">{group.groupCode}</p>
+                  <p className="text-xs text-muted-foreground">{count} laporan</p>
+                </div>
+              </div>
+              <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" strokeWidth={2} />
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function LaporanCard({
   report,
-  cgLabel,
   submittedByName,
-  showCg,
   canEdit,
   canDelete,
   onEdit,
   onDelete,
 }: {
   report: MeetingReport;
-  cgLabel: string | null;
   submittedByName: string | null;
-  showCg: boolean;
   canEdit: boolean;
   canDelete: boolean;
   onEdit: () => void;
@@ -197,33 +277,30 @@ function LaporanCard({
           <CalendarDays className="h-4 w-4 text-muted-foreground" strokeWidth={2} />
           {formatMeetingDate(report.meetingDate)}
         </div>
-        <div className="flex items-center gap-2">
-          {showCg ? <Badge>{cgLabel ?? "-"}</Badge> : null}
-          {canEdit || canDelete ? (
-            <div className="flex items-center gap-1">
-              {canEdit ? (
-                <button
-                  type="button"
-                  onClick={onEdit}
-                  aria-label="Ubah laporan"
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors duration-200 hover:bg-muted hover:text-foreground"
-                >
-                  <Pencil className="h-3.5 w-3.5" strokeWidth={2} />
-                </button>
-              ) : null}
-              {canDelete ? (
-                <button
-                  type="button"
-                  onClick={onDelete}
-                  aria-label="Hapus laporan"
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors duration-200 hover:bg-destructive/10 hover:text-destructive"
-                >
-                  <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
-                </button>
-              ) : null}
-            </div>
-          ) : null}
-        </div>
+        {canEdit || canDelete ? (
+          <div className="flex items-center gap-1">
+            {canEdit ? (
+              <button
+                type="button"
+                onClick={onEdit}
+                aria-label="Ubah laporan"
+                className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors duration-200 hover:bg-muted hover:text-foreground"
+              >
+                <Pencil className="h-3.5 w-3.5" strokeWidth={2} />
+              </button>
+            ) : null}
+            {canDelete ? (
+              <button
+                type="button"
+                onClick={onDelete}
+                aria-label="Hapus laporan"
+                className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors duration-200 hover:bg-destructive/10 hover:text-destructive"
+              >
+                <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
+              </button>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
@@ -242,18 +319,6 @@ function LaporanCard({
         Disubmit oleh {submittedByName ?? "-"}
       </div>
     </div>
-  );
-}
-
-function Badge({ children }: { children: React.ReactNode }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground",
-      )}
-    >
-      {children}
-    </span>
   );
 }
 

@@ -1,10 +1,12 @@
 import { redirect } from "next/navigation";
 import { Sunrise, Shield, Users2 } from "lucide-react";
 import { verifySession } from "@/lib/auth/dal";
-import { cgGroupDisplayLabel, getRoleLabel } from "@/lib/auth/roles";
+import { cgGroupDisplayLabel, canCreateMeetingReport, getRoleLabel, isCoach } from "@/lib/auth/roles";
 import { toShellUser } from "@/lib/auth/shell-user";
+import { getCgGroupsForOrg } from "@/lib/cg-groups/data";
 import { AppShell } from "@/components/layout/app-shell";
 import { Container, Section } from "@/components/layout/container";
+import { QuickLaporanCard } from "@/components/laporan/quick-laporan-card";
 
 export default async function HomePage() {
   const session = await verifySession();
@@ -12,6 +14,10 @@ export default async function HomePage() {
   if (!session) {
     redirect("/auth");
   }
+
+  const canQuickLaporan = canCreateMeetingReport(session.role);
+  const cgGroups =
+    canQuickLaporan && isCoach(session.role) && session.orgId ? await getCgGroupsForOrg(session.orgId) : [];
 
   return (
     <AppShell user={toShellUser(session)}>
@@ -57,6 +63,8 @@ export default async function HomePage() {
               </div>
             </div>
           </div>
+
+          {canQuickLaporan ? <QuickLaporanCard cgGroups={cgGroups} viewerRole={session.role} /> : null}
         </Section>
       </Container>
     </AppShell>

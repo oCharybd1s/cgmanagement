@@ -4,7 +4,7 @@ import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { NotebookPen, X, Loader2 } from "lucide-react";
 import { isCoach } from "@/lib/auth/roles";
-import { validateMeetingReportInput, type MeetingReportFieldErrors } from "@/lib/meeting-reports/validation";
+import { useSubmitMeetingReport } from "@/lib/meeting-reports/use-submit-meeting-report";
 import type { MeetingReport } from "@/lib/meeting-reports/types";
 import type { CgGroup } from "@/lib/cg-groups/types";
 
@@ -17,19 +17,24 @@ const textareaClass =
 export function AddLaporanDialog({
   cgGroups,
   viewerRole,
+  defaultCgId,
   onCreated,
 }: {
   cgGroups: CgGroup[];
   viewerRole: string | null;
+  defaultCgId?: string;
   onCreated?: (report: MeetingReport) => void;
 }) {
   const formRef = React.useRef<HTMLFormElement>(null);
   const [isOpen, setIsOpen] = React.useState(false);
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [formError, setFormError] = React.useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = React.useState<MeetingReportFieldErrors>({});
 
   const canPickCgGroup = isCoach(viewerRole);
+
+  const { isSubmitting, formError, fieldErrors, submit, resetErrors } = useSubmitMeetingReport((report) => {
+    formRef.current?.reset();
+    setIsOpen(false);
+    onCreated?.(report);
+  });
 
   React.useEffect(() => {
     if (!isOpen) {
@@ -45,55 +50,19 @@ export function AddLaporanDialog({
   }, [isOpen]);
 
   function openDialog() {
-    setFormError(null);
-    setFieldErrors({});
+    resetErrors();
     setIsOpen(true);
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setFormError(null);
-
     const formData = new FormData(event.currentTarget);
     const meetingDate = String(formData.get("meetingDate") ?? "");
     const agenda = String(formData.get("agenda") ?? "");
     const result = String(formData.get("result") ?? "");
-    const cgId = String(formData.get("cgId") ?? "");
+    const cgId = canPickCgGroup ? String(formData.get("cgId") ?? "") : (defaultCgId ?? "");
 
-    const errors = validateMeetingReportInput({ meetingDate, agenda, result });
-    if (canPickCgGroup && cgId.trim() === "") {
-      errors.cgId = "CG wajib dipilih";
-    }
-    if (Object.keys(errors).length > 0) {
-      setFieldErrors(errors);
-      return;
-    }
-    setFieldErrors({});
-    setIsSubmitting(true);
-
-    try {
-      const response = await fetch("/api/meeting-reports", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cgId, meetingDate, agenda, result }),
-      });
-      const data = await response.json();
-
-      if (!response.ok || !data.ok) {
-        setFormError(data.error ?? "Gagal menyimpan Laporan CG");
-        setFieldErrors(data.fieldErrors ?? {});
-        setIsSubmitting(false);
-        return;
-      }
-
-      formRef.current?.reset();
-      setIsSubmitting(false);
-      setIsOpen(false);
-      onCreated?.(data.report);
-    } catch {
-      setFormError("Tidak bisa menghubungi server. Coba lagi");
-      setIsSubmitting(false);
-    }
+    await submit({ cgId, meetingDate, agenda, result, requireCgId: canPickCgGroup });
   }
 
   return (
@@ -148,7 +117,13 @@ export function AddLaporanDialog({
               <form ref={formRef} onSubmit={handleSubmit} className="flex flex-1 flex-col gap-4 overflow-y-auto px-6 py-5">
                 {canPickCgGroup ? (
                   <Field label="CG" htmlFor="cgId" error={fieldErrors.cgId} required>
-                    <select id="cgId" name="cgId" disabled={isSubmitting} className={inputClass}>
+                    <select
+                      id="cgId"
+                      name="cgId"
+                      defaultValue={defaultCgId ?? ""}
+                      disabled={isSubmitting}
+                      className={inputClass}
+                    >
                       <option value="">Pilih CG</option>
                       {cgGroups.map((group) => (
                         <option key={group.id} value={group.id}>
