@@ -65,11 +65,11 @@ export function Sidebar({ role }: { role?: string | null }) {
                 title={isOpen ? undefined : item.label}
                 aria-label={item.label}
                 className={cn(
-                  "group relative flex items-center gap-3 rounded-xl py-2.5 text-sm font-medium transition-colors duration-200",
+                  "group relative flex items-center gap-3 rounded-xl py-2.5 text-sm font-medium transition-colors duration-150 active:scale-[0.97]",
                   isOpen ? "px-3" : "justify-center px-0",
                   isActive
                     ? "text-sidebar-primary-foreground"
-                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:bg-sidebar-accent active:text-sidebar-accent-foreground",
                 )}
               >
                 {isActive ? (
