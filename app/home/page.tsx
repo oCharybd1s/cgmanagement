@@ -9,6 +9,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { Container, Section } from "@/components/layout/container";
 import { QuickLaporanCard } from "@/components/laporan/quick-laporan-card";
 import { CalendarBoard } from "@/components/calendar/calendar-board";
+import { NotificationTestCard } from "@/components/notifications/notification-test-card";
 
 export default async function HomePage() {
   const session = await verifySession();
@@ -76,6 +77,8 @@ export default async function HomePage() {
             members={members}
             cgGroups={cgGroups}
           />
+
+          <NotificationTestCard />
 
           {canQuickLaporan ? <QuickLaporanCard cgGroups={cgGroups} viewerRole={session.role} /> : null}
         </Section>
