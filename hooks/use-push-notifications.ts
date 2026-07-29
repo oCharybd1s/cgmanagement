@@ -1,17 +1,28 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { getToken } from "firebase/messaging";
+import { useCallback, useEffect, useState } from "react";
+import { getToken, onMessage } from "firebase/messaging";
 import { getFirebaseMessaging } from "@/lib/firebase/firebase";
 
 export type PushPermissionStatus = "unsupported" | "default" | "denied" | "granted";
 
 type UsePushNotificationsResult = {
   status: PushPermissionStatus;
+  isRegistered: boolean;
   isBusy: boolean;
   error: string | null;
   enable: () => Promise<void>;
 };
+
+function toFriendlyError(err: unknown): string {
+  const message = err instanceof Error ? err.message : "";
+
+  if (message.toLowerCase().includes("push service error") || message.toLowerCase().includes("registration failed")) {
+    return "Perangkat ini punya sisa pendaftaran notifikasi lama yang bentrok. Coba lagi, atau hapus manual lewat Site Settings browser jika masih gagal.";
+  }
+
+  return message || "Terjadi kesalahan saat mengaktifkan notifikasi";
+}
 
 async function registerTokenWithServer(token: string): Promise<void> {
   const response = await fetch("/api/notifications/token", {
@@ -22,7 +33,7 @@ async function registerTokenWithServer(token: string): Promise<void> {
 
   if (!response.ok) {
     const data = await response.json().catch(() => null);
-    throw new Error(data?.error ?? "Gagal mendaftarkan perangkat");
+    throw new Error(data?.error ?? "Gagal mendaftarkan perangkat ke server");
   }
 }
 
@@ -35,11 +46,41 @@ function getInitialStatus(): PushPermissionStatus {
 
 export function usePushNotifications(): UsePushNotificationsResult {
   const [status, setStatus] = useState<PushPermissionStatus>(getInitialStatus);
+  const [isRegistered, setIsRegistered] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    let unsubscribe: (() => void) | undefined;
+
+    async function subscribeForegroundMessages() {
+      if (typeof window === "undefined" || Notification.permission !== "granted") {
+        return;
+      }
+
+      const messaging = await getFirebaseMessaging();
+      if (!messaging) {
+        return;
+      }
+
+      unsubscribe = onMessage(messaging, async (payload) => {
+        const title = payload.notification?.title ?? "Notifikasi";
+        const body = payload.notification?.body ?? "";
+        const registration = await navigator.serviceWorker.ready;
+        await registration.showNotification(title, { body, icon: "/icons/icon-192.png" });
+      });
+    }
+
+    subscribeForegroundMessages();
+
+    return () => {
+      unsubscribe?.();
+    };
+  }, []);
+
   const enable = useCallback(async () => {
     setError(null);
+    setIsRegistered(false);
     setIsBusy(true);
 
     try {
@@ -68,23 +109,30 @@ export function usePushNotifications(): UsePushNotificationsResult {
       }
 
       const registration = await navigator.serviceWorker.ready;
+
+      const existingSubscription = await registration.pushManager.getSubscription();
+      if (existingSubscription) {
+        await existingSubscription.unsubscribe();
+      }
+
       const token = await getToken(messaging, {
         vapidKey,
         serviceWorkerRegistration: registration,
       });
 
       if (!token) {
-        setError("Gagal mendapatkan token perangkat");
+        setError("Gagal mendapatkan token perangkat dari FCM");
         return;
       }
 
       await registerTokenWithServer(token);
+      setIsRegistered(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Terjadi kesalahan saat mengaktifkan notifikasi");
+      setError(toFriendlyError(err));
     } finally {
       setIsBusy(false);
     }
   }, []);
 
-  return { status, isBusy, error, enable };
+  return { status, isRegistered, isBusy, error, enable };
 }

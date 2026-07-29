@@ -5,7 +5,7 @@ import { Bell, BellRing, Loader2, CheckCircle2 } from "lucide-react";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
 
 export function NotificationTestCard() {
-  const { status, isBusy, error, enable } = usePushNotifications();
+  const { status, isRegistered, isBusy, error, enable } = usePushNotifications();
   const [isSending, setIsSending] = React.useState(false);
   const [sendError, setSendError] = React.useState<string | null>(null);
   const [justSent, setJustSent] = React.useState(false);
@@ -45,7 +45,7 @@ export function NotificationTestCard() {
         </div>
       </div>
 
-      {status !== "granted" ? (
+      {!isRegistered ? (
         <button
           type="button"
           onClick={enable}

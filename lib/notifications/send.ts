@@ -33,7 +33,15 @@ export async function sendNotificationToTokens(
 
   const invalidTokens: string[] = [];
   response.responses.forEach((result, index) => {
-    if (!result.success && result.error && INVALID_TOKEN_ERROR_CODES.has(result.error.code)) {
+    if (result.success) {
+      return;
+    }
+    console.error("fcm send failed", {
+      tokenSuffix: tokens[index].slice(-12),
+      code: result.error?.code,
+      message: result.error?.message,
+    });
+    if (result.error && INVALID_TOKEN_ERROR_CODES.has(result.error.code)) {
       invalidTokens.push(tokens[index]);
     }
   });
@@ -53,6 +61,11 @@ export async function sendNotificationToUser(
 ): Promise<SendResult> {
   const tokenDocs = await listFcmTokens(adminDb, orgId, userId);
   const tokens = tokenDocs.map((doc) => doc.token).filter((token) => token.length > 0);
+
+  if (tokens.length === 0) {
+    console.error("fcm send skipped, no registered tokens", { orgId, userId });
+    return { successCount: 0, failureCount: 0, invalidTokens: [] };
+  }
 
   const result = await sendNotificationToTokens(tokens, payload);
 
