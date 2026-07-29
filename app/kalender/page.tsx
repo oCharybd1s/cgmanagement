@@ -1,10 +1,12 @@
 import { redirect } from "next/navigation";
-import { CalendarDays } from "lucide-react";
 import { verifySession } from "@/lib/auth/dal";
 import { toShellUser } from "@/lib/auth/shell-user";
+import { isCoach } from "@/lib/auth/roles";
+import { getCgGroupsForOrg } from "@/lib/cg-groups/data";
+import { getMembersForSession } from "@/lib/members/data";
 import { AppShell } from "@/components/layout/app-shell";
 import { Container, Section } from "@/components/layout/container";
-import { ComingSoon } from "@/components/common/coming-soon";
+import { CalendarBoard } from "@/components/calendar/calendar-board";
 
 export default async function KalenderPage() {
   const session = await verifySession();
@@ -13,14 +15,22 @@ export default async function KalenderPage() {
     redirect("/auth");
   }
 
+  const [cgGroups, members] = await Promise.all([
+    isCoach(session.role) && session.orgId ? getCgGroupsForOrg(session.orgId) : Promise.resolve([]),
+    getMembersForSession(session),
+  ]);
+
   return (
     <AppShell title="Kalender" user={toShellUser(session)}>
-      <Container size="md">
+      <Container size="xl">
         <Section spacing="lg">
-          <ComingSoon
-            icon={CalendarDays}
-            title="Kalender"
-            description="Gabungan event dan ulang tahun dalam satu tampilan, plus statistik ulang tahun anggota per CG."
+          <CalendarBoard
+            mode="month"
+            viewerUid={session.uid}
+            viewerRole={session.role}
+            viewerCgGroupId={session.cgGroupId}
+            members={members}
+            cgGroups={cgGroups}
           />
         </Section>
       </Container>
