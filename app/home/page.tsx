@@ -5,9 +5,11 @@ import { cgGroupDisplayLabel, canCreateMeetingReport, canBroadcastNotification, 
 import { toShellUser } from "@/lib/auth/shell-user";
 import { getCgGroupsForOrg } from "@/lib/cg-groups/data";
 import { getMembersForSession } from "@/lib/members/data";
+import { getKasAccountsForSession } from "@/lib/kas-accounts/data";
 import { AppShell } from "@/components/layout/app-shell";
 import { Container, Section } from "@/components/layout/container";
 import { QuickLaporanCard } from "@/components/laporan/quick-laporan-card";
+import { KasSummaryCard } from "@/components/keuangan/kas-summary-card";
 import { CalendarBoard } from "@/components/calendar/calendar-board";
 import { NotificationTestCard } from "@/components/notifications/notification-test-card";
 
@@ -19,9 +21,12 @@ export default async function HomePage() {
   }
 
   const canQuickLaporan = canCreateMeetingReport(session.role);
-  const [cgGroups, members] = await Promise.all([
-    isCoach(session.role) && session.orgId ? getCgGroupsForOrg(session.orgId) : Promise.resolve([]),
+  const cgGroups =
+    isCoach(session.role) && session.orgId ? await getCgGroupsForOrg(session.orgId) : [];
+
+  const [members, kasAccounts] = await Promise.all([
     getMembersForSession(session),
+    getKasAccountsForSession(session, cgGroups),
   ]);
 
   return (
@@ -68,6 +73,8 @@ export default async function HomePage() {
               </div>
             </div>
           </div>
+
+          <KasSummaryCard accounts={kasAccounts} cgGroups={cgGroups} />
 
           <CalendarBoard
             mode="week"

@@ -278,3 +278,86 @@ export function cgGroupDisplayLabel(role: string | null, cgLabel: string | null)
   }
   return cgLabel ?? "Belum ada CG";
 }
+
+export type KasAccountRef = {
+  accountType: "coach" | "cg";
+  refId: string | null;
+  active?: boolean;
+};
+
+function isKasAccountActive(account: KasAccountRef) {
+  return account.active !== false;
+}
+
+function isOwnCgKasAccount(account: KasAccountRef, actorCgGroupId: string | null) {
+  return account.accountType === "cg" && actorCgGroupId !== null && actorCgGroupId === account.refId;
+}
+
+export function canReadKasAccount(
+  actorRole: string | null,
+  actorCgGroupId: string | null,
+  account: KasAccountRef,
+) {
+  if (isCoach(actorRole)) {
+    return true;
+  }
+  if (isCgl(actorRole) || isMember(actorRole)) {
+    return isOwnCgKasAccount(account, actorCgGroupId) || account.accountType === "coach";
+  }
+  if (isSponsor(actorRole) || isSimpatisan(actorRole)) {
+    return isOwnCgKasAccount(account, actorCgGroupId);
+  }
+  return false;
+}
+
+export function canManageKasAccount(
+  actorRole: string | null,
+  actorCgGroupId: string | null,
+  actorIsBendahara: boolean,
+  account: KasAccountRef,
+) {
+  if (!isKasAccountActive(account)) {
+    return false;
+  }
+  if (isCoach(actorRole)) {
+    return true;
+  }
+  if (isCgl(actorRole)) {
+    if (isOwnCgKasAccount(account, actorCgGroupId)) {
+      return true;
+    }
+    return account.accountType === "coach" && actorIsBendahara;
+  }
+  if (isSponsor(actorRole)) {
+    return isOwnCgKasAccount(account, actorCgGroupId) && actorIsBendahara;
+  }
+  return false;
+}
+
+export function canInitiateTransfer(actorRole: string | null, actorIsBendahara: boolean) {
+  return isCoach(actorRole) || (isCgl(actorRole) && actorIsBendahara);
+}
+
+export function canTransferBetweenKasAccounts(
+  actorRole: string | null,
+  actorCgGroupId: string | null,
+  actorIsBendahara: boolean,
+  fromAccount: KasAccountRef,
+  toAccount: KasAccountRef,
+) {
+  if (isCoach(actorRole)) {
+    return isKasAccountActive(fromAccount) && isKasAccountActive(toAccount);
+  }
+  return (
+    canManageKasAccount(actorRole, actorCgGroupId, actorIsBendahara, fromAccount) &&
+    canManageKasAccount(actorRole, actorCgGroupId, actorIsBendahara, toAccount)
+  );
+}
+
+export function canManageTransactionRecord(role: string | null) {
+  return isCoach(role);
+}
+
+export function canManageKasAccountStatus(role: string | null) {
+  return isCoach(role);
+}

@@ -1,5 +1,6 @@
 import { FieldValue } from "firebase-admin/firestore";
 import { getAdminServices } from "@/lib/firebase/firebase-admin";
+import { ensureCgKasAccount } from "@/lib/kas-accounts/ensure";
 import type { CgGroup } from "@/lib/cg-groups/types";
 
 const CG_CODE_PREFIX = "YS";
@@ -56,6 +57,8 @@ export async function createCgGroup(
   } catch {
     return { ok: false, error: `Kode "${groupCode}" sudah dipakai` };
   }
+
+  await ensureCgKasAccount(orgId, groupCode);
 
   return { ok: true, cgGroup: { id: groupCode, groupCode, cglId: null } };
 }
