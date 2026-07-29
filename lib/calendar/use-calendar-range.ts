@@ -11,17 +11,17 @@ import {
   todayCalendarDate,
   type CalendarDate,
 } from "@/lib/calendar/date-utils";
-import type { BirthdayItem } from "@/lib/calendar/birthdays";
+import { computeBirthdaysInRange } from "@/lib/calendar/birthdays";
 import type { EventRecord } from "@/lib/events/types";
+import type { Member } from "@/lib/members/types";
 
 export type CalendarMode = "week" | "month";
 
-export function useCalendarRange(mode: CalendarMode, initialAnchorKey?: string) {
+export function useCalendarRange(mode: CalendarMode, members: Member[], initialAnchorKey?: string) {
   const [anchor, setAnchor] = React.useState<CalendarDate>(() =>
     initialAnchorKey ? fromDateKey(initialAnchorKey) : todayCalendarDate(),
   );
   const [events, setEvents] = React.useState<EventRecord[]>([]);
-  const [birthdays, setBirthdays] = React.useState<BirthdayItem[]>([]);
   const [error, setError] = React.useState<string | null>(null);
   const [isPending, startTransition] = React.useTransition();
   const [refreshToken, setRefreshToken] = React.useState(0);
@@ -33,6 +33,11 @@ export function useCalendarRange(mode: CalendarMode, initialAnchorKey?: string) 
 
   const startKey = toDateKey(range.start);
   const endKey = toDateKey(range.end);
+
+  const birthdays = React.useMemo(
+    () => computeBirthdaysInRange(members, range),
+    [members, range],
+  );
 
   React.useEffect(() => {
     let cancelled = false;
@@ -49,18 +54,15 @@ export function useCalendarRange(mode: CalendarMode, initialAnchorKey?: string) 
         if (!response.ok || !data?.ok) {
           setError(typeof data?.error === "string" ? data.error : "Gagal memuat kalender");
           setEvents([]);
-          setBirthdays([]);
           return;
         }
 
         setError(null);
         setEvents(Array.isArray(data.events) ? data.events : []);
-        setBirthdays(Array.isArray(data.birthdays) ? data.birthdays : []);
       } catch {
         if (!cancelled) {
           setError("Gagal memuat kalender");
           setEvents([]);
-          setBirthdays([]);
         }
       }
     });

@@ -39,7 +39,7 @@ export function CalendarBoard({
   className?: string;
 }) {
   const { anchor, range, events, birthdays, loading, error, goPrev, goNext, goToday, refresh } =
-    useCalendarRange(mode);
+    useCalendarRange(mode, members);
   const [selectedDateKey, setSelectedDateKey] = React.useState<string | null>(null);
   const [formTarget, setFormTarget] = React.useState<FormTarget | null>(null);
   const [deleteTarget, setDeleteTarget] = React.useState<EventRecord | null>(null);

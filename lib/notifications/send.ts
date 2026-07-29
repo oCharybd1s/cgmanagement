@@ -76,6 +76,17 @@ export async function sendNotificationToUser(
   return result;
 }
 
+export async function sendNotificationToOrg(
+  adminDb: Firestore,
+  orgId: string,
+  payload: NotificationPayload,
+): Promise<SendResult> {
+  const userRefs = await adminDb.collection("organizations").doc(orgId).collection("users").listDocuments();
+  const userIds = userRefs.map((ref) => ref.id);
+
+  return sendNotificationToUsers(adminDb, orgId, userIds, payload);
+}
+
 export async function sendNotificationToUsers(
   adminDb: Firestore,
   orgId: string,

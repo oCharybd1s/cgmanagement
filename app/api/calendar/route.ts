@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SESSION_COOKIE_NAME, verifySessionCookie } from "@/lib/auth/session";
-import { getCalendarDataForSession } from "@/lib/calendar/data";
+import { getEventsForSession } from "@/lib/events/data";
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ ok: false, error: "Rentang tanggal tidak valid" }, { status: 400 });
   }
 
-  const data = await getCalendarDataForSession(session, { start, end });
+  const events = await getEventsForSession(session, { start, end });
 
-  return NextResponse.json({ ok: true, events: data.events, birthdays: data.birthdays });
+  return NextResponse.json({ ok: true, events });
 }
