@@ -65,6 +65,13 @@ export async function getMembersForSession(session: SessionUser): Promise<Member
   return [];
 }
 
+export async function listAllMembersForOrg(orgId: string): Promise<Member[]> {
+  const { adminDb } = getAdminServices();
+  const usersRef = adminDb.collection("organizations").doc(orgId).collection("users");
+  const snapshot = await usersRef.select(...FULL_FIELDS).get();
+  return finalizeMembers(snapshot.docs);
+}
+
 export async function getOwnMemberForSession(session: SessionUser): Promise<Member | null> {
   if (!session.orgId) {
     return null;

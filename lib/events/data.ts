@@ -34,6 +34,13 @@ export async function getEventsForSession(session: SessionUser, range: EventDate
   return events.filter((event) => canViewEvent(viewer, event)).sort(compareEvents);
 }
 
+export async function getEventsForOrgOnDate(orgId: string, dateKey: string): Promise<EventRecord[]> {
+  const { adminDb } = getAdminServices();
+  const eventsRef = adminDb.collection("organizations").doc(orgId).collection("events");
+  const snapshot = await eventsRef.where("date", "==", dateKey).get();
+  return snapshot.docs.map(toEventRecord).sort(compareEvents);
+}
+
 async function resolveHasMinistry(session: SessionUser): Promise<boolean> {
   const member = await getOwnMemberForSession(session);
   return Boolean(member?.pelayanan);
