@@ -6,6 +6,8 @@ import {
   CalendarDays,
   UserPlus,
   NotebookPen,
+  ShieldCheck,
+  Building2,
   type LucideIcon,
 } from "lucide-react";
 
@@ -23,13 +25,21 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { label: "Kalender", href: "/kalender", icon: CalendarDays },
   { label: "List VIP", href: "/vip", icon: UserPlus },
   { label: "Laporan CG", href: "/laporan", icon: NotebookPen },
+  { label: "Audit Trail", href: "/audit-trail", icon: ShieldCheck },
+  { label: "Organisasi", href: "/admin/organizations", icon: Building2 },
 ];
 
 const STRUKTUR_HIDDEN_ROLES = new Set(["member", "simpatisan"]);
+const ADMIN_ONLY_HREFS = new Set(["/audit-trail", "/admin/organizations"]);
 
 export function getNavItemsForRole(role: string | null): NavItem[] {
-  if (role !== null && STRUKTUR_HIDDEN_ROLES.has(role)) {
-    return ALL_NAV_ITEMS.filter((item) => item.href !== "/struktur");
-  }
-  return ALL_NAV_ITEMS;
+  return ALL_NAV_ITEMS.filter((item) => {
+    if (item.href === "/struktur" && role !== null && STRUKTUR_HIDDEN_ROLES.has(role)) {
+      return false;
+    }
+    if (ADMIN_ONLY_HREFS.has(item.href) && role !== "admin") {
+      return false;
+    }
+    return true;
+  });
 }

@@ -81,8 +81,17 @@ export async function getOwnMemberForSession(session: SessionUser): Promise<Memb
   return toMember(snapshot.id, snapshot.data() ?? {});
 }
 
+const DIRECTORY_ROLES = new Set(["coach", "cgl", "sponsor", "member", "simpatisan"]);
+
 function finalizeMembers(docs: QueryDocumentSnapshot[]): Member[] {
-  return docs.map((doc) => toMember(doc.id, doc.data())).sort(compareMembersForDirectory);
+  return docs
+    .filter((doc) => isDirectoryRole(doc.data().role))
+    .map((doc) => toMember(doc.id, doc.data()))
+    .sort(compareMembersForDirectory);
+}
+
+function isDirectoryRole(value: unknown): boolean {
+  return typeof value === "string" && DIRECTORY_ROLES.has(value);
 }
 
 function mergeUnique(...snapshots: QuerySnapshot[]): QueryDocumentSnapshot[] {

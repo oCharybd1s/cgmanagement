@@ -17,9 +17,9 @@ export function DemoRoleSwitcher({
   currentCgGroupId: string | null;
 }) {
   const { switchRole, loadCgGroups, cgGroups, isSwitching, isLoadingCgGroups, error } = useDemoRoleSwitch();
-  const [role, setRole] = React.useState<DemoSwitchableRole>((currentRole as DemoSwitchableRole) ?? "coach");
+  const [role, setRole] = React.useState<DemoSwitchableRole>((currentRole as DemoSwitchableRole) ?? "admin");
   const [cgGroupId, setCgGroupId] = React.useState(currentCgGroupId ?? "");
-  const needsCgGroup = role !== "coach";
+  const needsCgGroup = role !== "coach" && role !== "admin";
 
   React.useEffect(() => {
     loadCgGroups();
@@ -27,14 +27,12 @@ export function DemoRoleSwitcher({
 
   return (
     <>
-      <SessionStatusPanel
-        initialStatus={{ role: currentRole, orgId: currentOrgId, cgGroupId: currentCgGroupId }}
-      />
+      <SessionStatusPanel initialStatus={{ role: currentRole, orgId: currentOrgId, cgGroupId: currentCgGroupId }} />
 
       <div className="border-t border-border p-3">
         <div className="mb-2 flex items-center gap-2 px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           <FlaskConical className="h-3.5 w-3.5" strokeWidth={2} />
-          Demo Role Switch
+          Mode Akun
         </div>
 
         <div className="flex flex-col gap-2 px-1">
@@ -74,7 +72,7 @@ export function DemoRoleSwitcher({
             onClick={() => switchRole(role, needsCgGroup ? cgGroupId : null)}
             className="w-full rounded-lg bg-primary px-2.5 py-1.5 text-sm font-medium text-primary-foreground transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isSwitching ? "Mengganti..." : "Ganti Role"}
+            {isSwitching ? "Mengganti..." : "Ganti Mode"}
           </button>
         </div>
       </div>

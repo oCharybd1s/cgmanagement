@@ -48,6 +48,7 @@ export async function POST(request: NextRequest) {
       cgGroupId: payload.cgGroupId,
       isBendahara: false,
       mustChangePassword: false,
+      isSuperAdmin: true,
     });
 
     await adminDb
@@ -73,6 +74,7 @@ export async function POST(request: NextRequest) {
       uid: session.uid,
       email: session.email,
       role: payload.role,
+      isSuperAdmin: true,
       orgId,
       cgGroupId: payload.cgGroupId,
       isBendahara: false,
@@ -100,7 +102,7 @@ async function readPayload(request: NextRequest) {
     return null;
   }
 
-  if (body.role === "coach") {
+  if (body.role === "coach" || body.role === "admin") {
     return { role: body.role, cgGroupId: null };
   }
 

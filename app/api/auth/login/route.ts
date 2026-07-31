@@ -6,6 +6,7 @@ import {
   getSessionCookieOptions,
   getSessionMaxAgeMs,
 } from "@/lib/auth/session";
+import { isSuperAdminEmail } from "@/lib/auth/super-admin";
 import type { SessionUser } from "@/lib/auth/types";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -29,6 +30,22 @@ export async function POST(request: NextRequest) {
   try {
     const { adminAuth } = getAdminServices();
     const decoded = await adminAuth.verifyIdToken(signIn.idToken);
+    const storedRole = typeof decoded.role === "string" ? decoded.role : null;
+    const isSuperAdmin = isSuperAdminEmail(decoded.email ?? null);
+
+    if (isSuperAdmin && decoded.isSuperAdmin !== true) {
+      await adminAuth
+        .setCustomUserClaims(decoded.uid, {
+          role: storedRole,
+          orgId: typeof decoded.orgId === "string" ? decoded.orgId : null,
+          cgGroupId: typeof decoded.cgGroupId === "string" ? decoded.cgGroupId : null,
+          isBendahara: decoded.isBendahara === true,
+          mustChangePassword: decoded.mustChangePassword === true,
+          isSuperAdmin: true,
+        })
+        .catch(() => undefined);
+    }
+
     const maxAgeMs = getSessionMaxAgeMs();
     const sessionCookie = await createSessionCookie(signIn.idToken, maxAgeMs);
 
@@ -39,7 +56,8 @@ export async function POST(request: NextRequest) {
     const user: SessionUser = {
       uid: decoded.uid,
       email: decoded.email ?? null,
-      role: typeof decoded.role === "string" ? decoded.role : null,
+      role: storedRole,
+      isSuperAdmin,
       orgId: typeof decoded.orgId === "string" ? decoded.orgId : null,
       cgGroupId: typeof decoded.cgGroupId === "string" ? decoded.cgGroupId : null,
       isBendahara: decoded.isBendahara === true,

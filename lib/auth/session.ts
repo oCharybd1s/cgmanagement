@@ -1,4 +1,5 @@
 import { getAdminServices } from "@/lib/firebase/firebase-admin";
+import { isSuperAdminEmail } from "@/lib/auth/super-admin";
 import type { SessionUser } from "@/lib/auth/types";
 
 export const SESSION_COOKIE_NAME = "session";
@@ -51,6 +52,7 @@ export async function verifySessionCookie(
       uid: decoded.uid,
       email: decoded.email ?? null,
       role: typeof decoded.role === "string" ? decoded.role : null,
+      isSuperAdmin: decoded.isSuperAdmin === true || isSuperAdminEmail(decoded.email ?? null),
       orgId: typeof decoded.orgId === "string" ? decoded.orgId : null,
       cgGroupId: typeof decoded.cgGroupId === "string" ? decoded.cgGroupId : null,
       isBendahara: decoded.isBendahara === true,

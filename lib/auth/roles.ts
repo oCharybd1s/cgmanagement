@@ -4,6 +4,7 @@ export const ROLE_LABELS: Record<string, string> = {
   sponsor: "Sponsor",
   member: "Member",
   simpatisan: "Simpatisan",
+  admin: "Administrator",
 };
 
 export function getRoleLabel(role: string | null) {
@@ -14,7 +15,11 @@ export function getRoleLabel(role: string | null) {
 }
 
 export function isCoach(role: string | null) {
-  return role === "coach";
+  return role === "coach" || role === "admin";
+}
+
+export function isAdmin(role: string | null) {
+  return role === "admin";
 }
 
 export function isCgl(role: string | null) {
@@ -39,6 +44,18 @@ export function hasFullMemberDirectoryAccess(role: string | null) {
 
 export function canManageCgGroups(role: string | null) {
   return isCoach(role);
+}
+
+export function canDeleteCgGroup(role: string | null) {
+  return isCoach(role);
+}
+
+export function canViewAuditTrail(role: string | null) {
+  return isAdmin(role);
+}
+
+export function canCreateOrganization(role: string | null) {
+  return isAdmin(role);
 }
 
 export function canViewFormerMembers(role: string | null) {
