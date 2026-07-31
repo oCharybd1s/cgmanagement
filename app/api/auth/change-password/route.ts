@@ -49,6 +49,7 @@ export async function POST(request: NextRequest) {
       cgGroupId: session.cgGroupId,
       isBendahara: session.isBendahara,
       mustChangePassword: false,
+      isSuperAdmin: session.isSuperAdmin,
     });
 
     await adminDb
@@ -82,6 +83,7 @@ export async function POST(request: NextRequest) {
       uid: session.uid,
       email: session.email,
       role: session.role,
+      isSuperAdmin: session.isSuperAdmin,
       orgId: session.orgId,
       cgGroupId: session.cgGroupId,
       isBendahara: session.isBendahara,

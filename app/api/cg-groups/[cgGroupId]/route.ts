@@ -40,5 +40,5 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     return NextResponse.json({ ok: false, error: result.error }, { status: result.status });
   }
 
-  return NextResponse.json({ ok: true, ...result });
+  return NextResponse.json({ ...result });
 }
