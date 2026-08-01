@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { getToken, onMessage } from "firebase/messaging";
 import { getFirebaseMessaging } from "@/lib/firebase/firebase";
+import { registerTokenWithServer } from "@/lib/notifications/register-token-client";
 
 export type PushPermissionStatus = "unsupported" | "default" | "denied" | "granted";
 
@@ -22,19 +23,6 @@ function toFriendlyError(err: unknown): string {
   }
 
   return message || "Terjadi kesalahan saat mengaktifkan notifikasi";
-}
-
-async function registerTokenWithServer(token: string): Promise<void> {
-  const response = await fetch("/api/notifications/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ token, userAgent: navigator.userAgent }),
-  });
-
-  if (!response.ok) {
-    const data = await response.json().catch(() => null);
-    throw new Error(data?.error ?? "Gagal mendaftarkan perangkat ke server");
-  }
 }
 
 function getInitialStatus(): PushPermissionStatus {

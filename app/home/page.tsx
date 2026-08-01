@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { Sunrise, Shield, Users2 } from "lucide-react";
 import { verifySession } from "@/lib/auth/dal";
-import { cgGroupDisplayLabel, canCreateMeetingReport, canBroadcastNotification, getRoleLabel, isCoach } from "@/lib/auth/roles";
+import { cgGroupDisplayLabel, canCreateMeetingReport, getRoleLabel, isCoach } from "@/lib/auth/roles";
 import { toShellUser } from "@/lib/auth/shell-user";
 import { getCgGroupsForOrg } from "@/lib/cg-groups/data";
 import { getMembersForSession } from "@/lib/members/data";
@@ -11,7 +11,6 @@ import { Container, Section } from "@/components/layout/container";
 import { QuickLaporanCard } from "@/components/laporan/quick-laporan-card";
 import { KasSummaryCard } from "@/components/keuangan/kas-summary-card";
 import { CalendarBoard } from "@/components/calendar/calendar-board";
-import { NotificationTestCard } from "@/components/notifications/notification-test-card";
 
 export default async function HomePage() {
   const session = await verifySession();
@@ -33,7 +32,6 @@ export default async function HomePage() {
     <AppShell user={toShellUser(session)}>
       <Container size="md">
         <Section spacing="lg" className="flex flex-col gap-6">
-          <NotificationTestCard canBroadcast={canBroadcastNotification(session.role)} />
           <CalendarBoard
             mode="week"
             viewerUid={session.uid}

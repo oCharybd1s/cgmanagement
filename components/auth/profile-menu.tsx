@@ -150,6 +150,7 @@ export function ProfileMenu({ user }: { user?: ShellUser | null }) {
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         onAvatarChange={setAvatarId}
+        viewerRole={user?.role ?? null}
       />
     </>
   );

@@ -3,16 +3,19 @@
 import * as React from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { KeyRound, User, X, type LucideIcon } from "lucide-react";
+import { KeyRound, User, Bell, X, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { canBroadcastNotification } from "@/lib/auth/roles";
 import { ProfileSection } from "@/components/settings/sections/profile-section";
 import { SecuritySection } from "@/components/settings/sections/security-section";
+import { NotificationSection } from "@/components/settings/sections/notification-section";
 
-type SettingsSection = "profile" | "security";
+type SettingsSection = "profile" | "security" | "notifications";
 
 const SECTIONS: { id: SettingsSection; label: string; title: string; icon: LucideIcon }[] = [
   { id: "profile", label: "Profile", title: "Profile", icon: User },
   { id: "security", label: "Keamanan", title: "Keamanan & Password", icon: KeyRound },
+  { id: "notifications", label: "Notifikasi", title: "Notifikasi", icon: Bell },
 ];
 
 export function SettingsModal({
@@ -20,11 +23,13 @@ export function SettingsModal({
   onClose,
   defaultSection = "profile",
   onAvatarChange,
+  viewerRole = null,
 }: {
   isOpen: boolean;
   onClose: () => void;
   defaultSection?: SettingsSection;
   onAvatarChange?: (avatarId: string) => void;
+  viewerRole?: string | null;
 }) {
   const [mounted, setMounted] = React.useState(false);
   const [activeSection, setActiveSection] = React.useState<SettingsSection>(defaultSection);
@@ -132,8 +137,10 @@ export function SettingsModal({
               <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6">
                 {activeSection === "profile" ? (
                   <ProfileSection onAvatarChange={onAvatarChange} />
-                ) : (
+                ) : activeSection === "security" ? (
                   <SecuritySection />
+                ) : (
+                  <NotificationSection canBroadcast={canBroadcastNotification(viewerRole)} />
                 )}
               </div>
             </div>

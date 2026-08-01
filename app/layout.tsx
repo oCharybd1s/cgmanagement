@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Bricolage_Grotesque } from "next/font/google";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { InstallGate } from "@/components/pwa/install-gate";
 import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
+import { NotificationTokenSync } from "@/components/notifications/notification-token-sync";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -57,6 +58,7 @@ export default function RootLayout({
           <InstallGate>{children}</InstallGate>
         </ThemeProvider>
         <ServiceWorkerRegister />
+        <NotificationTokenSync />
       </body>
     </html>
   );
