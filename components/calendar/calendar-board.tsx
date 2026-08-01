@@ -126,6 +126,7 @@ export function CalendarBoard({
           start={range.start}
           itemsByDate={itemsByDate}
           todayKey={todayKey}
+          selectedDateKey={selectedDateKey}
           loading={loading}
           onSelectDay={setSelectedDateKey}
         />
