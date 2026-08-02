@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { SESSION_COOKIE_NAME, verifySessionCookie } from "@/lib/auth/session";
 import { getOwnMemberForSession } from "@/lib/members/data";
 import { updateOwnAvatarForSession } from "@/lib/members/update-avatar";
+import { updateOwnContactForSession } from "@/lib/members/update-contact";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -51,11 +52,29 @@ export async function PATCH(request: NextRequest) {
     );
   }
 
-  const result = await updateOwnAvatarForSession(session, (body as { avatarId?: unknown }).avatarId);
+  const payload = body as { avatarId?: unknown; email?: unknown; phone?: unknown };
 
-  if (!result.ok) {
-    return NextResponse.json({ ok: false, error: result.error }, { status: result.status, headers: NO_STORE_HEADERS });
+  if ("avatarId" in payload) {
+    const result = await updateOwnAvatarForSession(session, payload.avatarId);
+    if (!result.ok) {
+      return NextResponse.json({ ok: false, error: result.error }, { status: result.status, headers: NO_STORE_HEADERS });
+    }
+    return NextResponse.json({ ok: true, avatarId: result.avatarId }, { headers: NO_STORE_HEADERS });
   }
 
-  return NextResponse.json({ ok: true, avatarId: result.avatarId }, { headers: NO_STORE_HEADERS });
+  if ("email" in payload || "phone" in payload) {
+    const result = await updateOwnContactForSession(session, { email: payload.email, phone: payload.phone });
+    if (!result.ok) {
+      return NextResponse.json(
+        { ok: false, error: result.error, fieldErrors: result.fieldErrors },
+        { status: result.status, headers: NO_STORE_HEADERS },
+      );
+    }
+    return NextResponse.json({ ok: true, email: result.email, phone: result.phone }, { headers: NO_STORE_HEADERS });
+  }
+
+  return NextResponse.json(
+    { ok: false, error: "Tidak ada data yang diubah" },
+    { status: 400, headers: NO_STORE_HEADERS },
+  );
 }

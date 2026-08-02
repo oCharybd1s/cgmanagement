@@ -1,5 +1,15 @@
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+export const INDONESIAN_PHONE_REGEX = /^(\+62|62|0)8[1-9][0-9]{6,10}$/;
+
+export function sanitizePhoneInput(value: string): string {
+  return value.replace(/[\s\-().]/g, "");
+}
+
+export function isValidIndonesianPhone(value: string): boolean {
+  return INDONESIAN_PHONE_REGEX.test(value);
+}
+
 export type CreateMemberFieldErrors = Partial<Record<"fullName" | "email" | "role" | "cgGroupId", string>>;
 export type UpdateMemberFieldErrors = Partial<Record<"fullName" | "email", string>>;
 
