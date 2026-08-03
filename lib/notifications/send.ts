@@ -1,6 +1,7 @@
 import type { Firestore } from "firebase-admin/firestore";
 import { getMessaging } from "firebase-admin/messaging";
 import { listFcmTokens, deleteFcmTokensByValue } from "@/lib/notifications/token-store";
+import { persistNotificationForUser } from "@/lib/notifications/inbox";
 import type { NotificationPayload, SendResult } from "@/lib/notifications/types";
 
 const INVALID_TOKEN_ERROR_CODES = new Set([
@@ -59,6 +60,8 @@ export async function sendNotificationToUser(
   userId: string,
   payload: NotificationPayload,
 ): Promise<SendResult> {
+  await persistNotificationForUser(adminDb, orgId, userId, payload);
+
   const tokenDocs = await listFcmTokens(adminDb, orgId, userId);
   const tokens = tokenDocs.map((doc) => doc.token).filter((token) => token.length > 0);
 
@@ -74,17 +77,6 @@ export async function sendNotificationToUser(
   }
 
   return result;
-}
-
-export async function sendNotificationToOrg(
-  adminDb: Firestore,
-  orgId: string,
-  payload: NotificationPayload,
-): Promise<SendResult> {
-  const userRefs = await adminDb.collection("organizations").doc(orgId).collection("users").listDocuments();
-  const userIds = userRefs.map((ref) => ref.id);
-
-  return sendNotificationToUsers(adminDb, orgId, userIds, payload);
 }
 
 export async function sendNotificationToUsers(

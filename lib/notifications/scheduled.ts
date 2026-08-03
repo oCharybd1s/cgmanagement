@@ -8,6 +8,7 @@ import { canViewEvent, type EventViewerContext } from "@/lib/events/access";
 import { pickSelfBirthdayMessage } from "@/lib/notifications/birthday-messages";
 import { isCoach, isCgl } from "@/lib/auth/roles";
 import { sendNotificationToUsers } from "@/lib/notifications/send";
+import { pruneExpiredNotificationsForOrg } from "@/lib/notifications/inbox";
 import type { Member } from "@/lib/members/types";
 
 export type DailyNotificationSummary = {
@@ -15,6 +16,7 @@ export type DailyNotificationSummary = {
   birthdayTodayNotified: number;
   birthdayReminderNotified: number;
   eventTodayNotified: number;
+  expiredNotificationsPruned: number;
 };
 
 export async function runDailyNotificationJob(adminDb: Firestore, orgId: string): Promise<DailyNotificationSummary> {
@@ -23,13 +25,15 @@ export async function runDailyNotificationJob(adminDb: Firestore, orgId: string)
 
   const members = await listAllMembersForOrg(orgId);
 
-  const [birthdayTodayNotified, birthdayReminderNotified, eventTodayNotified] = await Promise.all([
-    notifyBirthdaysToday(adminDb, orgId, members, today),
-    notifyBirthdayReminders(adminDb, orgId, members, reminderDate),
-    notifyEventsToday(adminDb, orgId, members, today),
-  ]);
+  const [birthdayTodayNotified, birthdayReminderNotified, eventTodayNotified, expiredNotificationsPruned] =
+    await Promise.all([
+      notifyBirthdaysToday(adminDb, orgId, members, today),
+      notifyBirthdayReminders(adminDb, orgId, members, reminderDate),
+      notifyEventsToday(adminDb, orgId, members, today),
+      pruneExpiredNotificationsForOrg(adminDb, orgId),
+    ]);
 
-  return { orgId, birthdayTodayNotified, birthdayReminderNotified, eventTodayNotified };
+  return { orgId, birthdayTodayNotified, birthdayReminderNotified, eventTodayNotified, expiredNotificationsPruned };
 }
 
 async function notifyBirthdaysToday(
@@ -46,6 +50,7 @@ async function notifyBirthdaysToday(
       title: "Selamat Ulang Tahun!",
       body: pickSelfBirthdayMessage(birthday.fullName),
       url: "/anggota",
+      category: "birthday",
     });
     notifiedCount += selfResult.successCount;
 
@@ -65,6 +70,7 @@ async function notifyBirthdaysToday(
       title: "Ulang Tahun Hari Ini",
       body: `${birthday.fullName} berulang tahun hari ini. Yuk kirim ucapan`,
       url: "/anggota",
+      category: "birthday",
     });
     notifiedCount += result.successCount;
   }
@@ -94,6 +100,7 @@ async function notifyBirthdayReminders(
       title: "Reminder Ulang Tahun",
       body: `${birthday.fullName} akan ulang tahun dalam 7 hari. Siapkan persiapan CG`,
       url: "/anggota",
+      category: "birthday",
     });
     notifiedCount += result.successCount;
   }
@@ -132,6 +139,7 @@ async function notifyEventsToday(
       title: "Event Hari Ini",
       body: `${event.name} berlangsung hari ini${timeSuffix}`,
       url: "/kalender",
+      category: "event",
     });
     notifiedCount += result.successCount;
   }

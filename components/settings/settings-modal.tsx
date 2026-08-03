@@ -5,7 +5,6 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { KeyRound, User, Bell, X, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { canBroadcastNotification } from "@/lib/auth/roles";
 import { ProfileSection } from "@/components/settings/sections/profile-section";
 import { SecuritySection } from "@/components/settings/sections/security-section";
 import { NotificationSection } from "@/components/settings/sections/notification-section";
@@ -23,13 +22,11 @@ export function SettingsModal({
   onClose,
   defaultSection = "profile",
   onAvatarChange,
-  viewerRole = null,
 }: {
   isOpen: boolean;
   onClose: () => void;
   defaultSection?: SettingsSection;
   onAvatarChange?: (avatarId: string) => void;
-  viewerRole?: string | null;
 }) {
   const [mounted, setMounted] = React.useState(false);
   const [activeSection, setActiveSection] = React.useState<SettingsSection>(defaultSection);
@@ -140,7 +137,7 @@ export function SettingsModal({
                 ) : activeSection === "security" ? (
                   <SecuritySection />
                 ) : (
-                  <NotificationSection canBroadcast={canBroadcastNotification(viewerRole)} />
+                  <NotificationSection />
                 )}
               </div>
             </div>

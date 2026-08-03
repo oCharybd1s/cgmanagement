@@ -4,6 +4,7 @@ import { Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useSidebar } from "./sidebar-context";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { ProfileMenu } from "@/components/auth/profile-menu";
+import { NotificationBell } from "@/components/notifications/notification-bell";
 import type { ShellUser } from "@/lib/auth/shell-user";
 
 export function Topbar({
@@ -51,6 +52,7 @@ export function Topbar({
       </div>
 
       <div className="flex shrink-0 items-center gap-2">
+        <NotificationBell />
         <ThemeToggle />
         <ProfileMenu user={user} />
       </div>

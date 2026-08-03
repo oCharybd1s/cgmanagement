@@ -285,10 +285,6 @@ export function canViewOrganizationTree(role: string | null) {
   return isCoach(role) || isCgl(role) || isSponsor(role);
 }
 
-export function canBroadcastNotification(role: string | null) {
-  return isCoach(role);
-}
-
 export function cgGroupDisplayLabel(role: string | null, cgLabel: string | null) {
   if (isCoach(role)) {
     return "Semua CG";
