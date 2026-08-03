@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { ChevronLeft, ChevronRight, CalendarDays, CalendarPlus } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, ChevronLeft, ChevronRight, CalendarDays, CalendarPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCalendarRange, type CalendarMode } from "@/lib/calendar/use-calendar-range";
 import { groupCalendarItemsByDate } from "@/lib/calendar/group";
@@ -48,6 +49,8 @@ export function CalendarBoard({
   const todayKey = toDateKey(todayCalendarDate());
   const rangeLabel = mode === "week" ? formatWeekRangeLabel(range.start, range.end) : formatMonthLabel(anchor);
   const selectedDayItems = selectedDateKey ? (itemsByDate.get(selectedDateKey) ?? EMPTY_DAY_ITEMS) : EMPTY_DAY_ITEMS;
+  const isWeekMode = mode === "week";
+  const canAddEvent = canCreateAnyEvent(viewerRole);
 
   function handleAddEvent(dateKey?: string) {
     setFormTarget({ mode: "create", date: dateKey ?? toDateKey(todayCalendarDate()) });
@@ -66,62 +69,96 @@ export function CalendarBoard({
 
   return (
     <div className={cn("flex flex-col gap-4 rounded-2xl border border-border bg-card/70 p-4 shadow-sm backdrop-blur-xl sm:p-5", className)}>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary">
-            <CalendarDays className="h-4 w-4" strokeWidth={2} />
-          </span>
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              {mode === "week" ? "Minggu Ini" : "Kalender"}
-            </p>
-            <p className="font-display text-base font-bold tracking-tight text-foreground">{rangeLabel}</p>
+      {isWeekMode ? (
+        <div className="flex flex-col gap-3">
+          <div className="flex items-start justify-between gap-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Minggu Ini</p>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={goToday}
+                className="h-8 rounded-xl border border-border px-3 text-xs font-semibold text-foreground transition-colors duration-200 hover:bg-muted"
+              >
+                Hari Ini
+              </button>
+              <button
+                type="button"
+                onClick={goPrev}
+                aria-label="Sebelumnya"
+                className="flex h-8 w-8 items-center justify-center rounded-xl border border-border text-muted-foreground transition-colors duration-200 hover:bg-muted hover:text-foreground"
+              >
+                <ChevronLeft className="h-4 w-4" strokeWidth={2} />
+              </button>
+              <button
+                type="button"
+                onClick={goNext}
+                aria-label="Berikutnya"
+                className="flex h-8 w-8 items-center justify-center rounded-xl border border-border text-muted-foreground transition-colors duration-200 hover:bg-muted hover:text-foreground"
+              >
+                <ChevronRight className="h-4 w-4" strokeWidth={2} />
+              </button>
+            </div>
+          </div>
+          <p className="font-display text-2xl font-bold leading-tight tracking-tight text-foreground sm:text-3xl">
+            {rangeLabel}
+          </p>
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <CalendarDays className="h-4 w-4" strokeWidth={2} />
+            </span>
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Kalender</p>
+              <p className="font-display text-base font-bold tracking-tight text-foreground">{rangeLabel}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className="flex items-center overflow-hidden rounded-full border border-border">
+              <button
+                type="button"
+                onClick={goPrev}
+                aria-label="Sebelumnya"
+                className="flex h-9 w-9 items-center justify-center text-muted-foreground transition-colors duration-200 hover:bg-muted hover:text-foreground"
+              >
+                <ChevronLeft className="h-4 w-4" strokeWidth={2} />
+              </button>
+              <button
+                type="button"
+                onClick={goToday}
+                className="h-9 border-x border-border px-3 text-xs font-semibold text-foreground transition-colors duration-200 hover:bg-muted"
+              >
+                Hari Ini
+              </button>
+              <button
+                type="button"
+                onClick={goNext}
+                aria-label="Berikutnya"
+                className="flex h-9 w-9 items-center justify-center text-muted-foreground transition-colors duration-200 hover:bg-muted hover:text-foreground"
+              >
+                <ChevronRight className="h-4 w-4" strokeWidth={2} />
+              </button>
+            </div>
+
+            {canAddEvent ? (
+              <button
+                type="button"
+                onClick={() => handleAddEvent()}
+                className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-transform duration-200 hover:-translate-y-0.5 active:translate-y-0"
+              >
+                <CalendarPlus className="h-4 w-4" strokeWidth={2} />
+                <span className="hidden sm:inline">Tambah Event</span>
+              </button>
+            ) : null}
           </div>
         </div>
-
-        <div className="flex items-center gap-2">
-          <div className="flex items-center overflow-hidden rounded-full border border-border">
-            <button
-              type="button"
-              onClick={goPrev}
-              aria-label="Sebelumnya"
-              className="flex h-9 w-9 items-center justify-center text-muted-foreground transition-colors duration-200 hover:bg-muted hover:text-foreground"
-            >
-              <ChevronLeft className="h-4 w-4" strokeWidth={2} />
-            </button>
-            <button
-              type="button"
-              onClick={goToday}
-              className="h-9 border-x border-border px-3 text-xs font-semibold text-foreground transition-colors duration-200 hover:bg-muted"
-            >
-              Hari Ini
-            </button>
-            <button
-              type="button"
-              onClick={goNext}
-              aria-label="Berikutnya"
-              className="flex h-9 w-9 items-center justify-center text-muted-foreground transition-colors duration-200 hover:bg-muted hover:text-foreground"
-            >
-              <ChevronRight className="h-4 w-4" strokeWidth={2} />
-            </button>
-          </div>
-
-          {canCreateAnyEvent(viewerRole) ? (
-            <button
-              type="button"
-              onClick={() => handleAddEvent()}
-              className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-transform duration-200 hover:-translate-y-0.5 active:translate-y-0"
-            >
-              <CalendarPlus className="h-4 w-4" strokeWidth={2} />
-              <span className="hidden sm:inline">Tambah Event</span>
-            </button>
-          ) : null}
-        </div>
-      </div>
+      )}
 
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
-      {mode === "week" ? (
+      {isWeekMode ? (
         <WeekGrid
           start={range.start}
           itemsByDate={itemsByDate}
@@ -140,6 +177,28 @@ export function CalendarBoard({
           onSelectDay={setSelectedDateKey}
         />
       )}
+
+      {isWeekMode ? (
+        <div className={cn("flex items-center gap-3 pt-1", canAddEvent ? "justify-between" : "justify-end")}>
+          {canAddEvent ? (
+            <button
+              type="button"
+              onClick={() => handleAddEvent()}
+              className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition-colors duration-200 hover:bg-muted"
+            >
+              <CalendarPlus className="h-3.5 w-3.5" strokeWidth={2} />
+              Tambah Event
+            </button>
+          ) : null}
+          <Link
+            href="/kalender"
+            className="inline-flex items-center gap-1 text-sm font-semibold text-primary transition-colors duration-200 hover:text-primary-deep"
+          >
+            Lihat kalender lengkap
+            <ArrowRight className="h-4 w-4" strokeWidth={2} />
+          </Link>
+        </div>
+      ) : null}
 
       {selectedDateKey ? (
         <DayDetailSheet
