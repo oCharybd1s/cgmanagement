@@ -1,8 +1,10 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Cake, CalendarPlus, Pencil, Trash2, X } from "lucide-react";
+import { useMounted } from "@/hooks/use-mounted";
 import { fromDateKey, formatFullLabel } from "@/lib/calendar/date-utils";
 import { canCreateAnyEvent, canDeleteEvent, canUpdateEvent } from "@/lib/events/access";
 import { EventTypeBadge } from "@/components/calendar/event-type-badge";
@@ -30,6 +32,8 @@ export function DayDetailSheet({
   onEditEvent: (event: EventRecord) => void;
   onDeleteEvent: (event: EventRecord) => void;
 }) {
+  const mounted = useMounted();
+
   React.useEffect(() => {
     function handleKeyDown(keyEvent: KeyboardEvent) {
       if (keyEvent.key === "Escape") {
@@ -44,7 +48,11 @@ export function DayDetailSheet({
   const sortedEvents = [...items.events].sort((a, b) => (a.time ?? "99:99").localeCompare(b.time ?? "99:99"));
   const hasContent = sortedEvents.length > 0 || items.birthdays.length > 0;
 
-  return (
+  if (!mounted) {
+    return null;
+  }
+
+  return createPortal(
     <AnimatePresence>
       <motion.div
         initial={{ opacity: 0 }}
@@ -173,6 +181,7 @@ export function DayDetailSheet({
           ) : null}
         </motion.div>
       </motion.div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }

@@ -4,6 +4,7 @@ import * as React from "react";
 import { Search, SearchX, UserMinus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getRoleLabel } from "@/lib/auth/roles";
+import { rankBySearch } from "@/lib/search/fuzzy-match";
 import type { FormerMember, FormerMemberReason } from "@/lib/former-members/types";
 import type { CgGroup } from "@/lib/cg-groups/types";
 
@@ -45,13 +46,12 @@ export function FormerMemberList({
   }, [cgGroups]);
 
   const filteredFormerMembers = React.useMemo(() => {
-    const query = search.trim().toLowerCase();
-    return formerMembers.filter((formerMember) => {
-      const matchesQuery = query === "" || formerMember.fullName.toLowerCase().includes(query);
+    const matchingFilters = formerMembers.filter((formerMember) => {
       const matchesCg = cgFilter === "all" || formerMember.cgGroupId === cgFilter;
       const matchesReason = reasonFilter === "all" || formerMember.reason === reasonFilter;
-      return matchesQuery && matchesCg && matchesReason;
+      return matchesCg && matchesReason;
     });
+    return rankBySearch(search, matchingFilters, (formerMember) => [formerMember.fullName]);
   }, [formerMembers, search, cgFilter, reasonFilter]);
 
   return (

@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
-import { Sunrise, Shield, Users2 } from "lucide-react";
 import { verifySession } from "@/lib/auth/dal";
-import { cgGroupDisplayLabel, canCreateMeetingReport, getRoleLabel, isCoach } from "@/lib/auth/roles";
+import { canCreateMeetingReport, isCoach } from "@/lib/auth/roles";
 import { toShellUser } from "@/lib/auth/shell-user";
 import { getCgGroupsForOrg } from "@/lib/cg-groups/data";
 import { getMembersForSession } from "@/lib/members/data";

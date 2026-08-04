@@ -3,6 +3,7 @@
 import * as React from "react";
 import { ArrowLeft, CalendarDays, ChevronRight, NotebookPen, Pencil, Search, SearchX, Trash2, User, Users2 } from "lucide-react";
 import { canDeleteMeetingReport, canManageMeetingReport, isCoach } from "@/lib/auth/roles";
+import { rankBySearch } from "@/lib/search/fuzzy-match";
 import { AddLaporanDialog } from "@/components/laporan/add-laporan-dialog";
 import { EditLaporanDialog } from "@/components/laporan/edit-laporan-dialog";
 import { DeleteLaporanDialog } from "@/components/laporan/delete-laporan-dialog";
@@ -66,13 +67,7 @@ export function LaporanList({
   }, [reports, requiresCgPicker, selectedCgId]);
 
   const filteredReports = React.useMemo(() => {
-    const query = search.trim().toLowerCase();
-    if (query === "") {
-      return scopedReports;
-    }
-    return scopedReports.filter(
-      (report) => report.agenda.toLowerCase().includes(query) || report.result.toLowerCase().includes(query),
-    );
+    return rankBySearch(search, scopedReports, (report) => [report.agenda, report.result]);
   }, [scopedReports, search]);
 
   function handleCreated(report: MeetingReport) {

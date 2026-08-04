@@ -59,7 +59,7 @@ export function canCreateOrganization(role: string | null) {
 }
 
 export function canViewFormerMembers(role: string | null) {
-  return isCoach(role) || isCgl(role);
+  return role === "coach" || isCgl(role);
 }
 
 export function canViewVipList(role: string | null) {

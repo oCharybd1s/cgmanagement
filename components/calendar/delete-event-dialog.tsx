@@ -1,8 +1,10 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertTriangle, Loader2, X } from "lucide-react";
+import { useMounted } from "@/hooks/use-mounted";
 import type { EventRecord } from "@/lib/events/types";
 
 export function DeleteEventDialog({
@@ -14,6 +16,7 @@ export function DeleteEventDialog({
   onClose: () => void;
   onDeleted: (eventId: string) => void;
 }) {
+  const mounted = useMounted();
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -48,7 +51,11 @@ export function DeleteEventDialog({
     }
   }
 
-  return (
+  if (!mounted) {
+    return null;
+  }
+
+  return createPortal(
     <AnimatePresence>
       <motion.div
         initial={{ opacity: 0 }}
@@ -134,6 +141,7 @@ export function DeleteEventDialog({
           </div>
         </motion.div>
       </motion.div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }

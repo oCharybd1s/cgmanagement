@@ -10,4 +10,5 @@ export type VipProspect = {
   notes: string | null;
   linkedMemberId: string | null;
   createdBy: string | null;
+  createdAt: string | null;
 };

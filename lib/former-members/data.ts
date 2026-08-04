@@ -1,7 +1,7 @@
 import { Timestamp } from "firebase-admin/firestore";
 import type { QueryDocumentSnapshot } from "firebase-admin/firestore";
 import { getAdminServices } from "@/lib/firebase/firebase-admin";
-import { isCoach, isCgl } from "@/lib/auth/roles";
+import { isCgl } from "@/lib/auth/roles";
 import type { SessionUser } from "@/lib/auth/types";
 import type { FormerMember, FormerMemberReason } from "@/lib/former-members/types";
 
@@ -18,7 +18,7 @@ export async function getFormerMembersForSession(session: SessionUser): Promise<
     .doc(session.orgId)
     .collection("formerMembers");
 
-  if (isCoach(session.role)) {
+  if (session.role === "coach") {
     const snapshot = await formerMembersRef.get();
     return finalizeFormerMembers(snapshot.docs);
   }

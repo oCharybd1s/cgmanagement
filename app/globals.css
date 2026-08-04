@@ -5,6 +5,8 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  color-scheme: light;
+
   --radius: 0.75rem;
 
   --background: oklch(0.985 0.0035 90);
@@ -70,6 +72,8 @@
 }
 
 .dark {
+  color-scheme: dark;
+
   --background: oklch(0.11 0.012 285);
   --foreground: oklch(0.95 0.008 90);
 
@@ -199,6 +203,15 @@
   ::selection {
     background: var(--brand-spark);
     color: var(--brand-spark-foreground);
+  }
+
+  select {
+    color-scheme: inherit;
+  }
+
+  select option {
+    background-color: var(--popover);
+    color: var(--popover-foreground);
   }
 }
 

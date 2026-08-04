@@ -1,4 +1,4 @@
-import type { TransactionType } from "@/lib/transactions/types";
+import type { Transaction, TransactionType } from "@/lib/transactions/types";
 
 const TRANSACTION_TYPE_VALUES: TransactionType[] = ["income", "expense", "transfer_in", "transfer_out"];
 
@@ -22,6 +22,13 @@ export function isTransactionType(value: unknown): value is TransactionType {
 
 export function isEditableTransactionType(type: TransactionType): boolean {
   return type === "income" || type === "expense";
+}
+
+export function compareTransactionsAscending(a: Transaction, b: Transaction): number {
+  if (a.date !== b.date) {
+    return a.date < b.date ? -1 : 1;
+  }
+  return (a.createdAt ?? "").localeCompare(b.createdAt ?? "");
 }
 
 export function toStringValue(value: unknown): string {

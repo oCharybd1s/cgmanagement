@@ -1,3 +1,4 @@
+import { Timestamp } from "firebase-admin/firestore";
 import type { QueryDocumentSnapshot } from "firebase-admin/firestore";
 import { getAdminServices } from "@/lib/firebase/firebase-admin";
 import { isCoach, isCgl, isSponsor } from "@/lib/auth/roles";
@@ -5,7 +6,6 @@ import type { SessionUser } from "@/lib/auth/types";
 import type { VipProspect, VipProspectStatus } from "@/lib/vip-prospects/types";
 
 const STATUS_VALUES: VipProspectStatus[] = ["pending", "berpotensi", "accept", "reject"];
-const STATUS_ORDER: Record<VipProspectStatus, number> = { pending: 0, berpotensi: 1, accept: 2, reject: 3 };
 
 export async function getVipProspectsForSession(session: SessionUser): Promise<VipProspect[]> {
   if (!session.orgId) {
@@ -36,10 +36,9 @@ function finalizeVipProspects(docs: QueryDocumentSnapshot[]): VipProspect[] {
 }
 
 function compareVipProspects(a: VipProspect, b: VipProspect): number {
-  if (STATUS_ORDER[a.status] !== STATUS_ORDER[b.status]) {
-    return STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
-  }
-  return a.name.localeCompare(b.name, "id");
+  const createdA = a.createdAt ?? "";
+  const createdB = b.createdAt ?? "";
+  return createdA < createdB ? 1 : createdA > createdB ? -1 : 0;
 }
 
 function toVipProspect(doc: QueryDocumentSnapshot): VipProspect {
@@ -55,6 +54,7 @@ function toVipProspect(doc: QueryDocumentSnapshot): VipProspect {
     notes: readString(data.notes),
     linkedMemberId: readString(data.linkedMemberId),
     createdBy: readString(data.createdBy),
+    createdAt: toDateLabel(data.createdAt),
   };
 }
 
@@ -64,6 +64,13 @@ function readString(value: unknown): string | null {
   }
   const trimmed = value.trim();
   return trimmed === "" ? null : trimmed;
+}
+
+function toDateLabel(value: unknown): string | null {
+  if (value instanceof Timestamp) {
+    return value.toDate().toISOString();
+  }
+  return readString(value);
 }
 
 function toStatus(value: unknown): VipProspectStatus {

@@ -12,9 +12,11 @@ import {
 import {
   TRANSACTION_TYPE_LABELS,
   TRANSACTION_TYPE_SIGN,
+  compareTransactionsAscending,
   formatCurrencyIDR,
   isEditableTransactionType,
 } from "@/lib/transactions/shared";
+import { rankBySearch } from "@/lib/search/fuzzy-match";
 import { AddTransactionDialog } from "@/components/keuangan/add-transaction-dialog";
 import { EditTransactionDialog } from "@/components/keuangan/edit-transaction-dialog";
 import { DeleteTransactionDialog } from "@/components/keuangan/delete-transaction-dialog";
@@ -103,14 +105,31 @@ export function KeuanganDashboard({
   const showAccountColumn = accounts.length > 1;
 
   const visibleTransactions = React.useMemo(() => {
-    const query = search.trim().toLowerCase();
-    return transactions.filter((transaction) => {
+    const matchingFilters = transactions.filter((transaction) => {
       const matchesAccount = accountFilter === "all" || transaction.kasAccountId === accountFilter;
       const matchesType = typeFilter === "all" || transaction.type === typeFilter;
-      const matchesQuery = query === "" || transaction.description.toLowerCase().includes(query);
-      return matchesAccount && matchesType && matchesQuery;
+      return matchesAccount && matchesType;
     });
+    return rankBySearch(search, matchingFilters, (transaction) => [transaction.description]);
   }, [transactions, accountFilter, typeFilter, search]);
+
+  const runningBalanceByTransactionId = React.useMemo(() => {
+    const scopedTransactions = (
+      accountFilter === "all"
+        ? transactions
+        : transactions.filter((transaction) => transaction.kasAccountId === accountFilter)
+    )
+      .slice()
+      .sort(compareTransactionsAscending);
+
+    const balances = new Map<string, number>();
+    let runningTotal = 0;
+    for (const transaction of scopedTransactions) {
+      runningTotal += TRANSACTION_TYPE_SIGN[transaction.type] * transaction.amount;
+      balances.set(transaction.id, runningTotal);
+    }
+    return balances;
+  }, [transactions, accountFilter]);
 
   function handleTransactionCreated(transaction: Transaction) {
     setTransactions((current) => [transaction, ...current]);
@@ -290,6 +309,9 @@ export function KeuanganDashboard({
                   <th scope="col" className="px-5 py-3.5 text-right font-medium">
                     Nominal
                   </th>
+                  <th scope="col" className="px-5 py-3.5 text-right font-medium">
+                    Total Saldo
+                  </th>
                   <th scope="col" className="px-5 py-3.5 font-medium">
                     <span className="sr-only">Aksi</span>
                   </th>
@@ -302,6 +324,7 @@ export function KeuanganDashboard({
                     transaction={transaction}
                     accountLabel={accountLabelById.get(transaction.kasAccountId) ?? transaction.kasAccountId}
                     showAccountColumn={showAccountColumn}
+                    runningBalance={runningBalanceByTransactionId.get(transaction.id) ?? 0}
                     canEdit={canManageRecords && isEditableTransactionType(transaction.type)}
                     canDelete={canManageRecords}
                     onEdit={() => setEditingTransaction(transaction)}
@@ -319,6 +342,7 @@ export function KeuanganDashboard({
                 transaction={transaction}
                 accountLabel={accountLabelById.get(transaction.kasAccountId) ?? transaction.kasAccountId}
                 showAccount={showAccountColumn}
+                runningBalance={runningBalanceByTransactionId.get(transaction.id) ?? 0}
                 canEdit={canManageRecords && isEditableTransactionType(transaction.type)}
                 canDelete={canManageRecords}
                 onEdit={() => setEditingTransaction(transaction)}
@@ -456,6 +480,7 @@ function TransactionRow({
   transaction,
   accountLabel,
   showAccountColumn,
+  runningBalance,
   canEdit,
   canDelete,
   onEdit,
@@ -464,6 +489,7 @@ function TransactionRow({
   transaction: Transaction;
   accountLabel: string;
   showAccountColumn: boolean;
+  runningBalance: number;
   canEdit: boolean;
   canDelete: boolean;
   onEdit: () => void;
@@ -494,6 +520,9 @@ function TransactionRow({
       >
         {sign > 0 ? "+" : "-"}
         {formatCurrencyIDR(transaction.amount)}
+      </td>
+      <td className="px-5 py-3.5 text-right font-mono tabular-nums text-foreground">
+        {formatCurrencyIDR(runningBalance)}
       </td>
       <td className="px-5 py-3.5">
         <div className="flex items-center justify-end gap-2">
@@ -527,6 +556,7 @@ function TransactionCard({
   transaction,
   accountLabel,
   showAccount,
+  runningBalance,
   canEdit,
   canDelete,
   onEdit,
@@ -535,6 +565,7 @@ function TransactionCard({
   transaction: Transaction;
   accountLabel: string;
   showAccount: boolean;
+  runningBalance: number;
   canEdit: boolean;
   canDelete: boolean;
   onEdit: () => void;
@@ -561,6 +592,11 @@ function TransactionCard({
       </div>
 
       <p className="border-t border-border pt-3 text-sm text-foreground">{transaction.description}</p>
+
+      <div className="flex items-center justify-between gap-2 border-t border-border pt-3 text-xs">
+        <span className="text-muted-foreground">Total Saldo</span>
+        <span className="font-mono tabular-nums text-foreground">{formatCurrencyIDR(runningBalance)}</span>
+      </div>
 
       {canEdit || canDelete ? (
         <div className="flex items-center justify-end gap-2 border-t border-border pt-3">

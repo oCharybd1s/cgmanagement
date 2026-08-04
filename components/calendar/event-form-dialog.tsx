@@ -1,8 +1,10 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { CalendarPlus, X, Loader2 } from "lucide-react";
+import { useMounted } from "@/hooks/use-mounted";
 import { isCoach, isCgl, isSponsor } from "@/lib/auth/roles";
 import { EVENT_TYPE_LABELS, creatableEventTypesForRole, isCgScopedEventType } from "@/lib/events/access";
 import { validateEventInput, type EventFieldErrors } from "@/lib/events/validation";
@@ -41,6 +43,7 @@ export function EventFormDialog({
   onClose,
   onSaved,
 }: EventFormDialogProps) {
+  const mounted = useMounted();
   const creatableTypes = React.useMemo(() => creatableEventTypesForRole(viewerRole), [viewerRole]);
   const [selectedType, setSelectedType] = React.useState<EventType>(
     mode === "edit" && event ? event.type : (creatableTypes[0] ?? "all"),
@@ -227,7 +230,11 @@ export function EventFormDialog({
     return null;
   }
 
-  return (
+  if (!mounted) {
+    return null;
+  }
+
+  return createPortal(
     <AnimatePresence>
       <motion.div
         initial={{ opacity: 0 }}
@@ -377,7 +384,8 @@ export function EventFormDialog({
           </form>
         </motion.div>
       </motion.div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }
 

@@ -16,6 +16,11 @@ export default async function proxy(request: NextRequest) {
   const cookieValue = request.cookies.get(SESSION_COOKIE_NAME)?.value;
   const session = await verifySessionCookie(cookieValue, true);
 
+  if (pathname === "/") {
+    const target = session ? "/home" : "/auth";
+    return NextResponse.redirect(new URL(target, request.url));
+  }
+
   if (PUBLIC_PAGE_PATHS.has(pathname)) {
     if (session) {
       return NextResponse.redirect(new URL("/home", request.url));

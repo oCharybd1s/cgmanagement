@@ -5,6 +5,7 @@ import { Loader2, Pencil, Search, SearchX, Trash2, UserPlus } from "lucide-react
 import { cn } from "@/lib/utils";
 import { canDeleteVipProspect, canManageVipProspect, isCoach } from "@/lib/auth/roles";
 import { VIP_STATUS_LABELS, VIP_STATUS_OPTIONS } from "@/lib/vip-prospects/shared";
+import { rankBySearch } from "@/lib/search/fuzzy-match";
 import { AddVipProspectDialog } from "@/components/vip/add-vip-prospect-dialog";
 import { EditVipProspectDialog } from "@/components/vip/edit-vip-prospect-dialog";
 import { DeleteVipProspectDialog } from "@/components/vip/delete-vip-prospect-dialog";
@@ -62,13 +63,12 @@ export function VipList({
   }, [members]);
 
   const filteredProspects = React.useMemo(() => {
-    const query = search.trim().toLowerCase();
-    return prospects.filter((prospect) => {
-      const matchesQuery = query === "" || prospect.name.toLowerCase().includes(query);
+    const matchingFilters = prospects.filter((prospect) => {
       const matchesCg = cgFilter === "all" || prospect.cgId === cgFilter;
       const matchesStatus = statusFilter === "all" || prospect.status === statusFilter;
-      return matchesQuery && matchesCg && matchesStatus;
+      return matchesCg && matchesStatus;
     });
+    return rankBySearch(search, matchingFilters, (prospect) => [prospect.name]);
   }, [prospects, search, cgFilter, statusFilter]);
 
   function handleCreated(prospect: VipProspect) {

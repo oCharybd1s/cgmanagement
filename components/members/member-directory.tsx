@@ -4,6 +4,7 @@ import * as React from "react";
 import { Eye, Search, SearchX, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { cgGroupDisplayLabel, getRoleLabel } from "@/lib/auth/roles";
+import { rankBySearch } from "@/lib/search/fuzzy-match";
 import { AddMemberDialog } from "@/components/members/add-member-dialog";
 import { QuickAddMemberDialog } from "@/components/members/quick-add-member-dialog";
 import { MemberDetailDialog } from "@/components/members/member-detail-dialog";
@@ -56,12 +57,10 @@ export function MemberDirectory({
   }, [cgGroups]);
 
   const filteredMembers = React.useMemo(() => {
-    const query = search.trim().toLowerCase();
-    return directoryMembers.filter((member) => {
-      const matchesQuery = query === "" || member.fullName.toLowerCase().includes(query);
-      const matchesCg = cgFilter === "all" || member.cgGroupId === cgFilter;
-      return matchesQuery && matchesCg;
-    });
+    const matchingCg = directoryMembers.filter(
+      (member) => cgFilter === "all" || member.cgGroupId === cgFilter,
+    );
+    return rankBySearch(search, matchingCg, (member) => [member.fullName]);
   }, [directoryMembers, search, cgFilter]);
 
   function handleMemberCreated(newMember: Member) {

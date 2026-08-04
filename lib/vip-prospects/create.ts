@@ -1,4 +1,4 @@
-import { FieldValue } from "firebase-admin/firestore";
+import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { getAdminServices } from "@/lib/firebase/firebase-admin";
 import { canCreateVipProspect, isCoach } from "@/lib/auth/roles";
 import { validateVipProspectInput, type VipProspectFieldErrors } from "@/lib/vip-prospects/validation";
@@ -105,6 +105,7 @@ export async function createVipProspectForSession(
       notes,
       linkedMemberId,
       createdBy: session.uid,
+      createdAt: Timestamp.now().toDate().toISOString(),
     },
   };
 }

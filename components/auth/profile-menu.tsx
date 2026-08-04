@@ -15,25 +15,27 @@ export function ProfileMenu({ user }: { user?: ShellUser | null }) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = React.useState(false);
   const [avatarId, setAvatarId] = React.useState<string | null>(null);
+  const [fullName, setFullName] = React.useState<string | null>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
   const { logout, isLoggingOut } = useLogout();
 
   React.useEffect(() => {
     let isCancelled = false;
 
-    async function loadAvatar() {
+    async function loadProfile() {
       try {
         const response = await fetch("/api/members/me", { cache: "no-store" });
         const data = await response.json();
         if (!isCancelled && response.ok && data.ok) {
           setAvatarId(data.member.avatarId ?? null);
+          setFullName(data.member.fullName || null);
         }
       } catch {
-        // Biarkan fallback ke inisial huruf kalau gagal dimuat
+        // Biarkan fallback ke email/inisial huruf kalau gagal dimuat
       }
     }
 
-    loadAvatar();
+    loadProfile();
     return () => {
       isCancelled = true;
     };
@@ -64,7 +66,8 @@ export function ProfileMenu({ user }: { user?: ShellUser | null }) {
     };
   }, [isOpen]);
 
-  const initial = user?.email ? user.email.charAt(0).toUpperCase() : null;
+  const displayName = fullName ?? user?.email ?? "Pengguna";
+  const initial = displayName ? displayName.charAt(0).toUpperCase() : null;
   const AvatarImage = getAvatarComponent(avatarId);
 
   return (
@@ -105,7 +108,7 @@ export function ProfileMenu({ user }: { user?: ShellUser | null }) {
                 </span>
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-foreground">
-                    {user?.email ?? "Pengguna"}
+                    {displayName}
                   </p>
                   <p className="text-xs text-muted-foreground">{getRoleLabel(user?.role ?? null)}</p>
                 </div>
