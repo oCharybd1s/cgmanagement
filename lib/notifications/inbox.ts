@@ -230,8 +230,8 @@ async function pruneExpiredNotificationsForUser(
 }
 
 async function countUnread(collectionRef: CollectionReference): Promise<number> {
-  const snapshot = await collectionRef.where("read", "==", false).get();
-  return snapshot.size;
+  const snapshot = await collectionRef.where("read", "==", false).count().get();
+  return snapshot.data().count;
 }
 
 function clampPageSize(requested: number | undefined): number {

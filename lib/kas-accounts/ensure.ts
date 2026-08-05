@@ -11,11 +11,6 @@ export async function ensureCoachKasAccount(orgId: string): Promise<void> {
     .collection("kasAccounts")
     .doc(COACH_KAS_ACCOUNT_ID);
 
-  const snapshot = await ref.get();
-  if (snapshot.exists) {
-    return;
-  }
-
   try {
     await ref.create({
       accountType: "coach",
@@ -33,11 +28,6 @@ export async function ensureCoachKasAccount(orgId: string): Promise<void> {
 export async function ensureCgKasAccount(orgId: string, cgId: string): Promise<void> {
   const { adminDb } = getAdminServices();
   const ref = adminDb.collection("organizations").doc(orgId).collection("kasAccounts").doc(cgId);
-
-  const snapshot = await ref.get();
-  if (snapshot.exists) {
-    return;
-  }
 
   try {
     await ref.create({
