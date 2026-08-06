@@ -31,6 +31,13 @@ export async function getFormerMembersForSession(session: SessionUser): Promise<
   return [];
 }
 
+export async function listAllFormerMembersForOrg(orgId: string): Promise<FormerMember[]> {
+  const { adminDb } = getAdminServices();
+  const formerMembersRef = adminDb.collection("organizations").doc(orgId).collection("formerMembers");
+  const snapshot = await formerMembersRef.get();
+  return finalizeFormerMembers(snapshot.docs);
+}
+
 function finalizeFormerMembers(docs: QueryDocumentSnapshot[]): FormerMember[] {
   return docs.map(toFormerMember).sort(compareFormerMembers);
 }

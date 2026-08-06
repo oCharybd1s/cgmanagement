@@ -1,4 +1,14 @@
-export type SpiritualMilestone = "msj1" | "msj2" | "msj3" | "baptisSelam" | "baptisRohKudus";
+export type SpiritualMilestone =
+  | "msj1"
+  | "msj2"
+  | "msj3"
+  | "cgt1"
+  | "cgt2"
+  | "cgt3"
+  | "baptisSelam"
+  | "baptisRohKudus";
+
+export type MilestoneGroup = "msj" | "cgt" | "baptis";
 
 export type MilestoneMember = {
   id: string;
@@ -9,7 +19,9 @@ export type MilestoneMember = {
 
 export type MilestoneProgress = {
   key: SpiritualMilestone;
+  group: MilestoneGroup;
   label: string;
+  baseLabel: string;
   completedCount: number;
   totalCount: number;
   percentage: number;
@@ -56,6 +68,36 @@ export type OrgOverview = {
   roleDistribution: { role: string; label: string; count: number }[];
 };
 
+export type FormerMemberReasonStat = {
+  reason: "graduated" | "moved" | "unresponsive" | "other";
+  label: string;
+  count: number;
+};
+
+export type RecentLeaver = {
+  id: string;
+  fullName: string;
+  cgLabel: string;
+  reasonLabel: string;
+  leftDate: string | null;
+};
+
+export type RetentionReport = {
+  totalActive: number;
+  totalFormer: number;
+  leftLast90d: number;
+  reasonBreakdown: FormerMemberReasonStat[];
+  recentLeavers: RecentLeaver[];
+};
+
+export type BirthdayThisMonthItem = {
+  id: string;
+  fullName: string;
+  cgLabel: string;
+  day: number;
+  age: number | null;
+};
+
 export type ComsulReport = {
   overview: OrgOverview;
   cgStats: CgGroupStat[];
@@ -63,5 +105,8 @@ export type ComsulReport = {
   vipPotential: VipReportItem[];
   vipAllCount: number;
   kasAccounts: KasReportAccount[];
+  retention: RetentionReport;
+  birthdaysThisMonth: BirthdayThisMonthItem[];
   generatedAt: string;
 };
+

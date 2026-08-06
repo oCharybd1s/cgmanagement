@@ -9,6 +9,7 @@ import {
   NotebookPen,
   ShieldCheck,
   Building2,
+  ChartColumn,
   type LucideIcon,
 } from "lucide-react";
 
@@ -24,6 +25,7 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { label: "Struktur", href: "/struktur", icon: Network },
   { label: "Keuangan", href: "/keuangan", icon: Wallet },
   { label: "Kalender", href: "/kalender", icon: CalendarDays },
+  { label: "Laporan Statistik", href: "/laporan-statistik", icon: ChartColumn },
   { label: "List VIP", href: "/vip", icon: UserPlus },
   { label: "Laporan CG", href: "/laporan", icon: NotebookPen },
   { label: "Past Member", href: "/alumni", icon: UserX },
@@ -34,6 +36,7 @@ const ALL_NAV_ITEMS: NavItem[] = [
 const STRUKTUR_HIDDEN_ROLES = new Set(["member", "simpatisan"]);
 const FORMER_MEMBERS_ROLES = new Set(["coach", "cgl"]);
 const ADMIN_ONLY_HREFS = new Set(["/audit-trail", "/admin/organizations"]);
+const COACH_ONLY_HREFS = new Set(["/laporan-statistik"]);
 
 export function getNavItemsForRole(role: string | null): NavItem[] {
   return ALL_NAV_ITEMS.filter((item) => {
@@ -44,6 +47,9 @@ export function getNavItemsForRole(role: string | null): NavItem[] {
       return false;
     }
     if (ADMIN_ONLY_HREFS.has(item.href) && role !== "admin") {
+      return false;
+    }
+    if (COACH_ONLY_HREFS.has(item.href) && role !== "coach" && role !== "admin") {
       return false;
     }
     return true;

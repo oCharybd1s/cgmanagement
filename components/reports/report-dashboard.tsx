@@ -9,9 +9,12 @@ import {
   BadgeCheck,
   Waves,
   Flame,
+  BookOpenCheck,
   IdCard,
   ChevronDown,
   ChartPie,
+  UserMinus,
+  PartyPopper,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCurrencyIDR } from "@/lib/transactions/shared";
@@ -21,6 +24,9 @@ const MILESTONE_ICONS: Record<string, React.ComponentType<{ className?: string; 
   msj1: Flame,
   msj2: Flame,
   msj3: Flame,
+  cgt1: BookOpenCheck,
+  cgt2: BookOpenCheck,
+  cgt3: BookOpenCheck,
   baptisSelam: Waves,
   baptisRohKudus: BadgeCheck,
 };
@@ -80,6 +86,8 @@ export function ReportDashboard({ report }: { report: ComsulReport | null }) {
       <MilestoneSection milestones={report.milestones} />
       <VipSection report={report} />
       <KeuanganSection report={report} />
+      <RetentionSection report={report} />
+      <BirthdaySection report={report} />
       <RoleDistributionSection report={report} />
     </div>
   );
@@ -218,17 +226,47 @@ function CgSection({ report }: { report: ComsulReport }) {
 }
 
 function MilestoneSection({ milestones }: { milestones: MilestoneProgress[] }) {
+  const msjMilestones = milestones.filter((milestone) => milestone.group === "msj");
+  const cgtMilestones = milestones.filter((milestone) => milestone.group === "cgt");
+  const baptisMilestones = milestones.filter((milestone) => milestone.group === "baptis");
+
   return (
-    <section className="flex flex-col gap-4">
+    <section className="flex flex-col gap-6">
       <SectionHeader
         icon={BadgeCheck}
         title="Perjalanan Rohani"
-        description="Progres MSJ 1-3 dan Baptisan, lengkap dengan daftar yang belum"
+        description="Progres MSJ 1-3, CGT 1-3, dan Baptisan, lengkap dengan daftar yang belum"
       />
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {milestones.map((milestone) => (
-          <MilestoneCard key={milestone.key} milestone={milestone} />
-        ))}
+
+      <div className="flex flex-col gap-3">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Jenjang MSJ
+        </p>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {msjMilestones.map((milestone) => (
+            <MilestoneCard key={milestone.key} milestone={milestone} />
+          ))}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Jenjang CGT
+        </p>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {cgtMilestones.map((milestone) => (
+            <MilestoneCard key={milestone.key} milestone={milestone} />
+          ))}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Baptisan</p>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {baptisMilestones.map((milestone) => (
+            <MilestoneCard key={milestone.key} milestone={milestone} />
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -256,7 +294,7 @@ function MilestoneCard({ milestone }: { milestone: MilestoneProgress }) {
         />
       </div>
       <p className="text-xs text-muted-foreground">
-        {milestone.completedCount} dari {milestone.totalCount} sudah selesai
+        {milestone.completedCount} dari {milestone.totalCount} sudah selesai ({milestone.baseLabel})
       </p>
 
       {milestone.pending.length > 0 && (
@@ -266,7 +304,9 @@ function MilestoneCard({ milestone }: { milestone: MilestoneProgress }) {
             onClick={() => setExpanded((value) => !value)}
             className="flex items-center justify-between rounded-lg border border-border bg-muted/50 px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-muted"
           >
-            <span>Lihat {milestone.pending.length} yang belum {milestone.label}</span>
+            <span>
+              Lihat {milestone.pending.length} yang belum {milestone.label}
+            </span>
             <ChevronDown
               className={cn("h-4 w-4 transition-transform duration-200", expanded && "rotate-180")}
               strokeWidth={2}
@@ -389,6 +429,150 @@ function KeuanganSection({ report }: { report: ComsulReport }) {
       </div>
     </section>
   );
+}
+
+function RetentionSection({ report }: { report: ComsulReport }) {
+  const { retention } = report;
+  const retentionRate =
+    retention.totalActive + retention.totalFormer > 0
+      ? Math.round((retention.totalActive / (retention.totalActive + retention.totalFormer)) * 100)
+      : 100;
+
+  return (
+    <section className="flex flex-col gap-4">
+      <SectionHeader
+        icon={UserMinus}
+        title="Retensi & Alumni"
+        description={`${retention.totalFormer} anggota sudah keluar sepanjang waktu, ${retention.leftLast90d} di antaranya dalam 90 hari terakhir`}
+      />
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card/70 p-5 shadow-sm backdrop-blur-xl">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium text-foreground">Tingkat Retensi</p>
+            <span className="font-display text-2xl font-bold text-foreground">{retentionRate}%</span>
+          </div>
+          <div className="h-2.5 overflow-hidden rounded-full bg-muted">
+            <div className="h-full rounded-full bg-primary" style={{ width: `${retentionRate}%` }} />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {retention.totalActive} anggota aktif berbanding {retention.totalFormer} yang pernah keluar
+            sepanjang sejarah komsel.
+          </p>
+
+          <div className="flex flex-col gap-2 pt-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Alasan Keluar
+            </p>
+            {retention.reasonBreakdown.map((reason, index) => (
+              <div key={reason.reason} className="flex items-center gap-3">
+                <span className="w-32 shrink-0 text-xs text-muted-foreground">{reason.label}</span>
+                <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${(reason.count / Math.max(1, retention.totalFormer)) * 100}%`,
+                      backgroundColor: CHART_COLORS[index % CHART_COLORS.length],
+                    }}
+                  />
+                </div>
+                <span className="w-6 shrink-0 text-right text-xs font-semibold text-foreground">
+                  {reason.count}
+                </span>
+              </div>
+            ))}
+            {retention.reasonBreakdown.length === 0 && (
+              <p className="text-xs text-muted-foreground">Belum ada anggota yang keluar.</p>
+            )}
+          </div>
+        </div>
+
+        <div className="overflow-x-auto rounded-2xl border border-border bg-card/70 shadow-sm backdrop-blur-xl">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
+                <th className="px-4 py-3 font-medium">Nama</th>
+                <th className="px-4 py-3 font-medium">CG</th>
+                <th className="px-4 py-3 font-medium">Alasan</th>
+                <th className="px-4 py-3 font-medium">Tanggal Keluar</th>
+              </tr>
+            </thead>
+            <tbody>
+              {retention.recentLeavers.map((leaver) => (
+                <tr key={leaver.id} className="border-b border-border/60 last:border-0">
+                  <td className="px-4 py-3 font-medium text-foreground">{leaver.fullName}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{leaver.cgLabel}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{leaver.reasonLabel}</td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {leaver.leftDate ? formatDateLabel(leaver.leftDate) : "-"}
+                  </td>
+                </tr>
+              ))}
+              {retention.recentLeavers.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="px-4 py-6 text-center text-muted-foreground">
+                    Belum ada riwayat anggota keluar.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function BirthdaySection({ report }: { report: ComsulReport }) {
+  const monthLabel = new Intl.DateTimeFormat("id-ID", { month: "long" }).format(new Date());
+
+  return (
+    <section className="flex flex-col gap-4">
+      <SectionHeader
+        icon={PartyPopper}
+        title={`Ulang Tahun Bulan ${monthLabel}`}
+        description={`${report.birthdaysThisMonth.length} anggota berulang tahun bulan ini`}
+      />
+      <div className="overflow-x-auto rounded-2xl border border-border bg-card/70 shadow-sm backdrop-blur-xl">
+        <table className="w-full text-left text-sm">
+          <thead>
+            <tr className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
+              <th className="px-4 py-3 font-medium">Tanggal</th>
+              <th className="px-4 py-3 font-medium">Nama</th>
+              <th className="px-4 py-3 font-medium">CG</th>
+              <th className="px-4 py-3 font-medium">Usia</th>
+            </tr>
+          </thead>
+          <tbody>
+            {report.birthdaysThisMonth.map((birthday) => (
+              <tr key={birthday.id} className="border-b border-border/60 last:border-0">
+                <td className="px-4 py-3 font-medium text-foreground">{birthday.day}</td>
+                <td className="px-4 py-3 text-foreground">{birthday.fullName}</td>
+                <td className="px-4 py-3 text-muted-foreground">{birthday.cgLabel}</td>
+                <td className="px-4 py-3 text-muted-foreground">
+                  {birthday.age !== null ? `${birthday.age} th` : "-"}
+                </td>
+              </tr>
+            ))}
+            {report.birthdaysThisMonth.length === 0 && (
+              <tr>
+                <td colSpan={4} className="px-4 py-6 text-center text-muted-foreground">
+                  Tidak ada anggota yang berulang tahun bulan ini.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+function formatDateLabel(value: string): string {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+  return new Intl.DateTimeFormat("id-ID", { dateStyle: "medium" }).format(parsed);
 }
 
 function RoleDistributionSection({ report }: { report: ComsulReport }) {
