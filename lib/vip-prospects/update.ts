@@ -4,6 +4,7 @@ import { canManageVipProspect, isCoach } from "@/lib/auth/roles";
 import { validateVipProspectInput, type VipProspectFieldErrors } from "@/lib/vip-prospects/validation";
 import { normalizeOptional, normalizeStatus, toStringValue } from "@/lib/vip-prospects/shared";
 import { createLinkedSimpatisanFromProspect } from "@/lib/vip-prospects/auto-link";
+import { sendNotificationToUser } from "@/lib/notifications/send";
 import type { SessionUser } from "@/lib/auth/types";
 import type { VipProspect } from "@/lib/vip-prospects/types";
 
@@ -72,6 +73,10 @@ export async function updateVipProspectForSession(
   const status = normalizeStatus(payload.status);
   const notes = normalizeOptional(payload.notes);
   const previousStatus = typeof targetData.status === "string" ? targetData.status : "pending";
+  const previousFollowUpByUserId =
+    typeof targetData.followUpByUserId === "string" && targetData.followUpByUserId
+      ? targetData.followUpByUserId
+      : null;
   const existingLinkedMemberId =
     typeof targetData.linkedMemberId === "string" && targetData.linkedMemberId ? targetData.linkedMemberId : null;
 
@@ -94,6 +99,15 @@ export async function updateVipProspectForSession(
     });
   } catch {
     return { ok: false, status: 500, error: "Gagal menyimpan perubahan data VIP" };
+  }
+
+  if (followUpByUserId && followUpByUserId !== previousFollowUpByUserId && followUpByUserId !== session.uid) {
+    await sendNotificationToUser(adminDb, session.orgId, followUpByUserId, {
+      title: "VIP Baru Ditugaskan",
+      body: `Anda ditugaskan follow-up untuk ${name}`,
+      url: "/vip",
+      category: "vip",
+    }).catch(() => undefined);
   }
 
   return {

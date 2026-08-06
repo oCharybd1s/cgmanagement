@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { KeyRound, User, Bell, X, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useMounted } from "@/hooks/use-mounted";
 import { ProfileSection } from "@/components/settings/sections/profile-section";
 import { SecuritySection } from "@/components/settings/sections/security-section";
 import { NotificationSection } from "@/components/settings/sections/notification-section";
@@ -28,18 +29,19 @@ export function SettingsModal({
   defaultSection?: SettingsSection;
   onAvatarChange?: (avatarId: string) => void;
 }) {
-  const [mounted, setMounted] = React.useState(false);
+  const mounted = useMounted();
   const [activeSection, setActiveSection] = React.useState<SettingsSection>(defaultSection);
+  const [openedWith, setOpenedWith] = React.useState<{ isOpen: boolean; defaultSection: SettingsSection }>({
+    isOpen,
+    defaultSection,
+  });
 
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  React.useEffect(() => {
-    if (isOpen) {
-      setActiveSection(defaultSection);
-    }
-  }, [isOpen, defaultSection]);
+  if (isOpen && (!openedWith.isOpen || openedWith.defaultSection !== defaultSection)) {
+    setOpenedWith({ isOpen, defaultSection });
+    setActiveSection(defaultSection);
+  } else if (isOpen !== openedWith.isOpen) {
+    setOpenedWith({ isOpen, defaultSection });
+  }
 
   React.useEffect(() => {
     if (!isOpen) {

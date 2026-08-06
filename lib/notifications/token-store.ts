@@ -77,3 +77,32 @@ export async function deleteFcmTokensByValue(
   }
   await batch.commit();
 }
+
+export async function pruneStaleFcmTokensForUser(
+  adminDb: Firestore,
+  orgId: string,
+  userId: string,
+  maxAgeMs: number,
+): Promise<number> {
+  const snapshot = await tokensCollection(adminDb, orgId, userId).get();
+  const cutoff = Date.now() - maxAgeMs;
+
+  const staleDocs = snapshot.docs.filter((doc) => {
+    const updatedAt = doc.data().updatedAt;
+    const updatedAtMs =
+      updatedAt && typeof updatedAt.toMillis === "function" ? updatedAt.toMillis() : null;
+    return updatedAtMs === null || updatedAtMs < cutoff;
+  });
+
+  if (staleDocs.length === 0) {
+    return 0;
+  }
+
+  const batch = adminDb.batch();
+  for (const doc of staleDocs) {
+    batch.delete(doc.ref);
+  }
+  await batch.commit();
+
+  return staleDocs.length;
+}

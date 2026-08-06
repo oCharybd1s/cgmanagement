@@ -108,7 +108,6 @@ export function VipList({
         setProspects((current) => current.map((item) => (item.id === prospect.id ? data.prospect : item)));
       }
     } catch {
-      // Diamkan, status akan tetap seperti semula karena data tidak diperbarui
     } finally {
       setStatusUpdatingId(null);
     }

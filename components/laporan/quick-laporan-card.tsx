@@ -109,7 +109,7 @@ export function QuickLaporanCard({
 
         <div className="flex items-center justify-between gap-3 pt-1">
           {justSubmitted ? (
-            <p className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+            <p className="inline-flex items-center gap-1.5 text-sm font-medium text-success">
               <CheckCircle2 className="h-4 w-4" strokeWidth={2} />
               Laporan tersimpan
             </p>

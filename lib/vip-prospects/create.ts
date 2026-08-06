@@ -4,6 +4,7 @@ import { canCreateVipProspect, isCoach } from "@/lib/auth/roles";
 import { validateVipProspectInput, type VipProspectFieldErrors } from "@/lib/vip-prospects/validation";
 import { normalizeOptional, normalizeStatus, toStringValue } from "@/lib/vip-prospects/shared";
 import { createLinkedSimpatisanFromProspect } from "@/lib/vip-prospects/auto-link";
+import { sendNotificationToUser } from "@/lib/notifications/send";
 import type { SessionUser } from "@/lib/auth/types";
 import type { VipProspect } from "@/lib/vip-prospects/types";
 
@@ -91,6 +92,15 @@ export async function createVipProspectForSession(
     });
   } catch {
     return { ok: false, status: 500, error: "Gagal menyimpan data VIP" };
+  }
+
+  if (followUpByUserId && followUpByUserId !== session.uid) {
+    await sendNotificationToUser(adminDb, session.orgId, followUpByUserId, {
+      title: "VIP Baru Ditugaskan",
+      body: `Anda ditugaskan follow-up untuk ${name}`,
+      url: "/vip",
+      category: "vip",
+    }).catch(() => undefined);
   }
 
   return {

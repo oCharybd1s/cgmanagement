@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { verifySession } from "@/lib/auth/dal";
 import { toShellUser } from "@/lib/auth/shell-user";
-import { canDeleteCgGroup, canManageCgGroups, canViewOrganizationTree } from "@/lib/auth/roles";
+import { canDeleteCgGroup, canManageCgGroups, canViewCgGroups, canViewOrganizationTree } from "@/lib/auth/roles";
 import { getCgGroupsForOrg } from "@/lib/cg-groups/data";
 import { getOrganizationTreeForSession } from "@/lib/organizations/tree";
 import { AppShell } from "@/components/layout/app-shell";
@@ -14,6 +14,10 @@ export default async function StrukturPage() {
 
   if (!session) {
     redirect("/auth");
+  }
+
+  if (!canViewCgGroups(session.role)) {
+    redirect("/home");
   }
 
   const showTree = canViewOrganizationTree(session.role);

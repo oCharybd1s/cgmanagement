@@ -29,7 +29,6 @@ export async function GET(request: NextRequest) {
   for (const orgRef of orgRefs) {
     const summary = await runDailyNotificationJob(adminServices.adminDb, orgRef.id);
     summaries.push(summary);
-    console.log("daily notification job done", summary);
   }
 
   return NextResponse.json({ ok: true, summaries });

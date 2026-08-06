@@ -50,6 +50,10 @@ export function canDeleteCgGroup(role: string | null) {
   return isCoach(role);
 }
 
+export function canViewCgGroups(role: string | null) {
+  return isCoach(role) || isCgl(role) || isSponsor(role);
+}
+
 export function canViewAuditTrail(role: string | null) {
   return isAdmin(role);
 }

@@ -8,7 +8,7 @@ import { getRoleLabel } from "@/lib/auth/roles";
 import { useLogout } from "@/hooks/use-logout";
 import { DemoRoleSwitcher } from "@/components/dev/demo-role-switcher";
 import { SettingsModal } from "@/components/settings/settings-modal";
-import { getAvatarComponent } from "@/components/settings/avatars/avatar-catalog";
+import { findAvatarEntry } from "@/components/settings/avatars/avatar-catalog";
 import type { ShellUser } from "@/lib/auth/shell-user";
 
 export function ProfileMenu({ user }: { user?: ShellUser | null }) {
@@ -31,7 +31,7 @@ export function ProfileMenu({ user }: { user?: ShellUser | null }) {
           setFullName(data.member.fullName || null);
         }
       } catch {
-        // Biarkan fallback ke email/inisial huruf kalau gagal dimuat
+        setAvatarId(null);
       }
     }
 
@@ -68,7 +68,7 @@ export function ProfileMenu({ user }: { user?: ShellUser | null }) {
 
   const displayName = fullName ?? user?.email ?? "Pengguna";
   const initial = displayName ? displayName.charAt(0).toUpperCase() : null;
-  const AvatarImage = getAvatarComponent(avatarId);
+  const avatarEntry = findAvatarEntry(avatarId);
 
   return (
     <>
@@ -81,7 +81,7 @@ export function ProfileMenu({ user }: { user?: ShellUser | null }) {
           className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2.5 transition-colors duration-200 hover:bg-muted"
         >
           <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary text-sm font-semibold text-primary-foreground">
-            {AvatarImage ? <AvatarImage /> : (initial ?? <User className="h-4 w-4" strokeWidth={2} />)}
+            {avatarEntry ? <avatarEntry.Component /> : (initial ?? <User className="h-4 w-4" strokeWidth={2} />)}
           </span>
           <ChevronDown
             className={cn(
@@ -104,7 +104,7 @@ export function ProfileMenu({ user }: { user?: ShellUser | null }) {
             >
               <div className="flex items-center gap-3 px-4 py-3">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary text-sm font-semibold text-primary-foreground">
-                  {AvatarImage ? <AvatarImage /> : (initial ?? <User className="h-4 w-4" strokeWidth={2} />)}
+                  {avatarEntry ? <avatarEntry.Component /> : (initial ?? <User className="h-4 w-4" strokeWidth={2} />)}
                 </span>
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-foreground">

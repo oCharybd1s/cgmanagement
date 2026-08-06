@@ -218,7 +218,7 @@ export async function promoteMemberForSession(
 
   try {
     await adminDb.runTransaction(async (transaction) => {
-      transaction.update(memberRef, { role: newRole, updatedBy: session.uid, updatedAt: now });
+      transaction.update(memberRef, { role: newRole, isBendahara: false, updatedBy: session.uid, updatedAt: now });
       transaction.set(logRef, {
         memberId: trimmedMemberId,
         actionType: "promote",
@@ -241,7 +241,7 @@ export async function promoteMemberForSession(
         role: newRole,
         orgId: session.orgId,
         cgGroupId,
-        isBendahara: memberData.isBendahara === true,
+        isBendahara: false,
       })
       .catch(() => undefined);
   }
@@ -329,7 +329,7 @@ export async function demoteMemberForSession(session: SessionUser, memberId: str
 
   try {
     await adminDb.runTransaction(async (transaction) => {
-      transaction.update(memberRef, { role: newRole, updatedBy: session.uid, updatedAt: now });
+      transaction.update(memberRef, { role: newRole, isBendahara: false, updatedBy: session.uid, updatedAt: now });
       transaction.set(logRef, {
         memberId: trimmedMemberId,
         actionType: "demote",
@@ -352,7 +352,7 @@ export async function demoteMemberForSession(session: SessionUser, memberId: str
         role: newRole,
         orgId: session.orgId,
         cgGroupId,
-        isBendahara: memberData.isBendahara === true,
+        isBendahara: false,
       })
       .catch(() => undefined);
   }

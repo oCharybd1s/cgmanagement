@@ -41,12 +41,14 @@ function EditableContactField({
 }) {
   const [isEditing, setIsEditing] = React.useState(false);
   const [inputValue, setInputValue] = React.useState(value);
+  const [prevValue, setPrevValue] = React.useState(value);
   const [isSaving, setIsSaving] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  React.useEffect(() => {
+  if (value !== prevValue) {
+    setPrevValue(value);
     setInputValue(value);
-  }, [value]);
+  }
 
   function handleEdit() {
     setInputValue(value);

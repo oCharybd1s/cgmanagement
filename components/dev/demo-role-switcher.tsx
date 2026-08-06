@@ -23,7 +23,7 @@ export function DemoRoleSwitcher({
 
   React.useEffect(() => {
     loadCgGroups();
-  }, []);
+  }, [loadCgGroups]);
 
   return (
     <>

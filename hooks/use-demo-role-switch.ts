@@ -10,7 +10,7 @@ export function useDemoRoleSwitch() {
   const [cgGroups, setCgGroups] = React.useState<CgGroup[]>([]);
   const [error, setError] = React.useState<string | null>(null);
 
-  async function loadCgGroups() {
+  const loadCgGroups = React.useCallback(async () => {
     setIsLoadingCgGroups(true);
     try {
       const response = await fetch("/api/dev/cg-groups");
@@ -21,9 +21,9 @@ export function useDemoRoleSwitch() {
     } finally {
       setIsLoadingCgGroups(false);
     }
-  }
+  }, []);
 
-  async function switchRole(role: DemoSwitchableRole, cgGroupId: string | null) {
+  const switchRole = React.useCallback(async (role: DemoSwitchableRole, cgGroupId: string | null) => {
     setIsSwitching(true);
     setError(null);
     try {
@@ -43,7 +43,7 @@ export function useDemoRoleSwitch() {
       setError("Gagal switch role");
       setIsSwitching(false);
     }
-  }
+  }, []);
 
   return { switchRole, loadCgGroups, cgGroups, isSwitching, isLoadingCgGroups, error };
 }

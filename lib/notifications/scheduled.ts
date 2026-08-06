@@ -9,7 +9,10 @@ import { pickSelfBirthdayMessage } from "@/lib/notifications/birthday-messages";
 import { isCoach, isCgl } from "@/lib/auth/roles";
 import { sendNotificationToUsers } from "@/lib/notifications/send";
 import { pruneExpiredNotificationsForOrg } from "@/lib/notifications/inbox";
+import { pruneStaleFcmTokensForUser } from "@/lib/notifications/token-store";
 import type { Member } from "@/lib/members/types";
+
+const STALE_FCM_TOKEN_MAX_AGE_MS = 60 * 24 * 60 * 60 * 1000;
 
 export type DailyNotificationSummary = {
   orgId: string;
@@ -17,6 +20,7 @@ export type DailyNotificationSummary = {
   birthdayReminderNotified: number;
   eventTodayNotified: number;
   expiredNotificationsPruned: number;
+  staleFcmTokensPruned: number;
 };
 
 export async function runDailyNotificationJob(adminDb: Firestore, orgId: string): Promise<DailyNotificationSummary> {
@@ -25,15 +29,35 @@ export async function runDailyNotificationJob(adminDb: Firestore, orgId: string)
 
   const members = await listAllMembersForOrg(orgId);
 
-  const [birthdayTodayNotified, birthdayReminderNotified, eventTodayNotified, expiredNotificationsPruned] =
-    await Promise.all([
-      notifyBirthdaysToday(adminDb, orgId, members, today),
-      notifyBirthdayReminders(adminDb, orgId, members, reminderDate),
-      notifyEventsToday(adminDb, orgId, members, today),
-      pruneExpiredNotificationsForOrg(adminDb, orgId),
-    ]);
+  const [
+    birthdayTodayNotified,
+    birthdayReminderNotified,
+    eventTodayNotified,
+    expiredNotificationsPruned,
+    staleFcmTokensPruned,
+  ] = await Promise.all([
+    notifyBirthdaysToday(adminDb, orgId, members, today),
+    notifyBirthdayReminders(adminDb, orgId, members, reminderDate),
+    notifyEventsToday(adminDb, orgId, members, today),
+    pruneExpiredNotificationsForOrg(adminDb, orgId),
+    pruneStaleFcmTokensForOrg(adminDb, orgId, members),
+  ]);
 
-  return { orgId, birthdayTodayNotified, birthdayReminderNotified, eventTodayNotified, expiredNotificationsPruned };
+  return {
+    orgId,
+    birthdayTodayNotified,
+    birthdayReminderNotified,
+    eventTodayNotified,
+    expiredNotificationsPruned,
+    staleFcmTokensPruned,
+  };
+}
+
+async function pruneStaleFcmTokensForOrg(adminDb: Firestore, orgId: string, members: Member[]): Promise<number> {
+  const results = await Promise.all(
+    members.map((member) => pruneStaleFcmTokensForUser(adminDb, orgId, member.id, STALE_FCM_TOKEN_MAX_AGE_MS)),
+  );
+  return results.reduce((total, count) => total + count, 0);
 }
 
 async function notifyBirthdaysToday(

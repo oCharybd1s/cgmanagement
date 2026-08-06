@@ -50,13 +50,17 @@ export function DeleteCgGroupDialog({
     if (!open) return;
 
     let isCancelled = false;
-    setIsLoadingMembers(true);
-    setError(null);
 
-    fetch(`/api/cg-groups/${cgGroup.id}`)
-      .then((response) => response.json())
+    Promise.resolve()
+      .then(() => {
+        if (isCancelled) return undefined;
+        setIsLoadingMembers(true);
+        setError(null);
+        return fetch(`/api/cg-groups/${cgGroup.id}`);
+      })
+      .then((response) => response?.json())
       .then((data) => {
-        if (isCancelled || !data.ok) return;
+        if (isCancelled || !data?.ok) return;
         const loadedMembers = data.members as CgGroupMember[];
         setMembers(loadedMembers);
         setDispositions(

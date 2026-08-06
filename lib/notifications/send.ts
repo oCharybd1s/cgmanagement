@@ -2,6 +2,7 @@ import type { Firestore } from "firebase-admin/firestore";
 import { getMessaging } from "firebase-admin/messaging";
 import { listFcmTokens, deleteFcmTokensByValue } from "@/lib/notifications/token-store";
 import { persistNotificationForUser } from "@/lib/notifications/inbox";
+import { isNotificationCategoryEnabled } from "@/lib/notifications/preferences";
 import type { NotificationPayload, SendResult } from "@/lib/notifications/types";
 
 const INVALID_TOKEN_ERROR_CODES = new Set([
@@ -60,6 +61,11 @@ export async function sendNotificationToUser(
   userId: string,
   payload: NotificationPayload,
 ): Promise<SendResult> {
+  const categoryEnabled = await isNotificationCategoryEnabled(adminDb, orgId, userId, payload.category);
+  if (!categoryEnabled) {
+    return { successCount: 0, failureCount: 0, invalidTokens: [] };
+  }
+
   await persistNotificationForUser(adminDb, orgId, userId, payload);
 
   const tokenDocs = await listFcmTokens(adminDb, orgId, userId);

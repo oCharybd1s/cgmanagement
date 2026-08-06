@@ -103,7 +103,7 @@ service cloud.firestore {
       }
 
       match /cgGroups/{cgId} {
-        allow read: if inOrg(orgId);
+        allow read: if inOrg(orgId) && (isCoach() || isCgl() || isSponsor());
 
         allow create: if inOrg(orgId) && isCoach() &&
           request.resource.data.groupCode == cgId &&

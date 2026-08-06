@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Check, Loader2, User } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { AVATAR_CATALOG, getAvatarComponent, type AvatarId } from "@/components/settings/avatars/avatar-catalog";
+import { AVATAR_CATALOG, findAvatarEntry, type AvatarId } from "@/components/settings/avatars/avatar-catalog";
 
 export function AvatarPicker({
   selectedAvatarId,
@@ -30,14 +30,14 @@ export function AvatarPicker({
     }
   }
 
-  const CurrentAvatar = getAvatarComponent(selectedAvatarId);
+  const currentAvatarEntry = findAvatarEntry(selectedAvatarId);
   const isSaving = pendingAvatarId !== null;
 
   return (
     <div className="flex flex-col items-center gap-4">
       <div className="relative flex h-28 w-28 items-center justify-center overflow-hidden rounded-full border-2 border-border bg-muted">
-        {CurrentAvatar ? (
-          <CurrentAvatar />
+        {currentAvatarEntry ? (
+          <currentAvatarEntry.Component />
         ) : (
           <User className="h-10 w-10 text-muted-foreground" strokeWidth={1.5} />
         )}

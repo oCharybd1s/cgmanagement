@@ -492,6 +492,6 @@ export const AVATAR_CATALOG: { id: AvatarId; label: string; Component: Component
   { id: "woman-calm", label: "Wanita Tenang", Component: WomanCalmAvatar },
 ];
 
-export function getAvatarComponent(avatarId: string | null): ComponentType | null {
-  return AVATAR_CATALOG.find((avatar) => avatar.id === avatarId)?.Component ?? null;
+export function findAvatarEntry(avatarId: string | null): { id: AvatarId; label: string; Component: ComponentType } | null {
+  return AVATAR_CATALOG.find((avatar) => avatar.id === avatarId) ?? null;
 }

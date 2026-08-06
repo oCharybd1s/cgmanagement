@@ -9,6 +9,27 @@ export function NotificationTokenSync() {
   React.useEffect(() => {
     let cancelled = false;
 
+    async function fetchToken(
+      messaging: NonNullable<Awaited<ReturnType<typeof getFirebaseMessaging>>>,
+      vapidKey: string,
+      registration: ServiceWorkerRegistration,
+    ) {
+      const token = await getToken(messaging, { vapidKey, serviceWorkerRegistration: registration }).catch(
+        () => null,
+      );
+
+      if (token) {
+        return token;
+      }
+
+      const existingSubscription = await registration.pushManager.getSubscription().catch(() => null);
+      if (existingSubscription) {
+        await existingSubscription.unsubscribe().catch(() => undefined);
+      }
+
+      return getToken(messaging, { vapidKey, serviceWorkerRegistration: registration }).catch(() => null);
+    }
+
     async function syncToken() {
       if (typeof window === "undefined" || !("Notification" in window)) {
         return;
@@ -29,9 +50,7 @@ export function NotificationTokenSync() {
       }
 
       const registration = await navigator.serviceWorker.ready;
-      const token = await getToken(messaging, { vapidKey, serviceWorkerRegistration: registration }).catch(
-        () => null,
-      );
+      const token = await fetchToken(messaging, vapidKey, registration);
 
       if (!token || cancelled) {
         return;
