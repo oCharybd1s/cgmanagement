@@ -2,7 +2,7 @@
 
 import type { KeyboardEvent, MouseEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Bell, Cake, CalendarDays, Trash2, UserPlus } from "lucide-react";
+import { Bell, Cake, CalendarDays, MessageSquareReply, Trash2, UserPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatNotificationTime, getCategoryLabel } from "@/lib/notifications/format";
 import type { InAppNotification, NotificationCategory } from "@/lib/notifications/types";
@@ -11,6 +11,7 @@ const CATEGORY_ICONS: Record<NotificationCategory, typeof Bell> = {
   birthday: Cake,
   event: CalendarDays,
   vip: UserPlus,
+  laporan: MessageSquareReply,
   general: Bell,
 };
 

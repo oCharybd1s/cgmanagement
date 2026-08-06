@@ -6,7 +6,7 @@ export type FcmTokenDoc = {
   updatedAt: unknown;
 };
 
-export type NotificationCategory = "birthday" | "event" | "vip" | "general";
+export type NotificationCategory = "birthday" | "event" | "vip" | "laporan" | "general";
 
 export type NotificationPayload = {
   title: string;

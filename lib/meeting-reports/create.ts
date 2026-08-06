@@ -89,6 +89,9 @@ export async function createMeetingReportForSession(
       result,
       submittedBy: session.uid,
       createdAt: Timestamp.now().toDate().toISOString(),
+      coachResponse: null,
+      respondedBy: null,
+      respondedAt: null,
     },
   };
 }

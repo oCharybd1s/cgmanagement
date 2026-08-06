@@ -7,12 +7,14 @@ export type NotificationPreferences = {
   birthday: boolean;
   event: boolean;
   vip: boolean;
+  laporan: boolean;
 };
 
 export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   birthday: true,
   event: true,
   vip: true,
+  laporan: true,
 };
 
 export function toNotificationPreferences(value: unknown): NotificationPreferences {
@@ -22,6 +24,7 @@ export function toNotificationPreferences(value: unknown): NotificationPreferenc
     birthday: record.birthday !== false,
     event: record.event !== false,
     vip: record.vip !== false,
+    laporan: record.laporan !== false,
   };
 }
 
@@ -72,6 +75,7 @@ export async function updateNotificationPreferencesForSession(
     birthday: typeof patch.birthday === "boolean" ? patch.birthday : current.birthday,
     event: typeof patch.event === "boolean" ? patch.event : current.event,
     vip: typeof patch.vip === "boolean" ? patch.vip : current.vip,
+    laporan: typeof patch.laporan === "boolean" ? patch.laporan : current.laporan,
   };
 
   try {

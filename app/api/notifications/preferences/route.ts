@@ -30,7 +30,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ ok: false, error: "Data yang dikirim tidak valid" }, { status: 400 });
   }
 
-  const patch: { birthday?: boolean; event?: boolean; vip?: boolean } = {};
+  const patch: { birthday?: boolean; event?: boolean; vip?: boolean; laporan?: boolean } = {};
   if (typeof (body as Record<string, unknown>).birthday === "boolean") {
     patch.birthday = (body as Record<string, unknown>).birthday as boolean;
   }
@@ -39,6 +39,9 @@ export async function PATCH(request: NextRequest) {
   }
   if (typeof (body as Record<string, unknown>).vip === "boolean") {
     patch.vip = (body as Record<string, unknown>).vip as boolean;
+  }
+  if (typeof (body as Record<string, unknown>).laporan === "boolean") {
+    patch.laporan = (body as Record<string, unknown>).laporan as boolean;
   }
 
   const result = await updateNotificationPreferencesForSession(session, patch);

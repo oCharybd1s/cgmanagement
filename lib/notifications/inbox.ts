@@ -257,7 +257,7 @@ function toInAppNotification(doc: QueryDocumentSnapshot): InAppNotification {
 }
 
 function readCategory(value: unknown): NotificationCategory {
-  if (value === "birthday" || value === "event" || value === "vip" || value === "general") {
+  if (value === "birthday" || value === "event" || value === "vip" || value === "laporan" || value === "general") {
     return value;
   }
   return "general";

@@ -6,12 +6,14 @@ export type NotificationPreferences = {
   birthday: boolean;
   event: boolean;
   vip: boolean;
+  laporan: boolean;
 };
 
 const DEFAULT_PREFERENCES: NotificationPreferences = {
   birthday: true,
   event: true,
   vip: true,
+  laporan: true,
 };
 
 export function useNotificationPreferences() {

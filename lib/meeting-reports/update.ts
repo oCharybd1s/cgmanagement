@@ -91,6 +91,9 @@ export async function updateMeetingReportForSession(
       result,
       submittedBy: typeof targetData.submittedBy === "string" ? targetData.submittedBy : null,
       createdAt: targetData.createdAt instanceof Timestamp ? targetData.createdAt.toDate().toISOString() : null,
+      coachResponse: typeof targetData.coachResponse === "string" ? targetData.coachResponse : null,
+      respondedBy: typeof targetData.respondedBy === "string" ? targetData.respondedBy : null,
+      respondedAt: targetData.respondedAt instanceof Timestamp ? targetData.respondedAt.toDate().toISOString() : null,
     },
   };
 }

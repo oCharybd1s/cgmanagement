@@ -21,3 +21,15 @@ export function validateMeetingReportInput(input: {
 
   return errors;
 }
+
+export type MeetingReportResponseFieldErrors = Partial<Record<"coachResponse", string>>;
+
+export function validateMeetingReportResponseInput(input: { coachResponse: string }): MeetingReportResponseFieldErrors {
+  const errors: MeetingReportResponseFieldErrors = {};
+
+  if (input.coachResponse.trim() === "") {
+    errors.coachResponse = "Respon wajib diisi";
+  }
+
+  return errors;
+}

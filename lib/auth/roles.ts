@@ -118,6 +118,10 @@ export function canDeleteMeetingReport(role: string | null) {
   return isCoach(role);
 }
 
+export function canRespondToMeetingReport(role: string | null) {
+  return isCoach(role);
+}
+
 export function canViewMemberDirectory(role: string | null) {
   return isCoach(role) || isCgl(role) || isSponsor(role) || isMember(role) || isSimpatisan(role);
 }

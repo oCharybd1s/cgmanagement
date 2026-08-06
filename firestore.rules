@@ -258,7 +258,9 @@ service cloud.firestore {
           request.resource.data.cgId is string && request.resource.data.cgId != '' &&
           request.resource.data.meetingDate is string && request.resource.data.meetingDate != '' &&
           request.resource.data.agenda is string && request.resource.data.agenda != '' &&
-          request.resource.data.result is string && request.resource.data.result != '';
+          request.resource.data.result is string && request.resource.data.result != '' &&
+          (!('coachResponse' in request.resource.data) || request.resource.data.coachResponse is string) &&
+          (!('respondedBy' in request.resource.data) || request.resource.data.respondedBy is string);
 
         allow delete: if inOrg(orgId) && isCoach();
       }

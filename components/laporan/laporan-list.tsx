@@ -7,6 +7,7 @@ import { rankBySearch } from "@/lib/search/fuzzy-match";
 import { AddLaporanDialog } from "@/components/laporan/add-laporan-dialog";
 import { EditLaporanDialog } from "@/components/laporan/edit-laporan-dialog";
 import { DeleteLaporanDialog } from "@/components/laporan/delete-laporan-dialog";
+import { LaporanResponse } from "@/components/laporan/laporan-response";
 import type { MeetingReport } from "@/lib/meeting-reports/types";
 import type { CgGroup } from "@/lib/cg-groups/types";
 import type { Member } from "@/lib/members/types";
@@ -82,6 +83,10 @@ export function LaporanList({
   function handleDeleted(reportId: string) {
     setReports((current) => current.filter((item) => item.id !== reportId));
     setDeletingReport(null);
+  }
+
+  function handleResponded(report: MeetingReport) {
+    setReports((current) => current.map((item) => (item.id === report.id ? report : item)));
   }
 
   if (requiresCgPicker && selectedCgId === null) {
@@ -165,10 +170,13 @@ export function LaporanList({
                   key={report.id}
                   report={report}
                   submittedByName={report.submittedBy ? (memberNameById.get(report.submittedBy) ?? null) : null}
+                  respondedByName={report.respondedBy ? (memberNameById.get(report.respondedBy) ?? null) : null}
+                  viewerRole={viewerRole}
                   canEdit={canEdit}
                   canDelete={canDelete}
                   onEdit={() => setEditingReport(report)}
                   onDelete={() => setDeletingReport(report)}
+                  onResponded={handleResponded}
                 />
               ))}
             </div>
@@ -253,17 +261,23 @@ function CgPicker({
 function LaporanCard({
   report,
   submittedByName,
+  respondedByName,
+  viewerRole,
   canEdit,
   canDelete,
   onEdit,
   onDelete,
+  onResponded,
 }: {
   report: MeetingReport;
   submittedByName: string | null;
+  respondedByName: string | null;
+  viewerRole: string | null;
   canEdit: boolean;
   canDelete: boolean;
   onEdit: () => void;
   onDelete: () => void;
+  onResponded: (report: MeetingReport) => void;
 }) {
   return (
     <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card/70 p-5 shadow-sm backdrop-blur-xl">
@@ -313,6 +327,13 @@ function LaporanCard({
         <User className="h-3.5 w-3.5" strokeWidth={2} />
         Disubmit oleh {submittedByName ?? "-"}
       </div>
+
+      <LaporanResponse
+        report={report}
+        viewerRole={viewerRole}
+        respondedByName={respondedByName}
+        onResponded={onResponded}
+      />
     </div>
   );
 }

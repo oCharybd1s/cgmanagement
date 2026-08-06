@@ -6,6 +6,7 @@ const CATEGORY_LABELS: Record<NotificationCategory, string> = {
   birthday: "Ulang Tahun",
   event: "Event",
   vip: "List VIP",
+  laporan: "Laporan CG",
   general: "Umum",
 };
 

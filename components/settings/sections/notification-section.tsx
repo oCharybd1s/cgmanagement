@@ -9,6 +9,7 @@ const CATEGORY_ITEMS: { key: keyof NotificationPreferences; label: string; descr
   { key: "birthday", label: "Ulang Tahun", description: "Notifikasi ulang tahun anggota dan reminder H-7" },
   { key: "event", label: "Event", description: "Notifikasi event dan pertemuan mendatang" },
   { key: "vip", label: "List VIP", description: "Notifikasi saat Anda ditugaskan follow-up VIP baru" },
+  { key: "laporan", label: "Laporan CG", description: "Notifikasi saat Coach merespon Laporan CG Anda" },
 ];
 
 export function NotificationSection() {

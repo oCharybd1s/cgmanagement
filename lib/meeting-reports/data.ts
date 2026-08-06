@@ -55,6 +55,9 @@ function toMeetingReport(doc: QueryDocumentSnapshot): MeetingReport {
     result: readString(data.result) ?? "",
     submittedBy: readString(data.submittedBy),
     createdAt: toDateLabel(data.createdAt),
+    coachResponse: readString(data.coachResponse),
+    respondedBy: readString(data.respondedBy),
+    respondedAt: toDateLabel(data.respondedAt),
   };
 }
 
