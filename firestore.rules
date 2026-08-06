@@ -1,0 +1,278 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function tokenRole() {
+      return request.auth.token.role;
+    }
+
+    function tokenOrgId() {
+      return request.auth.token.orgId;
+    }
+
+    function tokenCgGroupId() {
+      return request.auth.token.cgGroupId;
+    }
+
+    function isCoach() {
+      return isSignedIn() && (tokenRole() == 'coach' || tokenRole() == 'admin');
+    }
+
+    function isAdmin() {
+      return isSignedIn() && tokenRole() == 'admin';
+    }
+
+    function isCgl() {
+      return isSignedIn() && tokenRole() == 'cgl';
+    }
+
+    function isSponsor() {
+      return isSignedIn() && tokenRole() == 'sponsor';
+    }
+
+    function isMember() {
+      return isSignedIn() && tokenRole() == 'member';
+    }
+
+    function isSimpatisan() {
+      return isSignedIn() && tokenRole() == 'simpatisan';
+    }
+
+    function hasFullDirectoryAccess() {
+      return isCoach() || isCgl();
+    }
+
+    function inOrg(orgId) {
+      return isSignedIn() && tokenOrgId() == orgId;
+    }
+
+    function sameCg(cgGroupId) {
+      return tokenCgGroupId() == cgGroupId;
+    }
+
+    function isManagedRole(role) {
+      return role == 'sponsor' || role == 'cgl';
+    }
+
+    function selfEditableFields() {
+      return ['fullName', 'address', 'birthPlace', 'birthDate', 'email', 'phone', 'pelayanan', 'spiritualStatus'];
+    }
+
+    match /organizations/{orgId} {
+      allow read, write: if isSignedIn();
+
+      match /users/{userId} {
+        allow get: if inOrg(orgId) && (
+          hasFullDirectoryAccess() ||
+          ((isSponsor() || isMember() || isSimpatisan()) && sameCg(resource.data.cgGroupId)) ||
+          ((isSponsor() || isMember()) && resource.data.role == 'coach') ||
+          request.auth.uid == userId
+        );
+
+        allow list: if inOrg(orgId) && (
+          hasFullDirectoryAccess() ||
+          ((isSponsor() || isMember() || isSimpatisan()) && sameCg(resource.data.cgGroupId)) ||
+          ((isSponsor() || isMember()) && resource.data.role == 'coach')
+        );
+
+        allow create: if inOrg(orgId) && (
+          isCoach() ||
+          (isCgl() && sameCg(request.resource.data.cgGroupId)) ||
+          (isSponsor() && sameCg(request.resource.data.cgGroupId) && !isManagedRole(request.resource.data.role))
+        );
+
+        allow update: if inOrg(orgId) && (
+          isCoach() ||
+          (isCgl() && sameCg(resource.data.cgGroupId)) ||
+          (isSponsor() && sameCg(resource.data.cgGroupId) &&
+            !isManagedRole(resource.data.role) && !isManagedRole(request.resource.data.role)) ||
+          (request.auth.uid == userId &&
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(selfEditableFields()))
+        );
+
+        allow delete: if inOrg(orgId) && (
+          isCoach() ||
+          (isCgl() && sameCg(resource.data.cgGroupId)) ||
+          (isSponsor() && sameCg(resource.data.cgGroupId) && !isManagedRole(resource.data.role))
+        );
+      }
+
+      match /cgGroups/{cgId} {
+        allow read: if inOrg(orgId);
+
+        allow create: if inOrg(orgId) && isCoach() &&
+          request.resource.data.groupCode == cgId &&
+          request.resource.data.cglId == null &&
+          request.resource.data.createdBy == request.auth.uid;
+
+        allow update, delete: if false;
+      }
+
+      match /kasAccounts/{accountId} {
+        allow read: if inOrg(orgId) && (
+          isCoach() ||
+          ((isCgl() || isMember()) && (resource.data.accountType == 'coach' || sameCg(resource.data.refId))) ||
+          ((isSponsor() || isSimpatisan()) && resource.data.accountType == 'cg' && sameCg(resource.data.refId))
+        );
+
+        allow write: if false;
+      }
+
+      match /transactions/{txId} {
+        allow read: if inOrg(orgId) && (
+          isCoach() ||
+          ((isCgl() || isMember()) &&
+            (resource.data.kasAccountId == 'coach' || sameCg(resource.data.kasAccountId))) ||
+          ((isSponsor() || isSimpatisan()) && sameCg(resource.data.kasAccountId))
+        );
+
+        allow write: if false;
+      }
+
+      match /events/{eventId} {
+        function hasMinistry() {
+          let profile = get(/databases/$(database)/documents/organizations/$(orgId)/users/$(request.auth.uid)).data;
+          return profile.pelayanan != null && profile.pelayanan != '';
+        }
+
+        function isOrgWideType(type) {
+          return type == 'all_leader' || type == 'all_cgl' || type == 'all';
+        }
+
+        function canCreateType(type) {
+          return isCoach() || isCgl() ||
+            (isSponsor() && type in ['meeting_one_on_one', 'meeting_cg', 'all_ministry', 'only_me']);
+        }
+
+        function validCreateScope(type, targetCgId, targetUserId) {
+          return
+            (type == 'only_me' && targetUserId == request.auth.uid && targetCgId == null) ||
+            (isOrgWideType(type) && targetCgId == null && targetUserId == null) ||
+            (type == 'meeting_cgl' && isCoach() && targetUserId is string && targetUserId != '' &&
+              (targetCgId == null || (targetCgId is string && targetCgId != ''))) ||
+            (type == 'meeting_cgl' && isCgl() && targetUserId == request.auth.uid && sameCg(targetCgId)) ||
+            (type == 'meeting_one_on_one' && targetUserId is string && targetUserId != '' &&
+              targetUserId != request.auth.uid &&
+              (isCoach() || ((isCgl() || isSponsor()) && sameCg(targetCgId)))) ||
+            (type == 'meeting_cg' && targetUserId == null &&
+              ((isCoach() && targetCgId is string && targetCgId != '') ||
+                ((isCgl() || isSponsor()) && sameCg(targetCgId)))) ||
+            (type == 'all_ministry' && targetUserId == null &&
+              ((isCoach() && (targetCgId == null || (targetCgId is string && targetCgId != ''))) ||
+                ((isCgl() || isSponsor()) && sameCg(targetCgId))));
+        }
+
+        function canViewEventDoc() {
+          return resource.data.type == 'only_me'
+            ? request.auth.uid == resource.data.targetUserId
+            : (
+              isCoach() ||
+              (resource.data.type == 'meeting_one_on_one' &&
+                (request.auth.uid == resource.data.targetUserId ||
+                  ((isSponsor() || isCgl()) && sameCg(resource.data.targetCgId)))) ||
+              (resource.data.type == 'meeting_cg' && (isSponsor() || isCgl()) && sameCg(resource.data.targetCgId)) ||
+              (resource.data.type == 'meeting_cgl' && isCgl() && request.auth.uid == resource.data.targetUserId) ||
+              (resource.data.type == 'all_leader' && (isSponsor() || isCgl())) ||
+              (resource.data.type == 'all_cgl' && isCgl()) ||
+              (resource.data.type == 'all') ||
+              (resource.data.type == 'all_ministry' && hasMinistry() &&
+                (resource.data.targetCgId == null || sameCg(resource.data.targetCgId)))
+            );
+        }
+
+        function canUpdateOrDeleteEvent() {
+          return resource.data.type == 'only_me'
+            ? request.auth.uid == resource.data.createdBy
+            : (
+              isCoach() ||
+              request.auth.uid == resource.data.createdBy ||
+              (resource.data.createdByRole == 'sponsor' && isCgl() && sameCg(resource.data.targetCgId)) ||
+              (resource.data.createdByRole == 'cgl' && isOrgWideType(resource.data.type) && isCgl())
+            );
+        }
+
+        allow read: if inOrg(orgId) && canViewEventDoc();
+
+        allow create: if inOrg(orgId) &&
+          canCreateType(request.resource.data.type) &&
+          validCreateScope(request.resource.data.type, request.resource.data.targetCgId, request.resource.data.targetUserId) &&
+          request.resource.data.name is string && request.resource.data.name != '' &&
+          request.resource.data.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$') &&
+          request.resource.data.createdBy == request.auth.uid &&
+          request.resource.data.createdByRole == tokenRole();
+
+        allow update: if inOrg(orgId) && canUpdateOrDeleteEvent() &&
+          request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['name', 'description', 'date', 'time', 'updatedBy', 'updatedAt']) &&
+          request.resource.data.type == resource.data.type &&
+          request.resource.data.targetCgId == resource.data.targetCgId &&
+          request.resource.data.targetUserId == resource.data.targetUserId &&
+          request.resource.data.createdBy == resource.data.createdBy &&
+          request.resource.data.name is string && request.resource.data.name != '' &&
+          request.resource.data.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
+
+        allow delete: if inOrg(orgId) && canUpdateOrDeleteEvent();
+      }
+
+      match /vipProspects/{prospectId} {
+        function canManageProspect() {
+          return isCoach() || ((isCgl() || isSponsor()) && sameCg(resource.data.cgId));
+        }
+
+        allow read: if inOrg(orgId) && (isCoach() || ((isCgl() || isSponsor()) && sameCg(resource.data.cgId)));
+
+        allow create: if inOrg(orgId) &&
+          (isCoach() || isCgl() || isSponsor()) &&
+          request.resource.data.name is string && request.resource.data.name != '' &&
+          request.resource.data.createdBy == request.auth.uid &&
+          (isCoach()
+            ? request.resource.data.cgId is string && request.resource.data.cgId != ''
+            : sameCg(request.resource.data.cgId));
+
+        allow update: if inOrg(orgId) && canManageProspect() &&
+          request.resource.data.name is string && request.resource.data.name != '' &&
+          (isCoach() || request.resource.data.cgId == resource.data.cgId);
+
+        allow delete: if inOrg(orgId) && (isCoach() || (isCgl() && sameCg(resource.data.cgId)));
+      }
+
+      match /meetingReports/{reportId} {
+        allow read: if inOrg(orgId) && (isCoach() || ((isCgl() || isSponsor()) && sameCg(resource.data.cgId)));
+
+        allow create: if inOrg(orgId) &&
+          (isCoach() || isCgl() || isSponsor()) &&
+          request.resource.data.meetingDate is string && request.resource.data.meetingDate != '' &&
+          request.resource.data.agenda is string && request.resource.data.agenda != '' &&
+          request.resource.data.result is string && request.resource.data.result != '' &&
+          request.resource.data.submittedBy == request.auth.uid &&
+          (isCoach()
+            ? request.resource.data.cgId is string && request.resource.data.cgId != ''
+            : sameCg(request.resource.data.cgId));
+
+        allow update: if inOrg(orgId) && isCoach() &&
+          request.resource.data.cgId is string && request.resource.data.cgId != '' &&
+          request.resource.data.meetingDate is string && request.resource.data.meetingDate != '' &&
+          request.resource.data.agenda is string && request.resource.data.agenda != '' &&
+          request.resource.data.result is string && request.resource.data.result != '';
+
+        allow delete: if inOrg(orgId) && isCoach();
+      }
+
+      match /organizationLog/{logId} {
+        allow read: if inOrg(orgId) && isAdmin();
+        allow write: if false;
+      }
+
+      match /formerMembers/{formerMemberId} {
+        allow read: if inOrg(orgId) &&
+          (tokenRole() == 'coach' || (isCgl() && sameCg(resource.data.cgGroupId)));
+        allow write: if false;
+      }
+    }
+  }
+}

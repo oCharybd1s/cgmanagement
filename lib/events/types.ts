@@ -6,6 +6,7 @@ export const EVENT_TYPES = [
   "all_cgl",
   "all",
   "all_ministry",
+  "only_me",
 ] as const;
 
 export type EventType = (typeof EVENT_TYPES)[number];

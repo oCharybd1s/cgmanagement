@@ -15,6 +15,7 @@ export const EVENT_TYPE_TONES: Record<EventType, EventTone> = {
   all_cgl: { dot: "bg-secondary", chip: "bg-secondary/60 text-secondary-foreground border-secondary" },
   all: { dot: "bg-accent", chip: "bg-accent/70 text-accent-foreground border-accent" },
   all_ministry: { dot: "bg-success", chip: "bg-success/15 text-success border-success/30" },
+  only_me: { dot: "bg-chart-2", chip: "bg-chart-2/15 text-chart-2 border-chart-2/30" },
 };
 
 export const BIRTHDAY_TONE: EventTone = {

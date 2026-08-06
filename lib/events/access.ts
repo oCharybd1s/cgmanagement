@@ -10,10 +10,11 @@ export const EVENT_TYPE_LABELS: Record<EventType, string> = {
   all_cgl: "All CGL",
   all: "ALL",
   all_ministry: "All Ministry",
+  only_me: "Hanya Saya",
 };
 
 const ORG_WIDE_EVENT_TYPES: EventType[] = ["all_leader", "all_cgl", "all"];
-const SPONSOR_CREATABLE_TYPES: EventType[] = ["meeting_one_on_one", "meeting_cg", "all_ministry"];
+const SPONSOR_CREATABLE_TYPES: EventType[] = ["meeting_one_on_one", "meeting_cg", "all_ministry", "only_me"];
 const CGL_ONLY_CREATABLE_TYPES: EventType[] = ["meeting_cgl", "all_leader", "all_cgl", "all"];
 
 export function isOrgWideEventType(type: EventType): boolean {
@@ -59,6 +60,10 @@ export type EventAccessRecord = {
 };
 
 export function canViewEvent(viewer: EventViewerContext, event: EventAccessRecord): boolean {
+  if (event.type === "only_me") {
+    return viewer.uid === event.targetUserId;
+  }
+
   if (isCoach(viewer.role)) {
     return true;
   }
@@ -114,6 +119,9 @@ export type EventOwnershipRecord = {
 };
 
 export function canUpdateEvent(actor: EventActorContext, event: EventOwnershipRecord): boolean {
+  if (event.type === "only_me") {
+    return actor.uid === event.createdBy;
+  }
   if (isCoach(actor.role)) {
     return true;
   }
@@ -130,6 +138,9 @@ export function canUpdateEvent(actor: EventActorContext, event: EventOwnershipRe
 }
 
 export function canDeleteEvent(actor: EventActorContext, event: EventOwnershipRecord): boolean {
+  if (event.type === "only_me") {
+    return actor.uid === event.createdBy;
+  }
   if (isCoach(actor.role)) {
     return true;
   }

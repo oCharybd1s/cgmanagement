@@ -33,6 +33,8 @@ export async function resolveEventScope(
     case "all_cgl":
     case "all":
       return { ok: true, targetCgId: null, targetUserId: null };
+    case "only_me":
+      return { ok: true, targetCgId: null, targetUserId: session.uid };
     default:
       return { ok: false, status: 400, error: "Tipe event tidak dikenali" };
   }
