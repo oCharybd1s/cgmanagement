@@ -67,6 +67,7 @@ async function notifyBirthdaysToday(
   today: CalendarDate,
 ): Promise<number> {
   const birthdays = computeBirthdaysInRange(members, { start: today, end: today });
+  const coachIds = members.filter((member) => isCoach(member.role)).map((member) => member.id);
   let notifiedCount = 0;
 
   for (const birthday of birthdays) {
@@ -78,19 +79,32 @@ async function notifyBirthdaysToday(
     });
     notifiedCount += selfResult.successCount;
 
-    if (!birthday.cgGroupId) {
+    const birthdayMember = members.find((member) => member.id === birthday.memberId);
+    const birthdayIsCoach = birthdayMember ? isCoach(birthdayMember.role) : false;
+
+    const communityIds = new Set<string>();
+
+    if (birthdayIsCoach) {
+      members
+        .filter((member) => member.id !== birthday.memberId)
+        .forEach((member) => communityIds.add(member.id));
+    } else {
+      if (birthday.cgGroupId) {
+        members
+          .filter((member) => member.cgGroupId === birthday.cgGroupId && member.id !== birthday.memberId)
+          .forEach((member) => communityIds.add(member.id));
+      }
+
+      coachIds
+        .filter((coachId) => coachId !== birthday.memberId)
+        .forEach((coachId) => communityIds.add(coachId));
+    }
+
+    if (communityIds.size === 0) {
       continue;
     }
 
-    const cgMateIds = members
-      .filter((member) => member.cgGroupId === birthday.cgGroupId && member.id !== birthday.memberId)
-      .map((member) => member.id);
-
-    if (cgMateIds.length === 0) {
-      continue;
-    }
-
-    const result = await sendNotificationToUsers(adminDb, orgId, cgMateIds, {
+    const result = await sendNotificationToUsers(adminDb, orgId, Array.from(communityIds), {
       title: "Ulang Tahun Hari Ini",
       body: `${birthday.fullName} berulang tahun hari ini. Yuk kirim ucapan`,
       url: "/anggota",
@@ -112,8 +126,16 @@ async function notifyBirthdayReminders(
   let notifiedCount = 0;
 
   for (const birthday of birthdays) {
+    const birthdayMember = members.find((member) => member.id === birthday.memberId);
+    const birthdayIsCoach = birthdayMember ? isCoach(birthdayMember.role) : false;
+
     const recipientIds = members
-      .filter((member) => isCoach(member.role) || (isCgl(member.role) && member.cgGroupId === birthday.cgGroupId))
+      .filter((member) => member.id !== birthday.memberId)
+      .filter(
+        (member) =>
+          isCoach(member.role) ||
+          (isCgl(member.role) && (birthdayIsCoach || member.cgGroupId === birthday.cgGroupId)),
+      )
       .map((member) => member.id);
 
     if (recipientIds.length === 0) {
@@ -122,7 +144,9 @@ async function notifyBirthdayReminders(
 
     const result = await sendNotificationToUsers(adminDb, orgId, recipientIds, {
       title: "Reminder Ulang Tahun",
-      body: `${birthday.fullName} akan ulang tahun dalam 7 hari. Siapkan persiapan CG`,
+      body: birthdayIsCoach
+        ? `${birthday.fullName} (Coach) akan ulang tahun dalam 7 hari`
+        : `${birthday.fullName} akan ulang tahun dalam 7 hari. Siapkan persiapan CG`,
       url: "/anggota",
       category: "birthday",
     });
