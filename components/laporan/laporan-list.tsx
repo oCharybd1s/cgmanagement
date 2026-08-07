@@ -8,6 +8,8 @@ import { AddLaporanDialog } from "@/components/laporan/add-laporan-dialog";
 import { EditLaporanDialog } from "@/components/laporan/edit-laporan-dialog";
 import { DeleteLaporanDialog } from "@/components/laporan/delete-laporan-dialog";
 import { LaporanResponse } from "@/components/laporan/laporan-response";
+import { AgendaTypeBadge } from "@/components/laporan/agenda-type-badge";
+import { AGENDA_TYPE_LABELS } from "@/lib/meeting-reports/shared";
 import type { MeetingReport } from "@/lib/meeting-reports/types";
 import type { CgGroup } from "@/lib/cg-groups/types";
 import type { Member } from "@/lib/members/types";
@@ -68,7 +70,12 @@ export function LaporanList({
   }, [reports, requiresCgPicker, selectedCgId]);
 
   const filteredReports = React.useMemo(() => {
-    return rankBySearch(search, scopedReports, (report) => [report.agenda, report.result]);
+    return rankBySearch(search, scopedReports, (report) => [
+      AGENDA_TYPE_LABELS[report.agendaType],
+      report.meetingWithName,
+      report.agenda,
+      report.result,
+    ]);
   }, [scopedReports, search]);
 
   function handleCreated(report: MeetingReport) {
@@ -129,7 +136,7 @@ export function LaporanList({
           {hasReports ? (
             <div className="relative w-full sm:w-64">
               <label htmlFor="laporan-search" className="sr-only">
-                Cari agenda atau hasil pertemuan
+                Cari tipe, agenda, atau hasil pertemuan
               </label>
               <Search
                 className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
@@ -140,7 +147,7 @@ export function LaporanList({
                 type="text"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Cari agenda atau hasil pertemuan"
+                placeholder="Cari tipe, agenda, atau hasil pertemuan"
                 className="w-full rounded-full border-[1.5px] border-input bg-input/40 py-2.5 pl-10 pr-4 text-sm text-foreground outline-none transition-colors duration-200 placeholder:text-muted-foreground hover:border-primary focus-visible:border-primary focus-visible:bg-card focus-visible:ring-[3px] focus-visible:ring-ring/25"
               />
             </div>
@@ -313,9 +320,15 @@ function LaporanCard({
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <div className="flex flex-col gap-1">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Agenda</p>
-          <p className="whitespace-pre-line text-sm text-foreground">{report.agenda}</p>
+        <div className="flex flex-col gap-1.5">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Tipe Pertemuan</p>
+          <AgendaTypeBadge type={report.agendaType} className="w-fit" />
+          {report.agendaType === "one_on_one" && report.meetingWithName ? (
+            <p className="text-sm text-foreground">Dengan {report.meetingWithName}</p>
+          ) : null}
+          {report.agendaType === "others" && report.agenda ? (
+            <p className="whitespace-pre-line text-sm text-foreground">{report.agenda}</p>
+          ) : null}
         </div>
         <div className="flex flex-col gap-1">
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Hasil Pertemuan</p>

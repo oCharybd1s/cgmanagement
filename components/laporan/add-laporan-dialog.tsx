@@ -6,7 +6,8 @@ import { NotebookPen, X, Loader2 } from "lucide-react";
 import { isCoach } from "@/lib/auth/roles";
 import { useSubmitMeetingReport } from "@/lib/meeting-reports/use-submit-meeting-report";
 import { getTodayDateInputValue } from "@/lib/meeting-reports/date";
-import type { MeetingReport } from "@/lib/meeting-reports/types";
+import { AGENDA_TYPE_OPTIONS } from "@/lib/meeting-reports/shared";
+import type { MeetingAgendaType, MeetingReport } from "@/lib/meeting-reports/types";
 import type { CgGroup } from "@/lib/cg-groups/types";
 
 const inputClass =
@@ -28,11 +29,13 @@ export function AddLaporanDialog({
 }) {
   const formRef = React.useRef<HTMLFormElement>(null);
   const [isOpen, setIsOpen] = React.useState(false);
+  const [selectedAgendaType, setSelectedAgendaType] = React.useState<MeetingAgendaType>("one_on_one");
 
   const canPickCgGroup = isCoach(viewerRole);
 
   const { isSubmitting, formError, fieldErrors, submit, resetErrors } = useSubmitMeetingReport((report) => {
     formRef.current?.reset();
+    setSelectedAgendaType("one_on_one");
     setIsOpen(false);
     onCreated?.(report);
   });
@@ -52,6 +55,7 @@ export function AddLaporanDialog({
 
   function openDialog() {
     resetErrors();
+    setSelectedAgendaType("one_on_one");
     setIsOpen(true);
   }
 
@@ -59,11 +63,20 @@ export function AddLaporanDialog({
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     const meetingDate = String(formData.get("meetingDate") ?? "");
+    const meetingWithName = String(formData.get("meetingWithName") ?? "");
     const agenda = String(formData.get("agenda") ?? "");
     const result = String(formData.get("result") ?? "");
     const cgId = canPickCgGroup ? String(formData.get("cgId") ?? "") : (defaultCgId ?? "");
 
-    await submit({ cgId, meetingDate, agenda, result, requireCgId: canPickCgGroup });
+    await submit({
+      cgId,
+      meetingDate,
+      agendaType: selectedAgendaType,
+      meetingWithName,
+      agenda,
+      result,
+      requireCgId: canPickCgGroup,
+    });
   }
 
   return (
@@ -146,9 +159,45 @@ export function AddLaporanDialog({
                   />
                 </Field>
 
-                <Field label="Agenda" htmlFor="agenda" error={fieldErrors.agenda} required>
-                  <textarea id="agenda" name="agenda" rows={3} disabled={isSubmitting} className={textareaClass} />
+                <Field label="Tipe Pertemuan" htmlFor="agendaType" error={fieldErrors.agendaType} required>
+                  <select
+                    id="agendaType"
+                    name="agendaType"
+                    value={selectedAgendaType}
+                    onChange={(event) => setSelectedAgendaType(event.target.value as MeetingAgendaType)}
+                    disabled={isSubmitting}
+                    className={inputClass}
+                  >
+                    {AGENDA_TYPE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
                 </Field>
+
+                {selectedAgendaType === "one_on_one" ? (
+                  <Field
+                    label="Ketemu Dengan"
+                    htmlFor="meetingWithName"
+                    error={fieldErrors.meetingWithName}
+                    required
+                  >
+                    <input
+                      id="meetingWithName"
+                      name="meetingWithName"
+                      type="text"
+                      disabled={isSubmitting}
+                      className={inputClass}
+                    />
+                  </Field>
+                ) : null}
+
+                {selectedAgendaType === "others" ? (
+                  <Field label="Agenda" htmlFor="agenda" error={fieldErrors.agenda} required>
+                    <textarea id="agenda" name="agenda" rows={3} disabled={isSubmitting} className={textareaClass} />
+                  </Field>
+                ) : null}
 
                 <Field label="Hasil Pertemuan" htmlFor="result" error={fieldErrors.result} required>
                   <textarea id="result" name="result" rows={4} disabled={isSubmitting} className={textareaClass} />

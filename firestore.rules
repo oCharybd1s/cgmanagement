@@ -247,7 +247,13 @@ service cloud.firestore {
         allow create: if inOrg(orgId) &&
           (isCoach() || isCgl() || isSponsor()) &&
           request.resource.data.meetingDate is string && request.resource.data.meetingDate != '' &&
-          request.resource.data.agenda is string && request.resource.data.agenda != '' &&
+          request.resource.data.agendaType in ['one_on_one', 'sponsor_meeting', 'others'] &&
+          (request.resource.data.agendaType == 'one_on_one'
+            ? request.resource.data.meetingWithName is string && request.resource.data.meetingWithName != ''
+            : request.resource.data.meetingWithName == null) &&
+          (request.resource.data.agendaType == 'others'
+            ? request.resource.data.agenda is string && request.resource.data.agenda != ''
+            : request.resource.data.agenda == null) &&
           request.resource.data.result is string && request.resource.data.result != '' &&
           request.resource.data.submittedBy == request.auth.uid &&
           (isCoach()
@@ -257,7 +263,13 @@ service cloud.firestore {
         allow update: if inOrg(orgId) && isCoach() &&
           request.resource.data.cgId is string && request.resource.data.cgId != '' &&
           request.resource.data.meetingDate is string && request.resource.data.meetingDate != '' &&
-          request.resource.data.agenda is string && request.resource.data.agenda != '' &&
+          request.resource.data.agendaType in ['one_on_one', 'sponsor_meeting', 'others'] &&
+          (request.resource.data.agendaType == 'one_on_one'
+            ? request.resource.data.meetingWithName is string && request.resource.data.meetingWithName != ''
+            : request.resource.data.meetingWithName == null) &&
+          (request.resource.data.agendaType == 'others'
+            ? request.resource.data.agenda is string && request.resource.data.agenda != ''
+            : request.resource.data.agenda == null) &&
           request.resource.data.result is string && request.resource.data.result != '' &&
           (!('coachResponse' in request.resource.data) || request.resource.data.coachResponse is string) &&
           (!('respondedBy' in request.resource.data) || request.resource.data.respondedBy is string);

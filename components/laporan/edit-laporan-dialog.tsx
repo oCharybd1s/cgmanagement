@@ -4,7 +4,8 @@ import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Pencil, X, Loader2 } from "lucide-react";
 import { validateMeetingReportInput, type MeetingReportFieldErrors } from "@/lib/meeting-reports/validation";
-import type { MeetingReport } from "@/lib/meeting-reports/types";
+import { AGENDA_TYPE_OPTIONS } from "@/lib/meeting-reports/shared";
+import type { MeetingAgendaType, MeetingReport } from "@/lib/meeting-reports/types";
 import type { CgGroup } from "@/lib/cg-groups/types";
 
 const inputClass =
@@ -27,6 +28,7 @@ export function EditLaporanDialog({
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [formError, setFormError] = React.useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = React.useState<MeetingReportFieldErrors>({});
+  const [selectedAgendaType, setSelectedAgendaType] = React.useState<MeetingAgendaType>(report.agendaType);
 
   React.useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -45,10 +47,17 @@ export function EditLaporanDialog({
     const formData = new FormData(event.currentTarget);
     const cgId = String(formData.get("cgId") ?? "");
     const meetingDate = String(formData.get("meetingDate") ?? "");
+    const meetingWithName = String(formData.get("meetingWithName") ?? "");
     const agenda = String(formData.get("agenda") ?? "");
     const result = String(formData.get("result") ?? "");
 
-    const errors = validateMeetingReportInput({ meetingDate, agenda, result });
+    const errors = validateMeetingReportInput({
+      meetingDate,
+      agendaType: selectedAgendaType,
+      meetingWithName,
+      agenda,
+      result,
+    });
     if (cgId.trim() === "") {
       errors.cgId = "CG wajib dipilih";
     }
@@ -63,7 +72,14 @@ export function EditLaporanDialog({
       const response = await fetch(`/api/meeting-reports/${report.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cgId, meetingDate, agenda, result }),
+        body: JSON.stringify({
+          cgId,
+          meetingDate,
+          agendaType: selectedAgendaType,
+          meetingWithName,
+          agenda,
+          result,
+        }),
       });
       const data = await response.json();
 
@@ -148,16 +164,48 @@ export function EditLaporanDialog({
               />
             </Field>
 
-            <Field label="Agenda" htmlFor="agenda" error={fieldErrors.agenda} required>
-              <textarea
-                id="agenda"
-                name="agenda"
-                rows={3}
-                defaultValue={report.agenda}
+            <Field label="Tipe Pertemuan" htmlFor="agendaType" error={fieldErrors.agendaType} required>
+              <select
+                id="agendaType"
+                name="agendaType"
+                value={selectedAgendaType}
+                onChange={(event) => setSelectedAgendaType(event.target.value as MeetingAgendaType)}
                 disabled={isSubmitting}
-                className={textareaClass}
-              />
+                className={inputClass}
+              >
+                {AGENDA_TYPE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </Field>
+
+            {selectedAgendaType === "one_on_one" ? (
+              <Field label="Ketemu Dengan" htmlFor="meetingWithName" error={fieldErrors.meetingWithName} required>
+                <input
+                  id="meetingWithName"
+                  name="meetingWithName"
+                  type="text"
+                  defaultValue={report.meetingWithName ?? ""}
+                  disabled={isSubmitting}
+                  className={inputClass}
+                />
+              </Field>
+            ) : null}
+
+            {selectedAgendaType === "others" ? (
+              <Field label="Agenda" htmlFor="agenda" error={fieldErrors.agenda} required>
+                <textarea
+                  id="agenda"
+                  name="agenda"
+                  rows={3}
+                  defaultValue={report.agenda ?? ""}
+                  disabled={isSubmitting}
+                  className={textareaClass}
+                />
+              </Field>
+            ) : null}
 
             <Field label="Hasil Pertemuan" htmlFor="result" error={fieldErrors.result} required>
               <textarea

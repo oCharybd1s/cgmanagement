@@ -7,8 +7,9 @@ import {
   type MeetingReportResponseFieldErrors,
 } from "@/lib/meeting-reports/validation";
 import { toStringValue } from "@/lib/meeting-reports/shared";
+import { MEETING_AGENDA_TYPES } from "@/lib/meeting-reports/types";
 import type { SessionUser } from "@/lib/auth/types";
-import type { MeetingReport } from "@/lib/meeting-reports/types";
+import type { MeetingAgendaType, MeetingReport } from "@/lib/meeting-reports/types";
 
 export type RespondMeetingReportRequest = {
   coachResponse: unknown;
@@ -101,7 +102,9 @@ export async function respondToMeetingReportForSession(
       id: trimmedReportId,
       cgId: typeof targetData.cgId === "string" ? targetData.cgId : null,
       meetingDate: typeof targetData.meetingDate === "string" ? targetData.meetingDate : null,
-      agenda: typeof targetData.agenda === "string" ? targetData.agenda : "",
+      agendaType: readAgendaType(targetData.agendaType),
+      meetingWithName: typeof targetData.meetingWithName === "string" ? targetData.meetingWithName : null,
+      agenda: typeof targetData.agenda === "string" ? targetData.agenda : null,
       result: typeof targetData.result === "string" ? targetData.result : "",
       submittedBy,
       createdAt: targetData.createdAt instanceof Timestamp ? targetData.createdAt.toDate().toISOString() : null,
@@ -110,4 +113,10 @@ export async function respondToMeetingReportForSession(
       respondedAt: respondedAt.toDate().toISOString(),
     },
   };
+}
+
+function readAgendaType(value: unknown): MeetingAgendaType {
+  return typeof value === "string" && (MEETING_AGENDA_TYPES as readonly string[]).includes(value)
+    ? (value as MeetingAgendaType)
+    : "others";
 }

@@ -6,6 +6,8 @@ import { CheckCircle2, Loader2, NotebookPen } from "lucide-react";
 import { isCoach } from "@/lib/auth/roles";
 import { useSubmitMeetingReport } from "@/lib/meeting-reports/use-submit-meeting-report";
 import { getTodayDateInputValue } from "@/lib/meeting-reports/date";
+import { AGENDA_TYPE_OPTIONS } from "@/lib/meeting-reports/shared";
+import type { MeetingAgendaType } from "@/lib/meeting-reports/types";
 import type { CgGroup } from "@/lib/cg-groups/types";
 
 const inputClass =
@@ -24,6 +26,7 @@ export function QuickLaporanCard({
   const formRef = React.useRef<HTMLFormElement>(null);
   const meetingDateRef = React.useRef<HTMLInputElement>(null);
   const [justSubmitted, setJustSubmitted] = React.useState(false);
+  const [selectedAgendaType, setSelectedAgendaType] = React.useState<MeetingAgendaType>("one_on_one");
 
   const canPickCgGroup = isCoach(viewerRole);
 
@@ -32,6 +35,7 @@ export function QuickLaporanCard({
     if (meetingDateRef.current) {
       meetingDateRef.current.value = getTodayDateInputValue();
     }
+    setSelectedAgendaType("one_on_one");
     setJustSubmitted(true);
     window.setTimeout(() => setJustSubmitted(false), 4000);
   });
@@ -40,11 +44,20 @@ export function QuickLaporanCard({
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     const meetingDate = String(formData.get("meetingDate") ?? "");
+    const meetingWithName = String(formData.get("meetingWithName") ?? "");
     const agenda = String(formData.get("agenda") ?? "");
     const result = String(formData.get("result") ?? "");
     const cgId = String(formData.get("cgId") ?? "");
 
-    await submit({ cgId, meetingDate, agenda, result, requireCgId: canPickCgGroup });
+    await submit({
+      cgId,
+      meetingDate,
+      agendaType: selectedAgendaType,
+      meetingWithName,
+      agenda,
+      result,
+      requireCgId: canPickCgGroup,
+    });
   }
 
   return (
@@ -93,9 +106,45 @@ export function QuickLaporanCard({
           />
         </Field>
 
-        <Field label="Agenda" htmlFor="quick-agenda" error={fieldErrors.agenda} required>
-          <textarea id="quick-agenda" name="agenda" rows={2} disabled={isSubmitting} className={textareaClass} />
+        <Field label="Tipe Pertemuan" htmlFor="quick-agendaType" error={fieldErrors.agendaType} required>
+          <select
+            id="quick-agendaType"
+            name="agendaType"
+            value={selectedAgendaType}
+            onChange={(event) => setSelectedAgendaType(event.target.value as MeetingAgendaType)}
+            disabled={isSubmitting}
+            className={inputClass}
+          >
+            {AGENDA_TYPE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
         </Field>
+
+        {selectedAgendaType === "one_on_one" ? (
+          <Field
+            label="Ketemu Dengan"
+            htmlFor="quick-meetingWithName"
+            error={fieldErrors.meetingWithName}
+            required
+          >
+            <input
+              id="quick-meetingWithName"
+              name="meetingWithName"
+              type="text"
+              disabled={isSubmitting}
+              className={inputClass}
+            />
+          </Field>
+        ) : null}
+
+        {selectedAgendaType === "others" ? (
+          <Field label="Agenda" htmlFor="quick-agenda" error={fieldErrors.agenda} required>
+            <textarea id="quick-agenda" name="agenda" rows={2} disabled={isSubmitting} className={textareaClass} />
+          </Field>
+        ) : null}
 
         <Field label="Hasil Pertemuan" htmlFor="quick-result" error={fieldErrors.result} required>
           <textarea id="quick-result" name="result" rows={3} disabled={isSubmitting} className={textareaClass} />

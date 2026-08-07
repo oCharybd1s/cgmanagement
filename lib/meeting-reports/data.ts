@@ -2,8 +2,9 @@ import { Timestamp } from "firebase-admin/firestore";
 import type { QueryDocumentSnapshot } from "firebase-admin/firestore";
 import { getAdminServices } from "@/lib/firebase/firebase-admin";
 import { isCoach, isCgl, isSponsor } from "@/lib/auth/roles";
+import { MEETING_AGENDA_TYPES } from "@/lib/meeting-reports/types";
 import type { SessionUser } from "@/lib/auth/types";
-import type { MeetingReport } from "@/lib/meeting-reports/types";
+import type { MeetingAgendaType, MeetingReport } from "@/lib/meeting-reports/types";
 
 export async function getMeetingReportsForSession(session: SessionUser): Promise<MeetingReport[]> {
   if (!session.orgId) {
@@ -51,7 +52,9 @@ function toMeetingReport(doc: QueryDocumentSnapshot): MeetingReport {
     id: doc.id,
     cgId: readString(data.cgId),
     meetingDate: readString(data.meetingDate),
-    agenda: readString(data.agenda) ?? "",
+    agendaType: readAgendaType(data.agendaType),
+    meetingWithName: readString(data.meetingWithName),
+    agenda: readString(data.agenda),
     result: readString(data.result) ?? "",
     submittedBy: readString(data.submittedBy),
     createdAt: toDateLabel(data.createdAt),
@@ -59,6 +62,12 @@ function toMeetingReport(doc: QueryDocumentSnapshot): MeetingReport {
     respondedBy: readString(data.respondedBy),
     respondedAt: toDateLabel(data.respondedAt),
   };
+}
+
+function readAgendaType(value: unknown): MeetingAgendaType {
+  return typeof value === "string" && (MEETING_AGENDA_TYPES as readonly string[]).includes(value)
+    ? (value as MeetingAgendaType)
+    : "others";
 }
 
 function readString(value: unknown): string | null {

@@ -1,12 +1,15 @@
 "use client";
 
 import * as React from "react";
+import { normalizeAgendaType } from "@/lib/meeting-reports/shared";
 import { validateMeetingReportInput, type MeetingReportFieldErrors } from "@/lib/meeting-reports/validation";
 import type { MeetingReport } from "@/lib/meeting-reports/types";
 
 export type SubmitMeetingReportInput = {
   cgId: string;
   meetingDate: string;
+  agendaType: string;
+  meetingWithName: string;
   agenda: string;
   result: string;
   requireCgId: boolean;
@@ -25,7 +28,19 @@ export function useSubmitMeetingReport(onCreated?: (report: MeetingReport) => vo
   async function submit(input: SubmitMeetingReportInput): Promise<boolean> {
     setFormError(null);
 
-    const errors = validateMeetingReportInput(input);
+    const agendaType = normalizeAgendaType(input.agendaType);
+    if (!agendaType) {
+      setFieldErrors({ agendaType: "Tipe agenda wajib dipilih" });
+      return false;
+    }
+
+    const errors = validateMeetingReportInput({
+      meetingDate: input.meetingDate,
+      agendaType,
+      meetingWithName: input.meetingWithName,
+      agenda: input.agenda,
+      result: input.result,
+    });
     if (input.requireCgId && input.cgId.trim() === "") {
       errors.cgId = "CG wajib dipilih";
     }
@@ -43,6 +58,8 @@ export function useSubmitMeetingReport(onCreated?: (report: MeetingReport) => vo
         body: JSON.stringify({
           cgId: input.cgId,
           meetingDate: input.meetingDate,
+          agendaType,
+          meetingWithName: input.meetingWithName,
           agenda: input.agenda,
           result: input.result,
         }),

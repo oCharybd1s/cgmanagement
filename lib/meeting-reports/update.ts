@@ -2,13 +2,15 @@ import { Timestamp } from "firebase-admin/firestore";
 import { getAdminServices } from "@/lib/firebase/firebase-admin";
 import { canManageMeetingReport } from "@/lib/auth/roles";
 import { validateMeetingReportInput, type MeetingReportFieldErrors } from "@/lib/meeting-reports/validation";
-import { toStringValue } from "@/lib/meeting-reports/shared";
+import { normalizeAgendaType, toStringValue } from "@/lib/meeting-reports/shared";
 import type { SessionUser } from "@/lib/auth/types";
 import type { MeetingReport } from "@/lib/meeting-reports/types";
 
 export type UpdateMeetingReportRequest = {
   cgId: unknown;
   meetingDate: unknown;
+  agendaType: unknown;
+  meetingWithName: unknown;
   agenda: unknown;
   result: unknown;
 };
@@ -35,12 +37,23 @@ export async function updateMeetingReportForSession(
     return { ok: false, status: 400, error: "Laporan CG tidak valid" };
   }
 
+  const agendaType = normalizeAgendaType(payload.agendaType);
+  if (!agendaType) {
+    return {
+      ok: false,
+      status: 400,
+      error: "Tipe agenda wajib dipilih",
+      fieldErrors: { agendaType: "Tipe agenda wajib dipilih" },
+    };
+  }
+
   const meetingDate = toStringValue(payload.meetingDate).trim();
-  const agenda = toStringValue(payload.agenda).trim();
+  const meetingWithName = agendaType === "one_on_one" ? toStringValue(payload.meetingWithName).trim() : "";
+  const agenda = agendaType === "others" ? toStringValue(payload.agenda).trim() : "";
   const result = toStringValue(payload.result).trim();
   const cgId = toStringValue(payload.cgId).trim();
 
-  const fieldErrors = validateMeetingReportInput({ meetingDate, agenda, result });
+  const fieldErrors = validateMeetingReportInput({ meetingDate, agendaType, meetingWithName, agenda, result });
   if (cgId === "") {
     fieldErrors.cgId = "CG wajib dipilih";
   }
@@ -68,12 +81,16 @@ export async function updateMeetingReportForSession(
   }
 
   const targetData = targetSnap.data() ?? {};
+  const meetingWithNameValue = meetingWithName === "" ? null : meetingWithName;
+  const agendaValue = agenda === "" ? null : agenda;
 
   try {
     await targetRef.update({
       cgId,
       meetingDate,
-      agenda,
+      agendaType,
+      meetingWithName: meetingWithNameValue,
+      agenda: agendaValue,
       result,
       updatedBy: session.uid,
     });
@@ -87,7 +104,9 @@ export async function updateMeetingReportForSession(
       id: trimmedReportId,
       cgId,
       meetingDate,
-      agenda,
+      agendaType,
+      meetingWithName: meetingWithNameValue,
+      agenda: agendaValue,
       result,
       submittedBy: typeof targetData.submittedBy === "string" ? targetData.submittedBy : null,
       createdAt: targetData.createdAt instanceof Timestamp ? targetData.createdAt.toDate().toISOString() : null,
