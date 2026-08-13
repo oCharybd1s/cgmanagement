@@ -86,6 +86,8 @@ if (firebaseConfig.apiKey) {
       }),
     );
   });
+} else {
+  console.error("firebase messaging config missing in service worker, background push disabled");
 }
 `;
 }
