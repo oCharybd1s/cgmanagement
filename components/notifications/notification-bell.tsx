@@ -81,8 +81,7 @@ export function NotificationBell() {
             exit={{ opacity: 0, y: -8, scale: 0.96 }}
             transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
             role="menu"
-            className="absolute right-0 top-full z-50 mt-2 flex max-h-[28rem] w-[min(24rem,90vw)] flex-col overflow-hidden rounded-2xl border border-border bg-popover text-popover-foreground shadow-2xl backdrop-blur-xl"
-          >
+            className="fixed inset-x-4 top-[calc(4rem+env(safe-area-inset-top)+0.5rem)] z-50 flex max-h-[28rem] flex-col overflow-hidden rounded-2xl border border-border bg-popover text-popover-foreground shadow-2xl backdrop-blur-xl sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 sm:w-[min(24rem,90vw)]"          >
             <div className="flex items-center justify-between gap-2 px-4 py-3">
               <p className="font-display text-sm font-bold tracking-tight text-foreground">Notifikasi</p>
               {unreadCount > 0 ? (
