@@ -7,6 +7,7 @@ export type MeetingReport = {
   cgId: string | null;
   meetingDate: string | null;
   agendaType: MeetingAgendaType;
+  meetingWithId: string | null;
   meetingWithName: string | null;
   agenda: string | null;
   result: string;

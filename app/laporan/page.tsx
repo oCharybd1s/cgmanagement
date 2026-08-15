@@ -46,6 +46,8 @@ export default async function LaporanPage() {
             cgGroups={cgGroups}
             members={members}
             viewerRole={session.role}
+            viewerUid={session.uid}
+            viewerCgGroupId={session.cgGroupId}
           />
         </Section>
       </Container>

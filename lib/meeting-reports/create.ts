@@ -2,6 +2,7 @@ import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { getAdminServices } from "@/lib/firebase/firebase-admin";
 import { canCreateMeetingReport, isCoach } from "@/lib/auth/roles";
 import { validateMeetingReportInput, type MeetingReportFieldErrors } from "@/lib/meeting-reports/validation";
+import { resolveMeetingWith } from "@/lib/meeting-reports/resolve-meeting-with";
 import { normalizeAgendaType, toStringValue } from "@/lib/meeting-reports/shared";
 import type { SessionUser } from "@/lib/auth/types";
 import type { MeetingReport } from "@/lib/meeting-reports/types";
@@ -10,7 +11,7 @@ export type CreateMeetingReportRequest = {
   cgId: unknown;
   meetingDate: unknown;
   agendaType: unknown;
-  meetingWithName: unknown;
+  meetingWithId: unknown;
   agenda: unknown;
   result: unknown;
 };
@@ -42,11 +43,10 @@ export async function createMeetingReportForSession(
   }
 
   const meetingDate = toStringValue(payload.meetingDate).trim();
-  const meetingWithName = agendaType === "one_on_one" ? toStringValue(payload.meetingWithName).trim() : "";
   const agenda = agendaType === "others" ? toStringValue(payload.agenda).trim() : "";
   const result = toStringValue(payload.result).trim();
 
-  const fieldErrors = validateMeetingReportInput({ meetingDate, agendaType, meetingWithName, agenda, result });
+  const fieldErrors = validateMeetingReportInput({ meetingDate, agendaType, agenda, result });
 
   let cgId: string;
   if (isCoach(session.role)) {
@@ -72,14 +72,19 @@ export async function createMeetingReportForSession(
     return { ok: false, status: 500, error: "Konfigurasi server belum lengkap" };
   }
   const { adminDb } = adminServices;
+  const orgRef = adminDb.collection("organizations").doc(session.orgId);
 
-  const docRef = adminDb
-    .collection("organizations")
-    .doc(session.orgId)
-    .collection("meetingReports")
-    .doc();
+  const meetingWithResult = await resolveMeetingWith(
+    orgRef,
+    session,
+    agendaType,
+    toStringValue(payload.meetingWithId),
+  );
+  if (!meetingWithResult.ok) {
+    return meetingWithResult;
+  }
 
-  const meetingWithNameValue = meetingWithName === "" ? null : meetingWithName;
+  const docRef = orgRef.collection("meetingReports").doc();
   const agendaValue = agenda === "" ? null : agenda;
 
   try {
@@ -87,7 +92,8 @@ export async function createMeetingReportForSession(
       cgId,
       meetingDate,
       agendaType,
-      meetingWithName: meetingWithNameValue,
+      meetingWithId: meetingWithResult.meetingWithId,
+      meetingWithName: meetingWithResult.meetingWithName,
       agenda: agendaValue,
       result,
       submittedBy: session.uid,
@@ -104,7 +110,8 @@ export async function createMeetingReportForSession(
       cgId,
       meetingDate,
       agendaType,
-      meetingWithName: meetingWithNameValue,
+      meetingWithId: meetingWithResult.meetingWithId,
+      meetingWithName: meetingWithResult.meetingWithName,
       agenda: agendaValue,
       result,
       submittedBy: session.uid,

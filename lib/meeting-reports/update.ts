@@ -2,6 +2,7 @@ import { Timestamp } from "firebase-admin/firestore";
 import { getAdminServices } from "@/lib/firebase/firebase-admin";
 import { canManageMeetingReport } from "@/lib/auth/roles";
 import { validateMeetingReportInput, type MeetingReportFieldErrors } from "@/lib/meeting-reports/validation";
+import { resolveMeetingWith } from "@/lib/meeting-reports/resolve-meeting-with";
 import { normalizeAgendaType, toStringValue } from "@/lib/meeting-reports/shared";
 import type { SessionUser } from "@/lib/auth/types";
 import type { MeetingReport } from "@/lib/meeting-reports/types";
@@ -10,7 +11,7 @@ export type UpdateMeetingReportRequest = {
   cgId: unknown;
   meetingDate: unknown;
   agendaType: unknown;
-  meetingWithName: unknown;
+  meetingWithId: unknown;
   agenda: unknown;
   result: unknown;
 };
@@ -48,12 +49,11 @@ export async function updateMeetingReportForSession(
   }
 
   const meetingDate = toStringValue(payload.meetingDate).trim();
-  const meetingWithName = agendaType === "one_on_one" ? toStringValue(payload.meetingWithName).trim() : "";
   const agenda = agendaType === "others" ? toStringValue(payload.agenda).trim() : "";
   const result = toStringValue(payload.result).trim();
   const cgId = toStringValue(payload.cgId).trim();
 
-  const fieldErrors = validateMeetingReportInput({ meetingDate, agendaType, meetingWithName, agenda, result });
+  const fieldErrors = validateMeetingReportInput({ meetingDate, agendaType, agenda, result });
   if (cgId === "") {
     fieldErrors.cgId = "CG wajib dipilih";
   }
@@ -68,20 +68,25 @@ export async function updateMeetingReportForSession(
     return { ok: false, status: 500, error: "Konfigurasi server belum lengkap" };
   }
   const { adminDb } = adminServices;
+  const orgRef = adminDb.collection("organizations").doc(session.orgId);
 
-  const targetRef = adminDb
-    .collection("organizations")
-    .doc(session.orgId)
-    .collection("meetingReports")
-    .doc(trimmedReportId);
-
+  const targetRef = orgRef.collection("meetingReports").doc(trimmedReportId);
   const targetSnap = await targetRef.get();
   if (!targetSnap.exists) {
     return { ok: false, status: 404, error: "Laporan CG tidak ditemukan" };
   }
 
+  const meetingWithResult = await resolveMeetingWith(
+    orgRef,
+    session,
+    agendaType,
+    toStringValue(payload.meetingWithId),
+  );
+  if (!meetingWithResult.ok) {
+    return meetingWithResult;
+  }
+
   const targetData = targetSnap.data() ?? {};
-  const meetingWithNameValue = meetingWithName === "" ? null : meetingWithName;
   const agendaValue = agenda === "" ? null : agenda;
 
   try {
@@ -89,7 +94,8 @@ export async function updateMeetingReportForSession(
       cgId,
       meetingDate,
       agendaType,
-      meetingWithName: meetingWithNameValue,
+      meetingWithId: meetingWithResult.meetingWithId,
+      meetingWithName: meetingWithResult.meetingWithName,
       agenda: agendaValue,
       result,
       updatedBy: session.uid,
@@ -105,7 +111,8 @@ export async function updateMeetingReportForSession(
       cgId,
       meetingDate,
       agendaType,
-      meetingWithName: meetingWithNameValue,
+      meetingWithId: meetingWithResult.meetingWithId,
+      meetingWithName: meetingWithResult.meetingWithName,
       agenda: agendaValue,
       result,
       submittedBy: typeof targetData.submittedBy === "string" ? targetData.submittedBy : null,

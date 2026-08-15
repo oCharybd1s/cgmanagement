@@ -8,6 +8,8 @@ import { useMounted } from "@/hooks/use-mounted";
 import { isCoach, isCgl, isSponsor } from "@/lib/auth/roles";
 import { EVENT_TYPE_LABELS, creatableEventTypesForRole, isCgScopedEventType } from "@/lib/events/access";
 import { validateEventInput, type EventFieldErrors } from "@/lib/events/validation";
+import { getOneOnOneCandidates } from "@/lib/meeting-reports/one-on-one-candidates";
+import { FuzzySearchCombobox } from "@/components/shared/fuzzy-search-combobox";
 import type { EventRecord, EventType } from "@/lib/events/types";
 import type { CgGroup } from "@/lib/cg-groups/types";
 import type { Member } from "@/lib/members/types";
@@ -50,21 +52,22 @@ export function EventFormDialog({
   );
   const [selectedCgId, setSelectedCgId] = React.useState("");
   const [selectedTargetUserId, setSelectedTargetUserId] = React.useState("");
+  const [targetUserQuery, setTargetUserQuery] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [formError, setFormError] = React.useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = React.useState<EventFieldErrors>({});
 
   const ownCgGroup = cgGroups.find((group) => group.id === viewerCgGroupId) ?? null;
 
-  const oneOnOneCandidates = React.useMemo(() => {
-    if (isCoach(viewerRole)) {
-      return members.filter((member) => member.id !== viewerUid);
-    }
-    return members.filter(
-      (member) =>
-        member.cgGroupId === viewerCgGroupId && (member.role === "member" || member.role === "simpatisan"),
-    );
-  }, [members, viewerRole, viewerUid, viewerCgGroupId]);
+  const oneOnOneCandidates = React.useMemo(
+    () => getOneOnOneCandidates(members, viewerRole, viewerUid, viewerCgGroupId),
+    [members, viewerRole, viewerUid, viewerCgGroupId],
+  );
+
+  const oneOnOneOptions = React.useMemo(
+    () => oneOnOneCandidates.map((member) => ({ id: member.id, label: member.fullName || "Tanpa nama" })),
+    [oneOnOneCandidates],
+  );
 
   const cglCandidates = React.useMemo(() => members.filter((member) => member.role === "cgl"), [members]);
 
@@ -82,6 +85,7 @@ export function EventFormDialog({
     setSelectedType(nextType);
     setSelectedCgId("");
     setSelectedTargetUserId("");
+    setTargetUserQuery("");
     setFieldErrors({});
   }
 
@@ -150,20 +154,23 @@ export function EventFormDialog({
     if (selectedType === "meeting_one_on_one") {
       return (
         <Field label="Peserta" htmlFor="targetUserId" error={fieldErrors.targetUserId} required>
-          <select
+          <FuzzySearchCombobox
             id="targetUserId"
-            value={selectedTargetUserId}
-            onChange={(changeEvent) => setSelectedTargetUserId(changeEvent.target.value)}
+            value={targetUserQuery}
+            onValueChange={(nextValue) => {
+              setTargetUserQuery(nextValue);
+              setSelectedTargetUserId("");
+            }}
+            onSelect={(option) => {
+              setSelectedTargetUserId(option.id);
+              setTargetUserQuery(option.label);
+            }}
+            options={oneOnOneOptions}
+            placeholder="Cari nama peserta"
             disabled={isSubmitting}
+            emptyLabel="Tidak ada anggota yang cocok"
             className={inputClass}
-          >
-            <option value="">Pilih peserta</option>
-            {oneOnOneCandidates.map((member) => (
-              <option key={member.id} value={member.id}>
-                {member.fullName || "Tanpa nama"}
-              </option>
-            ))}
-          </select>
+          />
         </Field>
       );
     }

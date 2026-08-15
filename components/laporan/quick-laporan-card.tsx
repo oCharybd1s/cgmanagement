@@ -7,8 +7,11 @@ import { isCoach } from "@/lib/auth/roles";
 import { useSubmitMeetingReport } from "@/lib/meeting-reports/use-submit-meeting-report";
 import { getTodayDateInputValue } from "@/lib/meeting-reports/date";
 import { AGENDA_TYPE_OPTIONS } from "@/lib/meeting-reports/shared";
+import { getOneOnOneCandidates } from "@/lib/meeting-reports/one-on-one-candidates";
+import { FuzzySearchCombobox } from "@/components/shared/fuzzy-search-combobox";
 import type { MeetingAgendaType } from "@/lib/meeting-reports/types";
 import type { CgGroup } from "@/lib/cg-groups/types";
+import type { Member } from "@/lib/members/types";
 
 const inputClass =
   "w-full rounded-full border-[1.5px] border-input bg-input/40 px-4 py-2.5 text-sm text-foreground outline-none transition-colors duration-200 placeholder:text-muted-foreground hover:border-primary focus-visible:border-primary focus-visible:bg-card focus-visible:ring-[3px] focus-visible:ring-ring/25 disabled:cursor-not-allowed disabled:opacity-60";
@@ -18,17 +21,32 @@ const textareaClass =
 
 export function QuickLaporanCard({
   cgGroups,
+  members,
   viewerRole,
+  viewerUid,
+  viewerCgGroupId,
 }: {
   cgGroups: CgGroup[];
+  members: Member[];
   viewerRole: string | null;
+  viewerUid: string;
+  viewerCgGroupId: string | null;
 }) {
   const formRef = React.useRef<HTMLFormElement>(null);
   const meetingDateRef = React.useRef<HTMLInputElement>(null);
   const [justSubmitted, setJustSubmitted] = React.useState(false);
   const [selectedAgendaType, setSelectedAgendaType] = React.useState<MeetingAgendaType>("one_on_one");
+  const [meetingWithId, setMeetingWithId] = React.useState("");
+  const [meetingWithQuery, setMeetingWithQuery] = React.useState("");
 
   const canPickCgGroup = isCoach(viewerRole);
+
+  const oneOnOneOptions = React.useMemo(() => {
+    return getOneOnOneCandidates(members, viewerRole, viewerUid, viewerCgGroupId).map((member) => ({
+      id: member.id,
+      label: member.fullName || "Tanpa nama",
+    }));
+  }, [members, viewerRole, viewerUid, viewerCgGroupId]);
 
   const { isSubmitting, formError, fieldErrors, submit } = useSubmitMeetingReport(() => {
     formRef.current?.reset();
@@ -36,15 +54,24 @@ export function QuickLaporanCard({
       meetingDateRef.current.value = getTodayDateInputValue();
     }
     setSelectedAgendaType("one_on_one");
+    setMeetingWithId("");
+    setMeetingWithQuery("");
     setJustSubmitted(true);
     window.setTimeout(() => setJustSubmitted(false), 4000);
   });
+
+  function handleAgendaTypeChange(nextType: MeetingAgendaType) {
+    setSelectedAgendaType(nextType);
+    if (nextType !== "one_on_one") {
+      setMeetingWithId("");
+      setMeetingWithQuery("");
+    }
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     const meetingDate = String(formData.get("meetingDate") ?? "");
-    const meetingWithName = String(formData.get("meetingWithName") ?? "");
     const agenda = String(formData.get("agenda") ?? "");
     const result = String(formData.get("result") ?? "");
     const cgId = String(formData.get("cgId") ?? "");
@@ -53,7 +80,7 @@ export function QuickLaporanCard({
       cgId,
       meetingDate,
       agendaType: selectedAgendaType,
-      meetingWithName,
+      meetingWithId: selectedAgendaType === "one_on_one" ? meetingWithId : "",
       agenda,
       result,
       requireCgId: canPickCgGroup,
@@ -111,7 +138,7 @@ export function QuickLaporanCard({
             id="quick-agendaType"
             name="agendaType"
             value={selectedAgendaType}
-            onChange={(event) => setSelectedAgendaType(event.target.value as MeetingAgendaType)}
+            onChange={(event) => handleAgendaTypeChange(event.target.value as MeetingAgendaType)}
             disabled={isSubmitting}
             className={inputClass}
           >
@@ -126,15 +153,25 @@ export function QuickLaporanCard({
         {selectedAgendaType === "one_on_one" ? (
           <Field
             label="Ketemu Dengan"
-            htmlFor="quick-meetingWithName"
-            error={fieldErrors.meetingWithName}
+            htmlFor="quick-meetingWithId"
+            error={fieldErrors.meetingWithId}
             required
           >
-            <input
-              id="quick-meetingWithName"
-              name="meetingWithName"
-              type="text"
+            <FuzzySearchCombobox
+              id="quick-meetingWithId"
+              value={meetingWithQuery}
+              onValueChange={(nextValue) => {
+                setMeetingWithQuery(nextValue);
+                setMeetingWithId("");
+              }}
+              onSelect={(option) => {
+                setMeetingWithId(option.id);
+                setMeetingWithQuery(option.label);
+              }}
+              options={oneOnOneOptions}
+              placeholder="Cari nama anggota"
               disabled={isSubmitting}
+              emptyLabel="Tidak ada anggota yang cocok"
               className={inputClass}
             />
           </Field>

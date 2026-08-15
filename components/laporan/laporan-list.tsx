@@ -9,6 +9,7 @@ import { EditLaporanDialog } from "@/components/laporan/edit-laporan-dialog";
 import { DeleteLaporanDialog } from "@/components/laporan/delete-laporan-dialog";
 import { LaporanResponse } from "@/components/laporan/laporan-response";
 import { AgendaTypeBadge } from "@/components/laporan/agenda-type-badge";
+import { OneOnOneSemesterSummary } from "@/components/laporan/one-on-one-semester-summary";
 import { AGENDA_TYPE_LABELS } from "@/lib/meeting-reports/shared";
 import type { MeetingReport } from "@/lib/meeting-reports/types";
 import type { CgGroup } from "@/lib/cg-groups/types";
@@ -19,11 +20,15 @@ export function LaporanList({
   cgGroups,
   members,
   viewerRole,
+  viewerUid,
+  viewerCgGroupId,
 }: {
   initialReports: MeetingReport[];
   cgGroups: CgGroup[];
   members: Member[];
   viewerRole: string | null;
+  viewerUid: string;
+  viewerCgGroupId: string | null;
 }) {
   const [reports, setReports] = React.useState(initialReports);
   const [search, setSearch] = React.useState("");
@@ -155,12 +160,19 @@ export function LaporanList({
 
           <AddLaporanDialog
             cgGroups={cgGroups}
+            members={members}
             viewerRole={viewerRole}
+            viewerUid={viewerUid}
+            viewerCgGroupId={viewerCgGroupId}
             defaultCgId={selectedCgId ?? undefined}
             onCreated={handleCreated}
           />
         </div>
       </div>
+
+      {requiresCgPicker && selectedCgId ? (
+        <OneOnOneSemesterSummary reports={scopedReports} members={members} cgId={selectedCgId} />
+      ) : null}
 
       {hasReports ? (
         <React.Fragment>
@@ -197,6 +209,10 @@ export function LaporanList({
         <EditLaporanDialog
           report={editingReport}
           cgGroups={cgGroups}
+          members={members}
+          viewerRole={viewerRole}
+          viewerUid={viewerUid}
+          viewerCgGroupId={viewerCgGroupId}
           onClose={() => setEditingReport(null)}
           onUpdated={handleUpdated}
         />

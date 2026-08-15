@@ -1,13 +1,12 @@
 import type { MeetingAgendaType } from "@/lib/meeting-reports/types";
 
 export type MeetingReportFieldErrors = Partial<
-  Record<"cgId" | "meetingDate" | "agendaType" | "meetingWithName" | "agenda" | "result", string>
+  Record<"cgId" | "meetingDate" | "agendaType" | "meetingWithId" | "agenda" | "result", string>
 >;
 
 export function validateMeetingReportInput(input: {
   meetingDate: string;
   agendaType: MeetingAgendaType;
-  meetingWithName: string;
   agenda: string;
   result: string;
 }): MeetingReportFieldErrors {
@@ -15,10 +14,6 @@ export function validateMeetingReportInput(input: {
 
   if (input.meetingDate.trim() === "") {
     errors.meetingDate = "Tanggal pertemuan wajib diisi";
-  }
-
-  if (input.agendaType === "one_on_one" && input.meetingWithName.trim() === "") {
-    errors.meetingWithName = "Nama yang ditemui wajib diisi";
   }
 
   if (input.agendaType === "others" && input.agenda.trim() === "") {

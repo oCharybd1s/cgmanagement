@@ -53,6 +53,7 @@ function toMeetingReport(doc: QueryDocumentSnapshot): MeetingReport {
     cgId: readString(data.cgId),
     meetingDate: readString(data.meetingDate),
     agendaType: readAgendaType(data.agendaType),
+    meetingWithId: readString(data.meetingWithId),
     meetingWithName: readString(data.meetingWithName),
     agenda: readString(data.agenda),
     result: readString(data.result) ?? "",

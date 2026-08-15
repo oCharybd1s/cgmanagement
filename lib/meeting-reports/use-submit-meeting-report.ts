@@ -9,7 +9,7 @@ export type SubmitMeetingReportInput = {
   cgId: string;
   meetingDate: string;
   agendaType: string;
-  meetingWithName: string;
+  meetingWithId: string;
   agenda: string;
   result: string;
   requireCgId: boolean;
@@ -37,10 +37,12 @@ export function useSubmitMeetingReport(onCreated?: (report: MeetingReport) => vo
     const errors = validateMeetingReportInput({
       meetingDate: input.meetingDate,
       agendaType,
-      meetingWithName: input.meetingWithName,
       agenda: input.agenda,
       result: input.result,
     });
+    if (agendaType === "one_on_one" && input.meetingWithId.trim() === "") {
+      errors.meetingWithId = "Pilih anggota yang ditemui dari daftar";
+    }
     if (input.requireCgId && input.cgId.trim() === "") {
       errors.cgId = "CG wajib dipilih";
     }
@@ -59,7 +61,7 @@ export function useSubmitMeetingReport(onCreated?: (report: MeetingReport) => vo
           cgId: input.cgId,
           meetingDate: input.meetingDate,
           agendaType,
-          meetingWithName: input.meetingWithName,
+          meetingWithId: input.meetingWithId,
           agenda: input.agenda,
           result: input.result,
         }),

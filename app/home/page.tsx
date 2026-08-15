@@ -39,7 +39,15 @@ export default async function HomePage() {
             members={members}
             cgGroups={cgGroups}
           />
-          {canQuickLaporan ? <QuickLaporanCard cgGroups={cgGroups} viewerRole={session.role} /> : null}
+          {canQuickLaporan ? (
+            <QuickLaporanCard
+              cgGroups={cgGroups}
+              members={members}
+              viewerRole={session.role}
+              viewerUid={session.uid}
+              viewerCgGroupId={session.cgGroupId}
+            />
+          ) : null}
           <KasSummaryCard accounts={kasAccounts} cgGroups={cgGroups} />
         </Section>
       </Container>

@@ -5,8 +5,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Pencil, X, Loader2 } from "lucide-react";
 import { validateMeetingReportInput, type MeetingReportFieldErrors } from "@/lib/meeting-reports/validation";
 import { AGENDA_TYPE_OPTIONS } from "@/lib/meeting-reports/shared";
+import { getOneOnOneCandidates } from "@/lib/meeting-reports/one-on-one-candidates";
+import { FuzzySearchCombobox } from "@/components/shared/fuzzy-search-combobox";
 import type { MeetingAgendaType, MeetingReport } from "@/lib/meeting-reports/types";
 import type { CgGroup } from "@/lib/cg-groups/types";
+import type { Member } from "@/lib/members/types";
 
 const inputClass =
   "w-full rounded-full border-[1.5px] border-input bg-input/40 px-4 py-2.5 text-sm text-foreground outline-none transition-colors duration-200 placeholder:text-muted-foreground hover:border-primary focus-visible:border-primary focus-visible:bg-card focus-visible:ring-[3px] focus-visible:ring-ring/25 disabled:cursor-not-allowed disabled:opacity-60";
@@ -17,11 +20,19 @@ const textareaClass =
 export function EditLaporanDialog({
   report,
   cgGroups,
+  members,
+  viewerRole,
+  viewerUid,
+  viewerCgGroupId,
   onClose,
   onUpdated,
 }: {
   report: MeetingReport;
   cgGroups: CgGroup[];
+  members: Member[];
+  viewerRole: string | null;
+  viewerUid: string;
+  viewerCgGroupId: string | null;
   onClose: () => void;
   onUpdated: (report: MeetingReport) => void;
 }) {
@@ -29,6 +40,26 @@ export function EditLaporanDialog({
   const [formError, setFormError] = React.useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = React.useState<MeetingReportFieldErrors>({});
   const [selectedAgendaType, setSelectedAgendaType] = React.useState<MeetingAgendaType>(report.agendaType);
+  const [meetingWithId, setMeetingWithId] = React.useState(report.meetingWithId ?? "");
+  const [meetingWithQuery, setMeetingWithQuery] = React.useState(() => {
+    const linkedMember = members.find((member) => member.id === report.meetingWithId);
+    return linkedMember?.fullName || report.meetingWithName || "";
+  });
+
+  const oneOnOneOptions = React.useMemo(() => {
+    return getOneOnOneCandidates(members, viewerRole, viewerUid, viewerCgGroupId).map((member) => ({
+      id: member.id,
+      label: member.fullName || "Tanpa nama",
+    }));
+  }, [members, viewerRole, viewerUid, viewerCgGroupId]);
+
+  function handleAgendaTypeChange(nextType: MeetingAgendaType) {
+    setSelectedAgendaType(nextType);
+    if (nextType !== "one_on_one") {
+      setMeetingWithId("");
+      setMeetingWithQuery("");
+    }
+  }
 
   React.useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -47,17 +78,18 @@ export function EditLaporanDialog({
     const formData = new FormData(event.currentTarget);
     const cgId = String(formData.get("cgId") ?? "");
     const meetingDate = String(formData.get("meetingDate") ?? "");
-    const meetingWithName = String(formData.get("meetingWithName") ?? "");
     const agenda = String(formData.get("agenda") ?? "");
     const result = String(formData.get("result") ?? "");
 
     const errors = validateMeetingReportInput({
       meetingDate,
       agendaType: selectedAgendaType,
-      meetingWithName,
       agenda,
       result,
     });
+    if (selectedAgendaType === "one_on_one" && meetingWithId.trim() === "") {
+      errors.meetingWithId = "Pilih anggota yang ditemui dari daftar";
+    }
     if (cgId.trim() === "") {
       errors.cgId = "CG wajib dipilih";
     }
@@ -76,7 +108,7 @@ export function EditLaporanDialog({
           cgId,
           meetingDate,
           agendaType: selectedAgendaType,
-          meetingWithName,
+          meetingWithId: selectedAgendaType === "one_on_one" ? meetingWithId : "",
           agenda,
           result,
         }),
@@ -169,7 +201,7 @@ export function EditLaporanDialog({
                 id="agendaType"
                 name="agendaType"
                 value={selectedAgendaType}
-                onChange={(event) => setSelectedAgendaType(event.target.value as MeetingAgendaType)}
+                onChange={(event) => handleAgendaTypeChange(event.target.value as MeetingAgendaType)}
                 disabled={isSubmitting}
                 className={inputClass}
               >
@@ -182,15 +214,30 @@ export function EditLaporanDialog({
             </Field>
 
             {selectedAgendaType === "one_on_one" ? (
-              <Field label="Ketemu Dengan" htmlFor="meetingWithName" error={fieldErrors.meetingWithName} required>
-                <input
-                  id="meetingWithName"
-                  name="meetingWithName"
-                  type="text"
-                  defaultValue={report.meetingWithName ?? ""}
+              <Field label="Ketemu Dengan" htmlFor="meetingWithId" error={fieldErrors.meetingWithId} required>
+                <FuzzySearchCombobox
+                  id="meetingWithId"
+                  value={meetingWithQuery}
+                  onValueChange={(nextValue) => {
+                    setMeetingWithQuery(nextValue);
+                    setMeetingWithId("");
+                  }}
+                  onSelect={(option) => {
+                    setMeetingWithId(option.id);
+                    setMeetingWithQuery(option.label);
+                  }}
+                  options={oneOnOneOptions}
+                  placeholder="Cari nama anggota"
                   disabled={isSubmitting}
+                  emptyLabel="Tidak ada anggota yang cocok"
                   className={inputClass}
                 />
+                {!meetingWithId && report.meetingWithName ? (
+                  <p className="text-xs text-muted-foreground">
+                    Laporan lama tercatat dengan nama &quot;{report.meetingWithName}&quot;. Pilih anggota dari daftar
+                    untuk menautkannya.
+                  </p>
+                ) : null}
               </Field>
             ) : null}
 

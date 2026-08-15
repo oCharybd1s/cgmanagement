@@ -72,7 +72,6 @@ async function resolveOneOnOneScope(
   }
 
   const targetData = targetSnapshot.data() ?? {};
-  const targetRole = typeof targetData.role === "string" ? targetData.role : null;
   const targetCgId = typeof targetData.cgGroupId === "string" ? targetData.cgGroupId : null;
 
   if (isCoach(session.role)) {
@@ -80,14 +79,12 @@ async function resolveOneOnOneScope(
   }
 
   if ((isCgl(session.role) || isSponsor(session.role)) && session.cgGroupId) {
-    const isAllowedTargetRole = targetRole === "member" || targetRole === "simpatisan";
-
-    if (!isAllowedTargetRole || targetCgId !== session.cgGroupId) {
+    if (targetCgId !== session.cgGroupId) {
       return {
         ok: false,
         status: 403,
-        error: "Meeting 1 on 1 hanya bisa dibuat dengan member di CG Anda sendiri",
-        fieldErrors: { targetUserId: "Pilih member di CG Anda sendiri" },
+        error: "Meeting 1 on 1 hanya bisa dibuat dengan anggota di CG Anda sendiri",
+        fieldErrors: { targetUserId: "Pilih anggota di CG Anda sendiri" },
       };
     }
 

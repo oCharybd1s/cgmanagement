@@ -103,6 +103,7 @@ export async function respondToMeetingReportForSession(
       cgId: typeof targetData.cgId === "string" ? targetData.cgId : null,
       meetingDate: typeof targetData.meetingDate === "string" ? targetData.meetingDate : null,
       agendaType: readAgendaType(targetData.agendaType),
+      meetingWithId: typeof targetData.meetingWithId === "string" ? targetData.meetingWithId : null,
       meetingWithName: typeof targetData.meetingWithName === "string" ? targetData.meetingWithName : null,
       agenda: typeof targetData.agenda === "string" ? targetData.agenda : null,
       result: typeof targetData.result === "string" ? targetData.result : "",
