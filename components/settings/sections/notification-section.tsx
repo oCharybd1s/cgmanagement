@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
 import { BellRing, CheckCircle2, Loader2 } from "lucide-react";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
 import { useNotificationPreferences, type NotificationPreferences } from "@/hooks/use-notification-preferences";
@@ -65,44 +66,57 @@ export function NotificationSection() {
         {pushError && <p className="text-xs text-destructive">{pushError}</p>}
       </div>
 
-      <div className="flex flex-col gap-3 border-t border-border pt-4">
-        <div>
-          <p className="text-sm font-semibold text-foreground">Kategori Notifikasi</p>
-          <p className="text-xs text-muted-foreground">Atur kategori mana saja yang ingin Anda terima.</p>
-        </div>
-
-        <div className="flex flex-col gap-3">
-          {CATEGORY_ITEMS.map((item) => (
-            <div key={item.key} className="flex items-center justify-between gap-4">
+      <AnimatePresence initial={false}>
+        {isRegistered && (
+          <motion.div
+            key="notification-categories"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.26, ease: [0.16, 1, 0.3, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="flex flex-col gap-3 border-t border-border pt-4">
               <div>
-                <p className="text-sm text-foreground">{item.label}</p>
-                <p className="text-xs text-muted-foreground">{item.description}</p>
+                <p className="text-sm font-semibold text-foreground">Kategori Notifikasi</p>
+                <p className="text-xs text-muted-foreground">Atur kategori mana saja yang ingin Anda terima.</p>
               </div>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={preferences[item.key]}
-                aria-label={`Notifikasi ${item.label}`}
-                disabled={isLoading || pendingKey === item.key}
-                onClick={() => toggle(item.key)}
-                className={cn(
-                  "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border border-border transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-60",
-                  preferences[item.key] ? "bg-primary" : "bg-muted",
-                )}
-              >
-                <span
-                  className={cn(
-                    "inline-block h-4 w-4 transform rounded-full bg-background shadow-sm transition-transform duration-200",
-                    preferences[item.key] ? "translate-x-6" : "translate-x-1",
-                  )}
-                />
-              </button>
-            </div>
-          ))}
-        </div>
 
-        {prefError && <p className="text-xs text-destructive">{prefError}</p>}
-      </div>
+              <div className="flex flex-col gap-3">
+                {CATEGORY_ITEMS.map((item) => (
+                  <div key={item.key} className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-sm text-foreground">{item.label}</p>
+                      <p className="text-xs text-muted-foreground">{item.description}</p>
+                    </div>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={preferences[item.key]}
+                      aria-label={`Notifikasi ${item.label}`}
+                      disabled={isLoading || pendingKey === item.key}
+                      onClick={() => toggle(item.key)}
+                      className={cn(
+                        "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border border-border transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-60",
+                        preferences[item.key] ? "bg-primary" : "bg-muted",
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "inline-block h-4 w-4 transform rounded-full bg-background shadow-sm transition-transform duration-200",
+                          preferences[item.key] ? "translate-x-6" : "translate-x-1",
+                        )}
+                      />
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              {prefError && <p className="text-xs text-destructive">{prefError}</p>}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
