@@ -13,7 +13,7 @@ const CATEGORY_ITEMS: { key: keyof NotificationPreferences; label: string; descr
 ];
 
 export function NotificationSection() {
-  const { status, isRegistered, isBusy, error: pushError, enable } = usePushNotifications();
+  const { status, isRegistered, isChecking, isBusy, error: pushError, enable } = usePushNotifications();
   const { preferences, isLoading, pendingKey, error: prefError, toggle } = useNotificationPreferences();
 
   if (status === "unsupported") {
@@ -34,7 +34,12 @@ export function NotificationSection() {
           </p>
         </div>
 
-        {!isRegistered ? (
+        {isChecking ? (
+          <div className="flex items-center gap-1.5 self-start text-xs text-muted-foreground">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" strokeWidth={2} />
+            Memeriksa status notifikasi...
+          </div>
+        ) : !isRegistered ? (
           <button
             type="button"
             onClick={enable}

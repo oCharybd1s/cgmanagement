@@ -9,10 +9,8 @@ import { pickSelfBirthdayMessage } from "@/lib/notifications/birthday-messages";
 import { isCoach, isCgl } from "@/lib/auth/roles";
 import { sendNotificationToUsers } from "@/lib/notifications/send";
 import { pruneExpiredNotificationsForOrg } from "@/lib/notifications/inbox";
-import { pruneStaleFcmTokensForUser } from "@/lib/notifications/token-store";
+import { pruneStaleFcmTokensForUser, STALE_FCM_TOKEN_MAX_AGE_MS } from "@/lib/notifications/token-store";
 import type { Member } from "@/lib/members/types";
-
-const STALE_FCM_TOKEN_MAX_AGE_MS = 60 * 24 * 60 * 60 * 1000;
 
 export type DailyNotificationSummary = {
   orgId: string;

@@ -2,6 +2,8 @@ import { createHash } from "node:crypto";
 import { FieldValue, type Firestore } from "firebase-admin/firestore";
 import type { FcmTokenDoc } from "@/lib/notifications/types";
 
+export const STALE_FCM_TOKEN_MAX_AGE_MS = 60 * 24 * 60 * 60 * 1000;
+
 function tokenDocId(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
@@ -76,6 +78,28 @@ export async function deleteFcmTokensByValue(
     batch.delete(tokensCollection(adminDb, orgId, userId).doc(tokenDocId(token)));
   }
   await batch.commit();
+}
+
+export async function getFcmTokenStatus(
+  adminDb: Firestore,
+  orgId: string,
+  userId: string,
+  token: string,
+  maxAgeMs: number,
+): Promise<{ exists: boolean; isStale: boolean }> {
+  const docRef = tokensCollection(adminDb, orgId, userId).doc(tokenDocId(token));
+  const snapshot = await docRef.get();
+
+  if (!snapshot.exists) {
+    return { exists: false, isStale: false };
+  }
+
+  const updatedAt = snapshot.data()?.updatedAt;
+  const updatedAtMs =
+    updatedAt && typeof updatedAt.toMillis === "function" ? updatedAt.toMillis() : null;
+  const isStale = updatedAtMs === null || updatedAtMs < Date.now() - maxAgeMs;
+
+  return { exists: true, isStale };
 }
 
 export async function pruneStaleFcmTokensForUser(

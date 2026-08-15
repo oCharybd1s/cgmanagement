@@ -3,13 +3,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { getToken, onMessage } from "firebase/messaging";
 import { getFirebaseMessaging } from "@/lib/firebase/firebase";
-import { registerTokenWithServer } from "@/lib/notifications/register-token-client";
+import { registerTokenWithServer, deleteTokenFromServer, getStoredDeviceToken, setStoredDeviceToken } from "@/lib/notifications/register-token-client";
 
 export type PushPermissionStatus = "unsupported" | "default" | "denied" | "granted";
 
 type UsePushNotificationsResult = {
   status: PushPermissionStatus;
   isRegistered: boolean;
+  isChecking: boolean;
   isBusy: boolean;
   error: string | null;
   enable: () => Promise<void>;
@@ -35,8 +36,68 @@ function getInitialStatus(): PushPermissionStatus {
 export function usePushNotifications(): UsePushNotificationsResult {
   const [status, setStatus] = useState<PushPermissionStatus>(getInitialStatus);
   const [isRegistered, setIsRegistered] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
   const [isBusy, setIsBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function checkExistingRegistration() {
+      if (typeof window === "undefined" || !("Notification" in window)) {
+        setStatus("unsupported");
+        setIsChecking(false);
+        return;
+      }
+
+      if (Notification.permission !== "granted") {
+        setIsChecking(false);
+        return;
+      }
+
+      try {
+        const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
+        if (!vapidKey) {
+          return;
+        }
+
+        const messaging = await getFirebaseMessaging();
+        if (!messaging) {
+          return;
+        }
+
+        const registration = await navigator.serviceWorker.ready;
+        const token = await getToken(messaging, { vapidKey, serviceWorkerRegistration: registration });
+
+        if (!token) {
+          return;
+        }
+
+        setStoredDeviceToken(token);
+
+        const response = await fetch(`/api/notifications/token?token=${encodeURIComponent(token)}`);
+        const data = await response.json().catch(() => null);
+
+        if (!cancelled && data?.ok) {
+          setIsRegistered(Boolean(data.active));
+        }
+      } catch {
+        if (!cancelled) {
+          setIsRegistered(false);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsChecking(false);
+        }
+      }
+    }
+
+    checkExistingRegistration();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
@@ -113,7 +174,13 @@ export function usePushNotifications(): UsePushNotificationsResult {
         return;
       }
 
+      const previousToken = getStoredDeviceToken();
+      if (previousToken && previousToken !== token) {
+        await deleteTokenFromServer(previousToken);
+      }
+
       await registerTokenWithServer(token);
+      setStoredDeviceToken(token);
       setIsRegistered(true);
     } catch (err) {
       setError(toFriendlyError(err));
@@ -122,5 +189,5 @@ export function usePushNotifications(): UsePushNotificationsResult {
     }
   }, []);
 
-  return { status, isRegistered, isBusy, error, enable };
+  return { status, isRegistered, isChecking, isBusy, error, enable };
 }
