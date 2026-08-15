@@ -4,10 +4,12 @@ import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
+import { LOGIN_EMAIL_DOMAIN, buildEmailFromUsername, sanitizeUsernameInput } from "@/lib/auth/email-domain";
 
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [username, setUsername] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
@@ -18,7 +20,7 @@ export function LoginForm() {
     setIsSubmitting(true);
 
     const formData = new FormData(event.currentTarget);
-    const email = String(formData.get("email") ?? "");
+    const email = buildEmailFromUsername(username);
     const password = String(formData.get("password") ?? "");
 
     try {
@@ -61,19 +63,29 @@ export function LoginForm() {
           <span className="pointer-events-none absolute left-4.5 top-1/2 flex h-4.5 w-4.5 -translate-y-1/2 items-center justify-center text-muted-foreground">
             <Mail className="h-full w-full" strokeWidth={2} />
           </span>
-          <label htmlFor="email" className="sr-only">
-            Email
+          <label htmlFor="username" className="sr-only">
+            Username
           </label>
           <input
-            id="email"
-            name="email"
-            type="email"
-            placeholder="Email"
+            id="username"
+            name="username"
+            type="text"
+            inputMode="email"
+            placeholder="Username"
             autoComplete="username"
+            autoCapitalize="off"
+            autoCorrect="off"
+            spellCheck={false}
             required
+            value={username}
+            onChange={(event) => setUsername(sanitizeUsernameInput(event.target.value))}
             disabled={isSubmitting}
             className="w-full rounded-full border-[1.5px] border-input bg-input/40 py-3 pl-11 pr-5 text-sm text-foreground outline-none transition-colors duration-200 placeholder:text-muted-foreground hover:border-primary focus-visible:border-primary focus-visible:bg-card focus-visible:ring-[3px] focus-visible:ring-ring/25 disabled:cursor-not-allowed disabled:opacity-60"
+            style={{ paddingRight: `calc(${LOGIN_EMAIL_DOMAIN.length}ch + 1.75rem)` }}
           />
+          <span className="pointer-events-none absolute right-4.5 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+            {LOGIN_EMAIL_DOMAIN}
+          </span>
         </div>
 
         <div className="relative w-full">
@@ -144,12 +156,6 @@ export function LoginForm() {
           )}
         </button>
       </form>
-
-      <div className="mt-4 flex w-full items-center justify-between text-[12.5px]">
-        <a href="#" className="text-muted-foreground underline-offset-2 transition-colors duration-200 hover:text-primary hover:underline">
-          Lupa password?
-        </a>
-      </div>
     </motion.div>
   );
 }
