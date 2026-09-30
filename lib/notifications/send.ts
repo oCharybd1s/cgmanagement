@@ -19,17 +19,17 @@ export async function sendNotificationToTokens(
   }
 
   const messaging = getMessaging();
+  const data: Record<string, string> = {
+    title: payload.title,
+    body: payload.body,
+  };
+  if (payload.url) {
+    data.url = payload.url;
+  }
   const response = await messaging.sendEachForMulticast({
     tokens,
-    notification: {
-      title: payload.title,
-      body: payload.body,
-    },
     webpush: {
-      fcmOptions: payload.url ? { link: payload.url } : undefined,
-      notification: {
-        icon: "/icons/icon-192.png",
-      },
+      data,
     },
   });
 

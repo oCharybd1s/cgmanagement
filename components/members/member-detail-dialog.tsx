@@ -3,18 +3,20 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Check, Circle, Pencil, Trash2 } from "lucide-react";
+import { X, Check, Circle, Pencil, Trash2, UserMinus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   bendaharaScopeForRole,
   canAssignBendahara,
   canDeleteMember,
   canEditMember,
+  canMoveToPastMember,
   cgGroupDisplayLabel,
   getRoleLabel,
 } from "@/lib/auth/roles";
 import { EditMemberDialog } from "@/components/members/edit-member-dialog";
 import { DeleteMemberDialog } from "@/components/members/delete-member-dialog";
+import { MoveToFormerDialog } from "@/components/members/move-to-former-dialog";
 import { ResetPasswordDialog } from "@/components/members/reset-password-dialog";
 import { PasswordStatusPanel } from "@/components/members/password-status-panel";
 import type { Member, SpiritualStatus } from "@/lib/members/types";
@@ -56,6 +58,7 @@ export function MemberDetailDialog({
   const [bendaharaError, setBendaharaError] = React.useState<string | null>(null);
   const [isEditOpen, setIsEditOpen] = React.useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = React.useState(false);
+  const [isMoveToFormerOpen, setIsMoveToFormerOpen] = React.useState(false);
   const [isResetPasswordOpen, setIsResetPasswordOpen] = React.useState(false);
 
   if (member && member.id !== renderedMemberId) {
@@ -65,6 +68,7 @@ export function MemberDetailDialog({
     setIsUpdating(false);
     setIsEditOpen(false);
     setIsDeleteOpen(false);
+    setIsMoveToFormerOpen(false);
     setIsResetPasswordOpen(false);
   }
 
@@ -92,6 +96,8 @@ export function MemberDetailDialog({
     member !== null &&
     viewerUserId !== member.id &&
     canDeleteMember(viewerRole, viewerCgGroupId, member.role, member.cgGroupId);
+  const canMoveToFormer =
+    member !== null && viewerUserId !== member.id && canMoveToPastMember(viewerRole);
 
   async function toggleBendahara() {
     if (!member) {
@@ -246,6 +252,16 @@ export function MemberDetailDialog({
                       Hapus
                     </button>
                   ) : null}
+                  {canMoveToFormer ? (
+                    <button
+                      type="button"
+                      onClick={() => setIsMoveToFormerOpen(true)}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2.5 text-sm font-semibold text-foreground transition-colors duration-200 hover:bg-muted"
+                    >
+                      <UserMinus className="h-4 w-4" strokeWidth={2} />
+                      Alumni
+                    </button>
+                  ) : null}
                   {canEdit ? (
                     <button
                       type="button"
@@ -289,6 +305,18 @@ export function MemberDetailDialog({
           onClose={() => setIsDeleteOpen(false)}
           onDeleted={() => {
             setIsDeleteOpen(false);
+            onMemberDeleted?.(member.id);
+            onClose();
+          }}
+        />
+      ) : null}
+
+      {member && isMoveToFormerOpen ? (
+        <MoveToFormerDialog
+          member={member}
+          onClose={() => setIsMoveToFormerOpen(false)}
+          onMoved={() => {
+            setIsMoveToFormerOpen(false);
             onMemberDeleted?.(member.id);
             onClose();
           }}

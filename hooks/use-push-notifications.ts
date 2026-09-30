@@ -113,8 +113,9 @@ export function usePushNotifications(): UsePushNotificationsResult {
       }
 
       unsubscribe = onMessage(messaging, async (payload) => {
-        const title = payload.notification?.title ?? "Notifikasi";
-        const body = payload.notification?.body ?? "";
+        const data = payload.data ?? {};
+        const title = data.title ?? "Notifikasi";
+        const body = data.body ?? "";
         const registration = await navigator.serviceWorker.ready;
         await registration.showNotification(title, { body, icon: "/icons/icon-192.png" });
       });

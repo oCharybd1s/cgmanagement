@@ -61,9 +61,10 @@ if (firebaseConfig.apiKey) {
   const messaging = firebase.messaging();
 
   messaging.onBackgroundMessage((payload) => {
-    const title = payload.notification && payload.notification.title ? payload.notification.title : "Notifikasi";
-    const body = payload.notification && payload.notification.body ? payload.notification.body : "";
-    const url = payload.fcmOptions && payload.fcmOptions.link ? payload.fcmOptions.link : "/home";
+    const data = payload.data || {};
+    const title = data.title || "Notifikasi";
+    const body = data.body || "";
+    const url = data.url || "/home";
 
     self.registration.showNotification(title, {
       body,

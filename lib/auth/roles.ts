@@ -66,6 +66,10 @@ export function canViewFormerMembers(role: string | null) {
   return role === "coach" || isCgl(role);
 }
 
+export function canMoveToPastMember(role: string | null) {
+  return role === "coach";
+}
+
 export function canViewVipList(role: string | null) {
   return isCoach(role) || isCgl(role) || isSponsor(role);
 }
