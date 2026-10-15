@@ -12,15 +12,21 @@ export const EVENT_TYPE_TONES: Record<EventType, EventTone> = {
   meeting_cg: { dot: "bg-chart-3", chip: "bg-chart-3/15 text-chart-3 border-chart-3/30" },
   meeting_cgl: { dot: "bg-chart-4", chip: "bg-chart-4/15 text-chart-4 border-chart-4/30" },
   all_leader: { dot: "bg-chart-5", chip: "bg-chart-5/15 text-chart-5 border-chart-5/30" },
-  all_cgl: { dot: "bg-secondary", chip: "bg-secondary/60 text-secondary-foreground border-secondary" },
-  all: { dot: "bg-accent", chip: "bg-accent/70 text-accent-foreground border-accent" },
+  all_cgl: {
+    dot: "bg-event-neutral",
+    chip: "bg-secondary/60 text-secondary-foreground border-secondary dark:border-event-neutral/30",
+  },
+  all: {
+    dot: "bg-event-all",
+    chip: "bg-accent/70 text-accent-foreground border-accent dark:bg-event-all/15 dark:text-event-all dark:border-event-all/30",
+  },
   all_ministry: { dot: "bg-success", chip: "bg-success/15 text-success border-success/30" },
   only_me: { dot: "bg-chart-2", chip: "bg-chart-2/15 text-chart-2 border-chart-2/30" },
 };
 
 export const BIRTHDAY_TONE: EventTone = {
   dot: "bg-brand-spark",
-  chip: "bg-brand-spark/25 text-brand-spark-foreground border-brand-spark/40",
+  chip: "bg-brand-spark/25 text-brand-spark-foreground border-brand-spark/40 dark:bg-brand-spark/15 dark:text-brand-spark",
 };
 
 export function EventTypeDot({ type, className }: { type: EventType; className?: string }) {

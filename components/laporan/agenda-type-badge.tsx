@@ -10,7 +10,10 @@ type AgendaTone = {
 export const AGENDA_TYPE_TONES: Record<MeetingAgendaType, AgendaTone> = {
   one_on_one: { dot: "bg-chart-1", chip: "bg-chart-1/15 text-chart-1 border-chart-1/30" },
   sponsor_meeting: { dot: "bg-chart-4", chip: "bg-chart-4/15 text-chart-4 border-chart-4/30" },
-  others: { dot: "bg-secondary", chip: "bg-secondary/60 text-secondary-foreground border-secondary" },
+  others: {
+    dot: "bg-event-neutral",
+    chip: "bg-secondary/60 text-secondary-foreground border-secondary dark:border-event-neutral/30",
+  },
 };
 
 export function AgendaTypeBadge({ type, className }: { type: MeetingAgendaType; className?: string }) {

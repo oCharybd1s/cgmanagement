@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Eye, Search, SearchX, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { cgGroupDisplayLabel, getRoleLabel } from "@/lib/auth/roles";
+import { cgGroupDisplayLabel, getRoleLabel, isSimpatisan } from "@/lib/auth/roles";
 import { rankBySearch } from "@/lib/search/fuzzy-match";
 import { AddMemberDialog } from "@/components/members/add-member-dialog";
 import { QuickAddMemberDialog } from "@/components/members/quick-add-member-dialog";
@@ -13,6 +13,8 @@ import { compareMembersForDirectory } from "@/lib/members/sort";
 import type { CgGroup } from "@/lib/cg-groups/types";
 
 const SPIRITUAL_STATUS_TOTAL = 8;
+
+type SimpatisanFilter = "include" | "exclude";
 
 export function MemberDirectory({
   members,
@@ -35,6 +37,7 @@ export function MemberDirectory({
 }) {
   const [search, setSearch] = React.useState("");
   const [cgFilter, setCgFilter] = React.useState("all");
+  const [simpatisanFilter, setSimpatisanFilter] = React.useState<SimpatisanFilter>("include");
   const [selectedMember, setSelectedMember] = React.useState<Member | null>(null);
   const [directoryMembers, setDirectoryMembers] = React.useState(members);
   const [syncedMembers, setSyncedMembers] = React.useState(members);
@@ -57,11 +60,13 @@ export function MemberDirectory({
   }, [cgGroups]);
 
   const filteredMembers = React.useMemo(() => {
-    const matchingCg = directoryMembers.filter(
-      (member) => cgFilter === "all" || member.cgGroupId === cgFilter,
+    const matchingFilters = directoryMembers.filter(
+      (member) =>
+        (cgFilter === "all" || member.cgGroupId === cgFilter) &&
+        (simpatisanFilter === "include" || !isSimpatisan(member.role)),
     );
-    return rankBySearch(search, matchingCg, (member) => [member.fullName]);
-  }, [directoryMembers, search, cgFilter]);
+    return rankBySearch(search, matchingFilters, (member) => [member.fullName]);
+  }, [directoryMembers, search, cgFilter, simpatisanFilter]);
 
   function handleMemberCreated(newMember: Member) {
     setDirectoryMembers((current) => [...current, newMember].sort(compareMembersForDirectory));
@@ -122,6 +127,23 @@ export function MemberDirectory({
                     {group.groupCode}
                   </option>
                 ))}
+              </select>
+            </div>
+          ) : null}
+
+          {hasMembers ? (
+            <div className="w-full sm:w-auto">
+              <label htmlFor="member-simpatisan-filter" className="sr-only">
+                Filter Simpatisan
+              </label>
+              <select
+                id="member-simpatisan-filter"
+                value={simpatisanFilter}
+                onChange={(event) => setSimpatisanFilter(event.target.value as SimpatisanFilter)}
+                className="w-full rounded-full border-[1.5px] border-input bg-input/40 px-4 py-2.5 text-sm text-foreground outline-none transition-colors duration-200 hover:border-primary focus-visible:border-primary focus-visible:ring-[3px] focus-visible:ring-ring/25 sm:w-auto"
+              >
+                <option value="include">Termasuk Simpatisan</option>
+                <option value="exclude">Tanpa Simpatisan</option>
               </select>
             </div>
           ) : null}
@@ -428,7 +450,7 @@ function EmptySearchState() {
         <SearchX className="h-4 w-4" strokeWidth={2} />
       </span>
       <p className="text-sm font-medium text-foreground">Tidak ada anggota yang cocok</p>
-      <p className="text-xs text-muted-foreground">Coba kata kunci lain atau ganti filter CG.</p>
+      <p className="text-xs text-muted-foreground">Coba kata kunci lain atau ganti filter.</p>
     </div>
   );
 }

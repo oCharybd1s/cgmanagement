@@ -39,10 +39,10 @@ const VIP_STATUS_LABELS: Record<VipReportItem["status"], string> = {
 };
 
 const VIP_STATUS_TONES: Record<VipReportItem["status"], string> = {
-  pending: "bg-warning/15 text-warning-foreground border-warning/30",
+  pending: "bg-warning/15 text-warning-foreground border-warning/30 dark:text-warning",
   berpotensi: "bg-primary/15 text-primary border-primary/25",
-  accept: "bg-success/15 text-success-foreground border-success/30",
-  reject: "bg-destructive/15 text-destructive-foreground border-destructive/30",
+  accept: "bg-success/15 text-success border-success/30",
+  reject: "bg-destructive/15 text-destructive border-destructive/30",
 };
 
 const CHART_COLORS = [

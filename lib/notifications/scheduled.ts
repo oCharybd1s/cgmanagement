@@ -17,9 +17,12 @@ export type DailyNotificationSummary = {
   birthdayTodayNotified: number;
   birthdayReminderNotified: number;
   eventTodayNotified: number;
+  eventReminderNotified: number;
   expiredNotificationsPruned: number;
   staleFcmTokensPruned: number;
 };
+
+const EVENT_REMINDER_DAYS_AHEAD = [7, 3];
 
 export async function runDailyNotificationJob(adminDb: Firestore, orgId: string): Promise<DailyNotificationSummary> {
   const today = getJakartaCalendarDate();
@@ -31,12 +34,14 @@ export async function runDailyNotificationJob(adminDb: Firestore, orgId: string)
     birthdayTodayNotified,
     birthdayReminderNotified,
     eventTodayNotified,
+    eventReminderNotified,
     expiredNotificationsPruned,
     staleFcmTokensPruned,
   ] = await Promise.all([
     notifyBirthdaysToday(adminDb, orgId, members, today),
     notifyBirthdayReminders(adminDb, orgId, members, reminderDate),
-    notifyEventsToday(adminDb, orgId, members, today),
+    notifyEventsOnDate(adminDb, orgId, members, today, 0),
+    notifyEventReminders(adminDb, orgId, members, today),
     pruneExpiredNotificationsForOrg(adminDb, orgId),
     pruneStaleFcmTokensForOrg(adminDb, orgId, members),
   ]);
@@ -46,6 +51,7 @@ export async function runDailyNotificationJob(adminDb: Firestore, orgId: string)
     birthdayTodayNotified,
     birthdayReminderNotified,
     eventTodayNotified,
+    eventReminderNotified,
     expiredNotificationsPruned,
     staleFcmTokensPruned,
   };
@@ -154,13 +160,28 @@ async function notifyBirthdayReminders(
   return notifiedCount;
 }
 
-async function notifyEventsToday(
+async function notifyEventReminders(
   adminDb: Firestore,
   orgId: string,
   members: Member[],
   today: CalendarDate,
 ): Promise<number> {
-  const events = await getEventsForOrgOnDate(orgId, toDateKey(today));
+  const results = await Promise.all(
+    EVENT_REMINDER_DAYS_AHEAD.map((daysAhead) =>
+      notifyEventsOnDate(adminDb, orgId, members, addDays(today, daysAhead), daysAhead),
+    ),
+  );
+  return results.reduce((total, count) => total + count, 0);
+}
+
+async function notifyEventsOnDate(
+  adminDb: Firestore,
+  orgId: string,
+  members: Member[],
+  eventDate: CalendarDate,
+  daysAhead: number,
+): Promise<number> {
+  const events = await getEventsForOrgOnDate(orgId, toDateKey(eventDate));
   let notifiedCount = 0;
 
   for (const event of events) {
@@ -180,10 +201,8 @@ async function notifyEventsToday(
       continue;
     }
 
-    const timeSuffix = event.time ? ` pukul ${event.time}` : "";
     const result = await sendNotificationToUsers(adminDb, orgId, recipientIds, {
-      title: "Event Hari Ini",
-      body: `${event.name} berlangsung hari ini${timeSuffix}`,
+      ...buildEventNotificationText(event.name, event.time, daysAhead),
       url: "/kalender",
       category: "event",
     });
@@ -191,4 +210,24 @@ async function notifyEventsToday(
   }
 
   return notifiedCount;
+}
+
+function buildEventNotificationText(
+  eventName: string,
+  eventTime: string | null,
+  daysAhead: number,
+): { title: string; body: string } {
+  const timeSuffix = eventTime ? ` pukul ${eventTime}` : "";
+
+  if (daysAhead === 0) {
+    return {
+      title: "Event Hari Ini",
+      body: `${eventName} berlangsung hari ini${timeSuffix}`,
+    };
+  }
+
+  return {
+    title: `Reminder Event H-${daysAhead}`,
+    body: `${eventName} akan berlangsung dalam ${daysAhead} hari${timeSuffix}`,
+  };
 }

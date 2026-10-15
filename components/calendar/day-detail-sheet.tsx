@@ -96,7 +96,7 @@ export function DayDetailSheet({
                     key={birthday.memberId}
                     className="flex items-center gap-3 rounded-2xl border border-brand-spark/40 bg-brand-spark/15 px-4 py-3"
                   >
-                    <Cake className="h-4 w-4 shrink-0 text-brand-spark-foreground" strokeWidth={2} />
+                    <Cake className="h-4 w-4 shrink-0 text-brand-spark-foreground dark:text-brand-spark" strokeWidth={2} />
                     <p className="text-sm text-foreground">
                       <span className="font-semibold">{birthday.fullName || "Tanpa nama"}</span>
                       {birthday.age !== null ? ` genap ${birthday.age} tahun` : ""}
