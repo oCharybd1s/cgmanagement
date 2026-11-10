@@ -320,7 +320,7 @@ export function EventFormDialog({
               />
             </Field>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Tanggal" htmlFor="date" error={fieldErrors.date} required>
                 <input
                   id="date"

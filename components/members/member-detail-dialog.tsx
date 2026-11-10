@@ -240,43 +240,45 @@ export function MemberDetailDialog({
                 ) : null}
               </div>
 
-              <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-6 py-4">
-                <div className="flex flex-wrap items-center gap-2">
-                  {canDelete ? (
-                    <button
-                      type="button"
-                      onClick={() => setIsDeleteOpen(true)}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-destructive/30 px-4 py-2.5 text-sm font-semibold text-destructive transition-colors duration-200 hover:bg-destructive/10"
-                    >
-                      <Trash2 className="h-4 w-4" strokeWidth={2} />
-                      Hapus
-                    </button>
-                  ) : null}
-                  {canMoveToFormer ? (
-                    <button
-                      type="button"
-                      onClick={() => setIsMoveToFormerOpen(true)}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2.5 text-sm font-semibold text-foreground transition-colors duration-200 hover:bg-muted"
-                    >
-                      <UserMinus className="h-4 w-4" strokeWidth={2} />
-                      Alumni
-                    </button>
-                  ) : null}
-                  {canEdit ? (
-                    <button
-                      type="button"
-                      onClick={() => setIsEditOpen(true)}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2.5 text-sm font-semibold text-foreground transition-colors duration-200 hover:bg-muted"
-                    >
-                      <Pencil className="h-4 w-4" strokeWidth={2} />
-                      Edit
-                    </button>
-                  ) : null}
-                </div>
+              <div className="flex flex-col gap-2 border-t border-border px-6 py-4 sm:flex-row sm:items-center">
+                {canDelete || canMoveToFormer || canEdit ? (
+                  <div className="flex flex-wrap items-center gap-2">
+                    {canDelete ? (
+                      <button
+                        type="button"
+                        onClick={() => setIsDeleteOpen(true)}
+                        className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full border border-destructive/30 px-3 py-2.5 sm:flex-none sm:px-4 text-sm font-semibold text-destructive transition-colors duration-200 hover:bg-destructive/10"
+                      >
+                        <Trash2 className="h-4 w-4" strokeWidth={2} />
+                        Hapus
+                      </button>
+                    ) : null}
+                    {canMoveToFormer ? (
+                      <button
+                        type="button"
+                        onClick={() => setIsMoveToFormerOpen(true)}
+                        className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full border border-border px-3 py-2.5 text-sm font-semibold text-foreground sm:flex-none sm:px-4 transition-colors duration-200 hover:bg-muted"
+                      >
+                        <UserMinus className="h-4 w-4" strokeWidth={2} />
+                        Alumni
+                      </button>
+                    ) : null}
+                    {canEdit ? (
+                      <button
+                        type="button"
+                        onClick={() => setIsEditOpen(true)}
+                        className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full border border-border px-3 py-2.5 text-sm font-semibold text-foreground sm:flex-none sm:px-4 transition-colors duration-200 hover:bg-muted"
+                      >
+                        <Pencil className="h-4 w-4" strokeWidth={2} />
+                        Edit
+                      </button>
+                    ) : null}
+                  </div>
+                ) : null}
                 <button
                   type="button"
                   onClick={onClose}
-                  className="rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-transform duration-200 hover:-translate-y-0.5 active:translate-y-0"
+                  className="w-full rounded-full bg-primary px-4 py-2.5 sm:ml-auto sm:w-auto text-sm font-semibold text-primary-foreground transition-transform duration-200 hover:-translate-y-0.5 active:translate-y-0"
                 >
                   Tutup
                 </button>
