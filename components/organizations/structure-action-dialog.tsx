@@ -1,9 +1,11 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useMounted } from "@/hooks/use-mounted";
 
 export type StructureActionOutcome = { ok: true } | { ok: false; error: string };
 
@@ -26,6 +28,7 @@ export function StructureActionDialog({
   onConfirm: () => Promise<StructureActionOutcome>;
   children?: React.ReactNode;
 }) {
+  const mounted = useMounted();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -56,7 +59,11 @@ export function StructureActionDialog({
     onClose();
   }
 
-  return (
+  if (!mounted) {
+    return null;
+  }
+
+  return createPortal(
     <AnimatePresence>
       {open ? (
         <React.Fragment>
@@ -131,6 +138,7 @@ export function StructureActionDialog({
           </motion.div>
         </React.Fragment>
       ) : null}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }

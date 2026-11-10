@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import {
   ShieldCheck,
   UserCog,
@@ -434,7 +435,7 @@ function PromotedPasswordDialog({
     }
   }
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
       onClick={onClose}
@@ -478,7 +479,8 @@ function PromotedPasswordDialog({
           Selesai
         </button>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
