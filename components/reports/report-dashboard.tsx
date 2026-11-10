@@ -98,10 +98,10 @@ function OverviewSection({ report }: { report: ComsulReport }) {
 
   const cards = [
     {
-      label: "Total Anggota",
-      value: overview.totalPeople.toString(),
+      label: "Total Member",
+      value: overview.totalMembers.toString(),
       icon: Users,
-      hint: `${overview.totalCg} CG aktif`,
+      hint: `+ ${overview.totalSimpatisan} simpatisan, ${overview.totalCg} CG aktif`,
     },
     {
       label: "Rata-rata Umur",
@@ -145,18 +145,18 @@ function OverviewSection({ report }: { report: ComsulReport }) {
 }
 
 function CgSection({ report }: { report: ComsulReport }) {
-  const maxPeople = Math.max(1, ...report.cgStats.map((cg) => cg.totalPeople));
+  const maxMembers = Math.max(1, ...report.cgStats.map((cg) => cg.memberCount));
 
   return (
     <section className="flex flex-col gap-4">
       <SectionHeader
         icon={Users}
         title="Jumlah & Usia per CG"
-        description="Distribusi jumlah orang dan rata-rata umur di tiap CG"
+        description="Member ke atas dan simpatisan dihitung terpisah di tiap CG"
       />
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="rounded-2xl border border-border bg-card/70 p-5 shadow-sm backdrop-blur-xl">
-          <p className="mb-4 text-sm font-medium text-foreground">Jumlah Orang per CG</p>
+          <p className="mb-4 text-sm font-medium text-foreground">Jumlah Member per CG</p>
           <div className="flex flex-col gap-3">
             {report.cgStats.map((cg, index) => (
               <div key={cg.cgId} className="flex items-center gap-3">
@@ -165,13 +165,13 @@ function CgSection({ report }: { report: ComsulReport }) {
                   <div
                     className="h-full rounded-full"
                     style={{
-                      width: `${(cg.totalPeople / maxPeople) * 100}%`,
+                      width: `${(cg.memberCount / maxMembers) * 100}%`,
                       backgroundColor: CHART_COLORS[index % CHART_COLORS.length],
                     }}
                   />
                 </div>
                 <span className="w-6 shrink-0 text-right text-xs font-semibold text-foreground">
-                  {cg.totalPeople}
+                  {cg.memberCount}
                 </span>
               </div>
             ))}
@@ -187,7 +187,8 @@ function CgSection({ report }: { report: ComsulReport }) {
               <tr className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
                 <th className="px-4 py-3 font-medium">CG</th>
                 <th className="px-4 py-3 font-medium">CGL</th>
-                <th className="px-4 py-3 font-medium">Orang</th>
+                <th className="px-4 py-3 font-medium">Member</th>
+                <th className="px-4 py-3 font-medium">Simpatisan</th>
                 <th className="px-4 py-3 font-medium">Rata Umur</th>
                 <th className="px-4 py-3 font-medium">Termuda/Tertua</th>
                 <th className="px-4 py-3 font-medium">Laporan 90h</th>
@@ -198,7 +199,8 @@ function CgSection({ report }: { report: ComsulReport }) {
                 <tr key={cg.cgId} className="border-b border-border/60 last:border-0">
                   <td className="px-4 py-3 font-medium text-foreground">{cg.cgLabel}</td>
                   <td className="px-4 py-3 text-muted-foreground">{cg.cglName ?? "-"}</td>
-                  <td className="px-4 py-3 text-foreground">{cg.totalPeople}</td>
+                  <td className="px-4 py-3 text-foreground">{cg.memberCount}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{cg.simpatisanCount}</td>
                   <td className="px-4 py-3 text-foreground">
                     {cg.averageAge !== null ? `${cg.averageAge} th` : "-"}
                   </td>
@@ -212,7 +214,7 @@ function CgSection({ report }: { report: ComsulReport }) {
               ))}
               {report.cgStats.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-6 text-center text-muted-foreground">
+                  <td colSpan={7} className="px-4 py-6 text-center text-muted-foreground">
                     Belum ada data CG.
                   </td>
                 </tr>

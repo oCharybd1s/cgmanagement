@@ -1,4 +1,4 @@
-import { getRoleLabel, isCoach } from "@/lib/auth/roles";
+import { getRoleLabel, isCoach, isSimpatisan } from "@/lib/auth/roles";
 import { listAllMembersForOrg } from "@/lib/members/data";
 import { getCgGroupsForOrg } from "@/lib/cg-groups/data";
 import { getKasAccountsForSession } from "@/lib/kas-accounts/data";
@@ -114,6 +114,7 @@ function buildOverview(members: Member[], cgGroups: CgGroup[], kasAccounts: KasA
   const ages = members.map((member) => computeAge(member.birthDate)).filter(isNumber);
   const totalBalance = kasAccounts.reduce((sum, account) => sum + account.balance, 0);
   const nijMissingCount = members.filter((member) => !member.nij).length;
+  const totalSimpatisan = members.filter((member) => isSimpatisan(member.role)).length;
 
   const roleCounts = new Map<string, number>();
   for (const member of members) {
@@ -125,6 +126,8 @@ function buildOverview(members: Member[], cgGroups: CgGroup[], kasAccounts: KasA
 
   return {
     totalPeople: members.length,
+    totalMembers: members.length - totalSimpatisan,
+    totalSimpatisan,
     totalCg: cgGroups.length,
     averageAge: average(ages),
     totalBalance,
@@ -154,6 +157,7 @@ function buildCgStats(
   return cgGroups
     .map((group) => {
       const cgMembers = members.filter((member) => member.cgGroupId === group.id);
+      const simpatisanCount = cgMembers.filter((member) => isSimpatisan(member.role)).length;
       const ages = cgMembers.map((member) => computeAge(member.birthDate)).filter(isNumber);
       const cgReports = meetingReports.filter((report) => report.cgId === group.id);
       const lastMeetingDate = cgReports.reduce<string | null>((latest, report) => {
@@ -174,7 +178,8 @@ function buildCgStats(
         cgId: group.id,
         cgLabel: cgLabelFor(group.id),
         cglName: cgl?.fullName ?? null,
-        totalPeople: cgMembers.length,
+        memberCount: cgMembers.length - simpatisanCount,
+        simpatisanCount,
         averageAge: average(ages),
         youngestAge: ages.length > 0 ? Math.min(...ages) : null,
         oldestAge: ages.length > 0 ? Math.max(...ages) : null,
@@ -190,7 +195,7 @@ function buildMilestones(
   members: Member[],
   cgLabelFor: (cgGroupId: string | null, role?: string) => string,
 ): MilestoneProgress[] {
-  const eligible = members.filter((member) => member.role !== "coach");
+  const eligible = members.filter((member) => member.role !== "coach" && !isSimpatisan(member.role));
 
   const msj1Base = eligible;
   const msj2Base = msj1Base.filter((member) => member.spiritualStatus.msj1);
@@ -201,14 +206,14 @@ function buildMilestones(
   const cgt3Base = cgt2Base.filter((member) => member.spiritualStatus.cgt2);
 
   return [
-    milestoneProgress("msj1", "msj", msj1Base, "dari total anggota", cgLabelFor),
+    milestoneProgress("msj1", "msj", msj1Base, "dari total member, tanpa simpatisan", cgLabelFor),
     milestoneProgress("msj2", "msj", msj2Base, "dari yang sudah MSJ 1", cgLabelFor),
     milestoneProgress("msj3", "msj", msj3Base, "dari yang sudah MSJ 1 & 2", cgLabelFor),
-    milestoneProgress("cgt1", "cgt", cgt1Base, "dari total anggota", cgLabelFor),
+    milestoneProgress("cgt1", "cgt", cgt1Base, "dari total member, tanpa simpatisan", cgLabelFor),
     milestoneProgress("cgt2", "cgt", cgt2Base, "dari yang sudah CGT 1", cgLabelFor),
     milestoneProgress("cgt3", "cgt", cgt3Base, "dari yang sudah CGT 1 & 2", cgLabelFor),
-    milestoneProgress("baptisSelam", "baptis", eligible, "dari total anggota", cgLabelFor),
-    milestoneProgress("baptisRohKudus", "baptis", eligible, "dari total anggota", cgLabelFor),
+    milestoneProgress("baptisSelam", "baptis", eligible, "dari total member, tanpa simpatisan", cgLabelFor),
+    milestoneProgress("baptisRohKudus", "baptis", eligible, "dari total member, tanpa simpatisan", cgLabelFor),
   ];
 }
 

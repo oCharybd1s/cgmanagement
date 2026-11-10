@@ -32,7 +32,8 @@ export type CgGroupStat = {
   cgId: string;
   cgLabel: string;
   cglName: string | null;
-  totalPeople: number;
+  memberCount: number;
+  simpatisanCount: number;
   averageAge: number | null;
   youngestAge: number | null;
   oldestAge: number | null;
@@ -61,6 +62,8 @@ export type KasReportAccount = {
 
 export type OrgOverview = {
   totalPeople: number;
+  totalMembers: number;
+  totalSimpatisan: number;
   totalCg: number;
   averageAge: number | null;
   totalBalance: number;
